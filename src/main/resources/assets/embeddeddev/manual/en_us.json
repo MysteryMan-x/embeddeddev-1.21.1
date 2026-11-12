@@ -1,0 +1,1992 @@
+{
+  "title": "Embedded Dev Handbook",
+  "subtitle": "Build your electronics laboratory",
+  "categories": [
+    {
+      "id": "start",
+      "title": "Start",
+      "icon": "embeddeddev:manual"
+    },
+    {
+      "id": "develop",
+      "title": "Develop",
+      "icon": "embeddeddev:51systemboard"
+    },
+    {
+      "id": "modules",
+      "title": "Modules",
+      "icon": "embeddeddev:oled"
+    },
+    {
+      "id": "reference",
+      "title": "Reference",
+      "icon": "embeddeddev:stc89c52rc"
+    }
+  ],
+  "entries": [
+    {
+      "id": "welcome",
+      "category": "start",
+      "icon": "embeddeddev:manual",
+      "title": "Your electronics workbench",
+      "subtitle": "From one LED to a software bus",
+      "blocks": [
+        {
+          "type": "heading",
+          "text": "Welcome to the 8052 laboratory"
+        },
+        {
+          "type": "text",
+          "text": "Follow a practical route: make materials and a board, name GPIO pins, wire an LED, flash a program, then add buttons, displays and sensors. Every module has its own entry in Modules."
+        },
+        {
+          "type": "tip",
+          "text": "New here? Start with First LED, then Button controls LED. Try the OLED or thermometer afterwards. Add one device at a time so faults are easy to isolate."
+        },
+        {
+          "type": "heading",
+          "text": "How to use this book"
+        },
+        {
+          "type": "text",
+          "text": "Use the four tabs for categories. Search covers titles, prose, terminals and addresses throughout the book. Scroll over the index to move entries, or over the page to turn pages. Arrow keys turn pages, Ctrl+F focuses search, and Home returns here."
+        },
+        {
+          "type": "text",
+          "text": "Star the current entry and use Bookmarks to filter favorites. Recipe cards use the current world recipes. Hover items for their tooltips and click documented items to open their entries. The Copy button copies the entire code block."
+        },
+        {
+          "type": "heading",
+          "text": "Make a handbook"
+        },
+        {
+          "type": "recipe",
+          "id": "embeddeddev:manual"
+        },
+        {
+          "type": "link",
+          "target": "first_led",
+          "text": "Start the first LED experiment >"
+        },
+        {
+          "type": "link",
+          "target": "survival",
+          "text": "Survival route: sand to circuit board >"
+        }
+      ],
+      "keywords": "welcome"
+    },
+    {
+      "id": "survival",
+      "category": "start",
+      "icon": "embeddeddev:silicon_wafer",
+      "title": "Materials to microchips",
+      "subtitle": "Ore, wafers and circuit boards",
+      "blocks": [
+        {
+          "type": "heading",
+          "text": "Two sources of raw silicon"
+        },
+        {
+          "type": "text",
+          "text": "Find silicon ore in newly generated Overworld chunks at Y=-56 to 40. Use a stone pickaxe or better. Fortune increases raw drops and Silk Touch preserves the ore. Existing chunks need newly explored terrain."
+        },
+        {
+          "type": "text",
+          "text": "For an alternative, surround charcoal with four sand blocks. Raw silicon and both ore variants can be refined into wafers."
+        },
+        {
+          "type": "recipe",
+          "id": "embeddeddev:raw_silicon"
+        },
+        {
+          "type": "recipe",
+          "id": "embeddeddev:silicon_wafer_from_smelting"
+        },
+        {
+          "type": "recipe",
+          "id": "embeddeddev:silicon_wafer_from_blasting"
+        },
+        {
+          "type": "heading",
+          "text": "Make the PCB and MCU"
+        },
+        {
+          "type": "text",
+          "text": "Copper, clay and redstone produce two circuit boards. Wafers are the basis of chips and oscillators. Package an STC89C52RC, then combine it with a crystal and PCB to make the minimum system."
+        },
+        {
+          "type": "recipe",
+          "id": "embeddeddev:circuit_board"
+        },
+        {
+          "type": "recipe",
+          "id": "embeddeddev:stc89c52rc"
+        },
+        {
+          "type": "tip",
+          "text": "Picking up key materials unlocks vanilla recipe-book entries. Handbook cards also reflect recipe changes made by data packs."
+        },
+        {
+          "type": "link",
+          "target": "board",
+          "text": "Next: assemble the system board >"
+        }
+      ],
+      "items": [
+        "embeddeddev:raw_silicon",
+        "embeddeddev:silicon_wafer",
+        "embeddeddev:circuit_board",
+        "embeddeddev:silicon_ore",
+        "embeddeddev:deepslate_silicon_ore",
+        "embeddeddev:stc89c52rc"
+      ],
+      "keywords": "survival"
+    },
+    {
+      "id": "first_led",
+      "category": "start",
+      "icon": "embeddeddev:led_module",
+      "title": "First LED",
+      "subtitle": "One board, one cable, one output",
+      "blocks": [
+        {
+          "type": "heading",
+          "text": "Goal and materials"
+        },
+        {
+          "type": "text",
+          "text": "Goal: light an LED using your own 8052 program. Bring a system board, LED module, wire coil and HEX file. A new board includes an 11.0592 MHz crystal; all face terminals start unassigned."
+        },
+        {
+          "type": "heading",
+          "text": "1 · Name a terminal"
+        },
+        {
+          "type": "text",
+          "text": "Place the board, right-click it and open Six-face terminals. Choose an accessible face, edit G1, add label LED with kind GPIO and physical pin P1.0. Save and Apply."
+        },
+        {
+          "type": "wiring",
+          "id": "embeddeddev:led_module",
+          "labels": [
+            "P1.0|LED"
+          ]
+        },
+        {
+          "type": "heading",
+          "text": "2 · Connect the lamp"
+        },
+        {
+          "type": "text",
+          "text": "Place the LED nearby. Use the coil on the configured board group, then on the LED. A single terminal matches automatically. The finished cable stays visible after putting the coil away."
+        },
+        {
+          "type": "heading",
+          "text": "3 · Flash a minimal program"
+        },
+        {
+          "type": "text",
+          "text": "Compile this program in Keil C51 with HEX output enabled. Enter the HEX path on Programming and debugging, or drop the HEX file there. Flash it, then press Run."
+        },
+        {
+          "type": "code",
+          "text": "#include <REG52.H>\nsbit LED = P1^0;\nvoid main(void) {\n    LED = 1;\n    while (1) { }\n}"
+        },
+        {
+          "type": "tip",
+          "text": "GPIO 1 lights the LED and 0 turns it off. Stop pauses the CPU and the lamp keeps the port level. Board and connector redstone outputs return to zero when stopped."
+        },
+        {
+          "type": "link",
+          "target": "button",
+          "text": "Next experiment: button controls LED >"
+        },
+        {
+          "type": "link",
+          "target": "troubleshooting",
+          "text": "Lamp still dark? Troubleshoot it >"
+        }
+      ],
+      "keywords": "first_led"
+    },
+    {
+      "id": "flashing",
+      "category": "start",
+      "icon": "embeddeddev:51systemboard",
+      "title": "Flashing and first run",
+      "subtitle": "HEX is firmware; C is source",
+      "blocks": [
+        {
+          "type": "heading",
+          "text": "Prepare firmware in Keil"
+        },
+        {
+          "type": "text",
+          "text": "Create an 8051/C51 project for a compatible STC89C52 target. Start with the SMALL memory model and 12T timing. Enable Create HEX File under Output, then build and select the generated .hex. C, OBJ and A51 files are not flashable HEX images."
+        },
+        {
+          "type": "heading",
+          "text": "Panel workflow"
+        },
+        {
+          "type": "table",
+          "rows": [
+            [
+              "Step",
+              "Effect"
+            ],
+            [
+              "Flash HEX",
+              "Validate, replace firmware and reset CPU"
+            ],
+            [
+              "Run",
+              "Continue at the current PC"
+            ],
+            [
+              "Stop",
+              "Pause; keep CPU and RAM"
+            ],
+            [
+              "Reset",
+              "Restart and clear CPU RAM"
+            ],
+            [
+              "Step",
+              "Execute one instruction and refresh"
+            ]
+          ]
+        },
+        {
+          "type": "text",
+          "text": "Paths refer to files on the client computer. Relative paths start at the game instance directory. Flashing sends firmware bytes to the server; the server does not open that local path."
+        },
+        {
+          "type": "tip",
+          "text": "Stop and check configuration after changing wiring, the crystal or a driver. Flashing and reset keep wiring; CPU reset also preserves the independent OLED framebuffer."
+        },
+        {
+          "type": "heading",
+          "text": "If HEX validation fails"
+        },
+        {
+          "type": "text",
+          "text": "Check that the file is complete, has an EOF record and valid checksums, and stays within the 8 KiB CODE region 0000H–1FFFH. Invalid or out-of-range HEX does not replace existing firmware. The text payload limit is 128 KiB."
+        },
+        {
+          "type": "link",
+          "target": "examples",
+          "text": "Check wiring with bundled HEX examples >"
+        }
+      ],
+      "keywords": "flashing"
+    },
+    {
+      "id": "board",
+      "category": "develop",
+      "icon": "embeddeddev:51systemboard",
+      "title": "Minimum system board",
+      "subtitle": "Firmware, wiring and clock",
+      "blocks": [
+        {
+          "type": "recipe",
+          "id": "embeddeddev:51systemboard"
+        },
+        {
+          "type": "text",
+          "text": "The STC89C52RC, crystal, copper and PCB form a minimum system. New boards include an 11.0592 MHz oscillator. Each board owns independent firmware, CPU, RAM, GPIO and terminal groups."
+        },
+        {
+          "type": "heading",
+          "text": "Three working pages"
+        },
+        {
+          "type": "table",
+          "rows": [
+            [
+              "Page",
+              "Purpose"
+            ],
+            [
+              "Programming",
+              "Flash, run, stop, reset and step"
+            ],
+            [
+              "Terminals",
+              "World faces, G1–G4, labels and physical pins"
+            ],
+            [
+              "Wiring status",
+              "Remote devices, pins, offline paths and conflicts"
+            ]
+          ]
+        },
+        {
+          "type": "text",
+          "text": "The top-right crystal socket uses inventory items. Removing or replacing the oscillator pauses the CPU; Run resumes it after installation. Board faces use world directions, independent of your viewpoint. Check them with the compass."
+        },
+        {
+          "type": "heading",
+          "text": "Saving and breaking"
+        },
+        {
+          "type": "text",
+          "text": "CPU state, RAM, firmware, DAC and wiring persist with the board. Unloaded chunks pause the CPU without offline catch-up. Breaking a board refunds its cables, but the dropped board loses firmware and RAM; its crystal is retained."
+        },
+        {
+          "type": "tip",
+          "text": "A comparator reads the running state: 15 while running and 0 while stopped. Use it as a run indicator without consuming a GPIO."
+        },
+        {
+          "type": "link",
+          "target": "pins",
+          "text": "Configure six-face terminal groups >"
+        },
+        {
+          "type": "link",
+          "target": "memory",
+          "text": "MCU memory regions >"
+        }
+      ],
+      "keywords": "board"
+    },
+    {
+      "id": "pins",
+      "category": "develop",
+      "icon": "embeddeddev:51systemboard",
+      "title": "Faces and pin labels",
+      "subtitle": "Define the interface before wiring",
+      "blocks": [
+        {
+          "type": "text",
+          "text": "Every world face has four independent groups, G1–G4. Name each group and add multiple pins. A label such as SDA, SCL, DQ or LED identifies the module interface. A physical pin such as P1.6 identifies the MCU port bit used by your program."
+        },
+        {
+          "type": "table",
+          "rows": [
+            [
+              "Kind",
+              "Channel",
+              "Use"
+            ],
+            [
+              "GPIO",
+              "P0.0–P3.7",
+              "Buttons, LEDs, buses and displays"
+            ],
+            [
+              "ADC",
+              "ADC0–ADC7",
+              "Read redstone strength 0–15"
+            ],
+            [
+              "DAC",
+              "DAC0–DAC7",
+              "Write redstone strength 0–15"
+            ]
+          ]
+        },
+        {
+          "type": "heading",
+          "text": "Adding and applying"
+        },
+        {
+          "type": "text",
+          "text": "Open pin management for a face, choose a group and set its name. Add a label, kind and physical channel for each pin. Labels are case-insensitive and unique within a group, as are physical channels. Apply saves all four groups on that face."
+        },
+        {
+          "type": "wiring",
+          "id": "embeddeddev:oled",
+          "labels": [
+            "P1.6|SDA",
+            "P1.7|SCL"
+          ]
+        },
+        {
+          "type": "text",
+          "text": "One face can use G1 for an OLED, G2 for another I²C bus, G3 for a thermometer and G4 for an LED. Groups may reuse labels, but choose independent GPIO where separate buses are intended. Renaming keeps physical wiring; removing or changing connected physical pins requires pairing again."
+        },
+        {
+          "type": "tip",
+          "text": "GPIO handles both input and output without a direction selector. Before reading an external input, set its latch bit to 1 to release it. Clearing a group removes and refunds that group cables."
+        },
+        {
+          "type": "link",
+          "target": "cables",
+          "text": "Connect the interface with a cable >"
+        }
+      ],
+      "keywords": "pins"
+    },
+    {
+      "id": "cables",
+      "category": "develop",
+      "icon": "embeddeddev:wire_coil",
+      "title": "Cables and junctions",
+      "subtitle": "Click two endpoints; match labels",
+      "blocks": [
+        {
+          "type": "recipe",
+          "id": "embeddeddev:wire_coil"
+        },
+        {
+          "type": "recipe",
+          "id": "embeddeddev:wire_cutter"
+        },
+        {
+          "type": "heading",
+          "text": "Connect two positions"
+        },
+        {
+          "type": "text",
+          "text": "Use the coil on a board group, then a module. Aim at the correct G1–G4 socket; the HUD shows the group name and pins. Single terminals match directly. Multiple terminals match by label, or open a pairing screen if the match is ambiguous."
+        },
+        {
+          "type": "text",
+          "text": "A cable can carry several signals: SDA and SCL for an OLED, or all eight display segments. Button panels instead expose an independent endpoint for every key, with one cable per key."
+        },
+        {
+          "type": "heading",
+          "text": "Distance, branches and routing"
+        },
+        {
+          "type": "text",
+          "text": "Each segment spans at most 32 blocks within one dimension. Material cost is rounded up by distance. Junction posts extend, turn and branch cables. An empty post inherits the first connected terminal labels. Route around solid obstacles."
+        },
+        {
+          "type": "recipe",
+          "id": "embeddeddev:wire_relay"
+        },
+        {
+          "type": "tip",
+          "text": "Each connected terminal network has one controlling board group. Do not join two board outputs directly. Devices sharing an address can be placed on separate GPIO buses."
+        },
+        {
+          "type": "heading",
+          "text": "Disconnecting and offline devices"
+        },
+        {
+          "type": "text",
+          "text": "Sneak-use the coil to cancel a selection. Use cutters on a visible cable, or break an endpoint to refund attached cables. Both endpoints and intermediate posts must be loaded. Offline routes remain visible in the wiring status for diagnosis."
+        },
+        {
+          "type": "link",
+          "target": "relay",
+          "text": "Junction branching rules >"
+        },
+        {
+          "type": "link",
+          "target": "i2c",
+          "text": "Share an I²C bus between devices >"
+        }
+      ],
+      "items": [
+        "embeddeddev:wire_coil",
+        "embeddeddev:wire_cutter"
+      ],
+      "keywords": "cables"
+    },
+    {
+      "id": "crystals",
+      "category": "develop",
+      "icon": "embeddeddev:crystal_11_0592mhz",
+      "title": "Crystals and timing",
+      "subtitle": "Software delays depend on frequency",
+      "blocks": [
+        {
+          "type": "text",
+          "text": "Choose 6, 11.0592, 12, 22.1184 or 24 MHz. Open the top-right board socket and move crystals from inventory. Changes pause execution while retaining CPU and RAM; Run resumes it."
+        },
+        {
+          "type": "table",
+          "rows": [
+            [
+              "Crystal",
+              "12T machine cycle"
+            ],
+            [
+              "6 MHz",
+              "2.000 μs"
+            ],
+            [
+              "11.0592 MHz",
+              "About 1.085 μs"
+            ],
+            [
+              "12 MHz",
+              "1.000 μs"
+            ],
+            [
+              "22.1184 MHz",
+              "About 0.543 μs"
+            ],
+            [
+              "24 MHz",
+              "0.500 μs"
+            ]
+          ]
+        },
+        {
+          "type": "tip",
+          "text": "The bundled DS18B20 HEX specifically uses 12 MHz/12T. Do not substitute the default 11.0592 MHz crystal. OLED GPIO transfers do not strictly validate bus speed, though your software delays still change."
+        },
+        {
+          "type": "recipe",
+          "id": "embeddeddev:crystal_6mhz"
+        },
+        {
+          "type": "recipe",
+          "id": "embeddeddev:crystal_11_0592mhz"
+        },
+        {
+          "type": "recipe",
+          "id": "embeddeddev:crystal_12mhz"
+        },
+        {
+          "type": "recipe",
+          "id": "embeddeddev:crystal_22_1184mhz"
+        },
+        {
+          "type": "recipe",
+          "id": "embeddeddev:crystal_24mhz"
+        },
+        {
+          "type": "text",
+          "text": "The default cycle budget is oscillator frequency divided by 240 per game tick, matching 12T at 20 TPS. Lower server TPS slows simulated progress. Unloaded chunks do not execute firmware."
+        },
+        {
+          "type": "link",
+          "target": "temperature",
+          "text": "Drive the thermometer at the right frequency >"
+        }
+      ],
+      "items": [
+        "embeddeddev:crystal_6mhz",
+        "embeddeddev:crystal_11_0592mhz",
+        "embeddeddev:crystal_12mhz",
+        "embeddeddev:crystal_22_1184mhz",
+        "embeddeddev:crystal_24mhz"
+      ],
+      "keywords": "crystals"
+    },
+    {
+      "id": "keil",
+      "category": "develop",
+      "icon": "embeddeddev:stc89c52rc",
+      "title": "Keil projects and GPIO",
+      "subtitle": "Use C51 or assembly",
+      "blocks": [
+        {
+          "type": "heading",
+          "text": "Recommended starting point"
+        },
+        {
+          "type": "text",
+          "text": "Use an 8051/C51 toolchain with code limited to 8 KiB. Start with the SMALL model. REG52.H provides common SFR and bit definitions. Enable HEX output and flash it into the board. Your computer compiles C; the game executes machine code."
+        },
+        {
+          "type": "heading",
+          "text": "Bit and byte port access"
+        },
+        {
+          "type": "code",
+          "text": "#include <REG52.H>\nsbit LED = P1^0;\nsbit KEY = P1^1;\nvoid main(void) {\n    KEY = 1;\n    while (1) LED = !KEY;\n}"
+        },
+        {
+          "type": "text",
+          "text": "This maps an active-low key to an active-high LED. Write 1 to KEY before reading to release its port. Writing 0 keeps it low. P1=0x3F writes all eight bits together and is useful for a segment display."
+        },
+        {
+          "type": "heading",
+          "text": "Access virtual analog channels"
+        },
+        {
+          "type": "code",
+          "text": "#include <absacc.h>\nunsigned char level;\nlevel = XBYTE[0xF000];\nXBYTE[0xF010] = level;"
+        },
+        {
+          "type": "text",
+          "text": "F000H is virtual ADC0 and F010H is virtual DAC0, both ranging from 0 to 15. These are mod-specific XDATA extensions, not ADC/DAC peripherals built into the STC89C52. Use MOVX or Keil XBYTE."
+        },
+        {
+          "type": "tip",
+          "text": "Bundled HEX examples are equivalent hand-assembled programs generated by project scripts. The C sources are provided for editing in Keil; software delay lengths may vary with compiler optimization."
+        },
+        {
+          "type": "link",
+          "target": "registers",
+          "text": "Common registers at a glance >"
+        }
+      ],
+      "keywords": "keil"
+    },
+    {
+      "id": "debug",
+      "category": "develop",
+      "icon": "embeddeddev:51systemboard",
+      "title": "Debugging the board",
+      "subtitle": "PC, opcodes and stepping",
+      "blocks": [
+        {
+          "type": "text",
+          "text": "Programming and debugging shows the opcode and disassembly at the current PC, plus three sequential instructions. After a branch, the preview remains sequential; the CPU determines the actual next instruction."
+        },
+        {
+          "type": "heading",
+          "text": "A repeatable debugging process"
+        },
+        {
+          "type": "text",
+          "text": "Stop and note the PC. Check the crystal and wiring, then reset. Step through the program and inspect whether port writes reach the intended pins. Verify a minimal output before adding buttons, sensors and control loops."
+        },
+        {
+          "type": "table",
+          "rows": [
+            [
+              "Symptom",
+              "First check"
+            ],
+            [
+              "PC does not move",
+              "Run state, installed crystal and CPU fault"
+            ],
+            [
+              "PC loops in one place",
+              "Intentional waits or an unreleased input"
+            ],
+            [
+              "Wrong output",
+              "Pin mapping, label, polarity and connector mode"
+            ],
+            [
+              "HEX change has no effect",
+              "Flash and run the correct file again"
+            ]
+          ]
+        },
+        {
+          "type": "text",
+          "text": "The virtual UART serves as a console: writing SBUF immediately appends a character and sets TI. Input needs receiver enable and RI handling in firmware. The console keeps the last 512 characters and does not simulate physical serial wiring."
+        },
+        {
+          "type": "tip",
+          "text": "A5H is reserved and stops execution with a fault. If execution enters erased code or jumps unexpectedly, check code limits and branch targets before resetting."
+        },
+        {
+          "type": "link",
+          "target": "troubleshooting",
+          "text": "Full troubleshooting checklist >"
+        }
+      ],
+      "keywords": "debug"
+    },
+    {
+      "id": "button",
+      "category": "modules",
+      "icon": "embeddeddev:button_module",
+      "title": "Button panel",
+      "subtitle": "Up to nine independent keys",
+      "blocks": [
+        {
+          "type": "recipe",
+          "id": "embeddeddev:button_module"
+        },
+        {
+          "type": "text",
+          "text": "Sneak-use with an empty hand, or use a blank area, to configure 1–9 keys. Every key has its own label. The first is KEY, followed by KEY2–KEY9; rename them START, STOP or other meaningful labels."
+        },
+        {
+          "type": "text",
+          "text": "Add matching GPIO labels on the board. Use the coil on the board group and each individual key. Every key needs its own cable, and several keys can share a configured group. Renaming keeps wiring; shrinking the panel refunds cables for removed keys."
+        },
+        {
+          "type": "wiring",
+          "id": "embeddeddev:button_module",
+          "labels": [
+            "P1.0|KEY"
+          ]
+        },
+        {
+          "type": "wiring",
+          "id": "embeddeddev:led_module",
+          "labels": [
+            "P1.1|LED"
+          ]
+        },
+        {
+          "type": "heading",
+          "text": "Pressed is 0; released is 1"
+        },
+        {
+          "type": "text",
+          "text": "Using a key pulls its signal low for 10 ticks, then releases it automatically. Release the corresponding MCU latch first. This complete program lights an LED while the key is active; wire the key and lamp separately as shown."
+        },
+        {
+          "type": "code",
+          "text": "#include <REG52.H>\nsbit KEY = P1^0;\nsbit LED = P1^1;\nvoid main(void) {\n    KEY = 1;\n    while (1) LED = !KEY;\n}"
+        },
+        {
+          "type": "tip",
+          "text": "Keys hold a logical low for game ticks; mechanical contact bounce is not simulated. Removing an active key releases it rather than leaving a permanently low input."
+        }
+      ],
+      "keywords": "button"
+    },
+    {
+      "id": "led",
+      "category": "modules",
+      "icon": "embeddeddev:led_module",
+      "title": "LED indicator",
+      "subtitle": "The simplest GPIO test",
+      "blocks": [
+        {
+          "type": "recipe",
+          "id": "embeddeddev:led_module"
+        },
+        {
+          "type": "wiring",
+          "id": "embeddeddev:led_module",
+          "labels": [
+            "P1.0|LED"
+          ]
+        },
+        {
+          "type": "text",
+          "text": "The module needs one GPIO terminal named LED. A high lights it and a low turns it off. Use it for state indicators, threshold alarms, key feedback or checking port writes while stepping."
+        },
+        {
+          "type": "code",
+          "text": "#include <REG52.H>\nsbit LED = P1^0;\nvoid main(void) {\n    LED = 1;\n    while (1) { }\n}"
+        },
+        {
+          "type": "text",
+          "text": "Use adjacent G1 named LED, or wire any remote group. Changing to P2.3 requires updating both the board mapping and the sbit declaration."
+        },
+        {
+          "type": "tip",
+          "text": "The LED is an active-high logic indicator. Use a redstone connector to turn GPIO levels into signals for machines."
+        },
+        {
+          "type": "link",
+          "target": "redstone",
+          "text": "Send a logic signal to machinery >"
+        }
+      ],
+      "keywords": "led"
+    },
+    {
+      "id": "seven_segment",
+      "category": "modules",
+      "icon": "embeddeddev:seven_segment",
+      "title": "Eight-segment display",
+      "subtitle": "Seven bars and a decimal point",
+      "blocks": [
+        {
+          "type": "recipe",
+          "id": "embeddeddev:seven_segment"
+        },
+        {
+          "type": "text",
+          "text": "One digit consists of segments A–G and decimal point DP. Common power and current limiting are built in, so only eight signal terminals are needed. One multi-signal cable can pair all eight."
+        },
+        {
+          "type": "wiring",
+          "id": "embeddeddev:seven_segment",
+          "labels": [
+            "P1.0|A",
+            "P1.1|B",
+            "P1.2|C",
+            "P1.3|D",
+            "P1.4|E",
+            "P1.5|F",
+            "P1.6|G",
+            "P1.7|DP"
+          ]
+        },
+        {
+          "type": "heading",
+          "text": "Polarity and bit order"
+        },
+        {
+          "type": "text",
+          "text": "Default common cathode lights on 1. Sneak-use switches to common anode, which lights on 0. Bits 0–7 map to A B C D E F G DP. Invert the whole code byte for common anode. Missing pins or disconnected wiring blank both modes."
+        },
+        {
+          "type": "table",
+          "rows": [
+            [
+              "Digit",
+              "Cathode HEX"
+            ],
+            [
+              "0 / 1 / 2",
+              "3F / 06 / 5B"
+            ],
+            [
+              "3 / 4 / 5",
+              "4F / 66 / 6D"
+            ],
+            [
+              "6 / 7 / 8 / 9",
+              "7D / 07 / 7F / 6F"
+            ],
+            [
+              "Decimal point",
+              "OR 80H into the glyph"
+            ]
+          ]
+        },
+        {
+          "type": "code",
+          "text": "#include <REG52.H>\nvoid main(void) {\n    P1 = 0x5B;  /* digit 2 */\n    while (1) { }\n}"
+        },
+        {
+          "type": "text",
+          "text": "seven_segment_counter.hex counts 0–9 at the default crystal frequency, lighting DP on odd digits, about every 0.55 seconds. IDATA 30H stores the digit and 31H the code. Polarity persists with the module."
+        },
+        {
+          "type": "link",
+          "target": "examples",
+          "text": "Find the counter example >"
+        }
+      ],
+      "keywords": "seven_segment"
+    },
+    {
+      "id": "oled",
+      "category": "modules",
+      "icon": "embeddeddev:oled",
+      "title": "SSD1306 OLED",
+      "subtitle": "0.96 inch, 128×64 framebuffer",
+      "blocks": [
+        {
+          "type": "recipe",
+          "id": "embeddeddev:oled"
+        },
+        {
+          "type": "wiring",
+          "id": "embeddeddev:oled",
+          "labels": [
+            "P1.6|SDA",
+            "P1.7|SCL"
+          ]
+        },
+        {
+          "type": "text",
+          "text": "The separate OLED block owns an SSD1306 controller and 1024-byte framebuffer. Its 7-bit I²C address is 3CH and write byte is 78H. Right-click opens a magnified display, independently of the board. Both views use the same pixels."
+        },
+        {
+          "type": "heading",
+          "text": "Start with readable text"
+        },
+        {
+          "type": "text",
+          "text": "Map SDA=P1.6 and SCL=P1.7, then run i2c_oled_hello.hex. Expect EMBEDDED DEV, STC89C52, HELLO MINECRAFT and I2C 0X3C. oled_pattern.hex intentionally displays diagnostic stripes rather than text."
+        },
+        {
+          "type": "heading",
+          "text": "Commands and display bytes"
+        },
+        {
+          "type": "table",
+          "rows": [
+            [
+              "Transfer",
+              "Sequence"
+            ],
+            [
+              "Commands",
+              "START, 78H, 00H, commands, STOP"
+            ],
+            [
+              "Pixels",
+              "START, 78H, 40H, bytes, STOP"
+            ],
+            [
+              "Common commands",
+              "AE off / AF on / A6 normal / A7 inverse"
+            ],
+            [
+              "Address ranges",
+              "21 column range / 22 page range"
+            ]
+          ]
+        },
+        {
+          "type": "text",
+          "text": "RAM is page-organized: each byte holds eight vertical pixels of one column, with bit 0 at the page top. Pixel (x,y) uses offset (y>>3)*128+x and mask 1<<(y&7). Initialize addressing before sending glyph data."
+        },
+        {
+          "type": "tip",
+          "text": "The OLED saves its own RAM and display settings. CPU reset does not clear it. Clear residual graphics in firmware. For a blank display, first check AF display-on, SDA/SCL mapping and the address."
+        },
+        {
+          "type": "text",
+          "text": "An optional MOVX bridge reaches the first OLED connected via SDA/SCL: F020H controls display and F100H–F4FFH is RAM. oled_hello.hex uses it. This bridge is a mod extension rather than an SSD1306 physical interface."
+        },
+        {
+          "type": "link",
+          "target": "i2c",
+          "text": "I²C starts, ACKs and shared buses >"
+        }
+      ],
+      "keywords": "oled"
+    },
+    {
+      "id": "rtc",
+      "category": "modules",
+      "icon": "embeddeddev:ds1302",
+      "title": "DS1302 clock",
+      "subtitle": "Three wires, BCD calendar and RAM",
+      "blocks": [
+        {
+          "type": "recipe",
+          "id": "embeddeddev:ds1302"
+        },
+        {
+          "type": "wiring",
+          "id": "embeddeddev:ds1302",
+          "labels": [
+            "P1.0|CE",
+            "P1.1|SCLK",
+            "P1.2|IO"
+          ]
+        },
+        {
+          "type": "text",
+          "text": "DS1302 uses CE, SCLK and IO, not I²C. Raise CE to begin and lower it to commit and finish. Commands and data are LSB first. Rising edges capture writes; falling edges update read output. Release IO before reading."
+        },
+        {
+          "type": "table",
+          "rows": [
+            [
+              "Register",
+              "Write / read"
+            ],
+            [
+              "Seconds (CH bit 7)",
+              "80H / 81H"
+            ],
+            [
+              "Minute / hour",
+              "82/83H / 84/85H"
+            ],
+            [
+              "Date / month",
+              "86/87H / 88/89H"
+            ],
+            [
+              "Weekday / year",
+              "8A/8BH / 8C/8DH"
+            ],
+            [
+              "Write protect (bit 7)",
+              "8EH / 8FH"
+            ],
+            [
+              "Clock burst",
+              "BEH / BFH"
+            ],
+            [
+              "RAM burst",
+              "FEH / FFH"
+            ]
+          ]
+        },
+        {
+          "type": "heading",
+          "text": "Initialize the clock"
+        },
+        {
+          "type": "text",
+          "text": "Write 00H to 8EH to disable write protection, then write a BCD calendar. Seconds bit 7, CH, halts at 1 and runs at 0. BCD 23 is 23H, not decimal 23 encoded as 17H. Encode tens times 16 plus units."
+        },
+        {
+          "type": "text",
+          "text": "For seconds, send 81H, release IO and read eight bits. Burst reads capture a consistent calendar snapshot instead of mixing fields across a second boundary. The 31-byte RAM can hold small parameters."
+        },
+        {
+          "type": "tip",
+          "text": "The clock follows game ticks rather than the computer wall clock. Calendar, halt state, write protection and RAM persist with the module. Firmware stops while its board is unloaded; clock progress follows world time."
+        }
+      ],
+      "keywords": "rtc"
+    },
+    {
+      "id": "adc",
+      "category": "modules",
+      "icon": "embeddeddev:pcf8591",
+      "title": "PCF8591 ADC / DAC",
+      "subtitle": "Four inputs and one output",
+      "blocks": [
+        {
+          "type": "recipe",
+          "id": "embeddeddev:pcf8591"
+        },
+        {
+          "type": "wiring",
+          "id": "embeddeddev:pcf8591",
+          "labels": [
+            "P1.6|SDA",
+            "P1.7|SCL"
+          ]
+        },
+        {
+          "type": "text",
+          "text": "The default 7-bit address is 48H: write byte 90H and read byte 91H. Sneak-use cycles addresses 48H–4FH. AIN0–AIN3 sample world north, east, south and west; AOUT drives redstone upward."
+        },
+        {
+          "type": "text",
+          "text": "Redstone input 0–15 maps to 0–255 by multiplying by 17. The DAC maps 0–255 back to 0–15 redstone. Unlike the virtual MCU ADC/DAC channels, this chip is controlled through GPIO I²C transactions."
+        },
+        {
+          "type": "table",
+          "rows": [
+            [
+              "Control bits",
+              "Meaning"
+            ],
+            [
+              "6",
+              "Enable AOUT"
+            ],
+            [
+              "5:4",
+              "Single-ended or differential mode"
+            ],
+            [
+              "2",
+              "Increment channel after conversion"
+            ],
+            [
+              "1:0",
+              "Starting input channel"
+            ]
+          ]
+        },
+        {
+          "type": "heading",
+          "text": "Read AIN2"
+        },
+        {
+          "type": "text",
+          "text": "START, send 90H and control 02H. Repeated START, send 91H. Read and discard the first byte with ACK. The second byte is the current sample; finish with NACK and STOP."
+        },
+        {
+          "type": "tip",
+          "text": "The first read byte is the previous conversion, not the current input. Sending control 40H followed by a DAC byte enables and sets analog output."
+        },
+        {
+          "type": "text",
+          "text": "The environment sensor also defaults to 48H. On one SDA/SCL bus, move the converter to 49H, or use independent GPIO buses."
+        },
+        {
+          "type": "link",
+          "target": "i2c",
+          "text": "Address conflicts and repeated START >"
+        }
+      ],
+      "keywords": "adc"
+    },
+    {
+      "id": "temperature",
+      "category": "modules",
+      "icon": "embeddeddev:ds18b20",
+      "title": "DS18B20 thermometer",
+      "subtitle": "Touch a machine and read DQ",
+      "blocks": [
+        {
+          "type": "recipe",
+          "id": "embeddeddev:ds18b20"
+        },
+        {
+          "type": "wiring",
+          "id": "embeddeddev:ds18b20",
+          "labels": [
+            "P1.2|DQ"
+          ]
+        },
+        {
+          "type": "text",
+          "text": "Place the probe against the target block; it samples only its contacted neighbor. Bind GPIO label DQ in any board group and wire it to the probe. Right-click for temperature, source and range information."
+        },
+        {
+          "type": "table",
+          "rows": [
+            [
+              "Feature",
+              "Value"
+            ],
+            [
+              "Range",
+              "-55 to 125 °C"
+            ],
+            [
+              "Resolution",
+              "9–12 bits, up to 1/16 °C"
+            ],
+            [
+              "12-bit conversion",
+              "Up to about 750 ms"
+            ],
+            [
+              "Power-on result",
+              "85 °C until a conversion finishes"
+            ],
+            [
+              "Transfer",
+              "LSB first; scratchpad includes CRC8"
+            ]
+          ]
+        },
+        {
+          "type": "heading",
+          "text": "Use the supplied example first"
+        },
+        {
+          "type": "text",
+          "text": "Install a 12 MHz crystal, map DQ=P1.2 and flash ds18b20_read.hex. It resets, sends Skip ROM and Convert T, waits about 800 ms, then reads the nine-byte scratchpad. Completion sets 3FH=A5H; IDATA 30H–38H holds the data."
+        },
+        {
+          "type": "text",
+          "text": "Combine the first two bytes as a signed little-endian 16-bit value and divide by 16 for Celsius. Preserve the sign for negative temperatures. The last byte is a Dallas CRC8."
+        },
+        {
+          "type": "tip",
+          "text": "85 °C often means conversion has not completed. All FFH often means DQ is disconnected, not released, or not reset correctly. Check the 12 MHz crystal before investigating 1-Wire timing."
+        },
+        {
+          "type": "link",
+          "target": "onewire",
+          "text": "Reset timing, commands and CRC >"
+        },
+        {
+          "type": "link",
+          "target": "compatibility",
+          "text": "Create and other temperature sources >"
+        }
+      ],
+      "keywords": "temperature"
+    },
+    {
+      "id": "sensor",
+      "category": "modules",
+      "icon": "embeddeddev:i2c_sensor",
+      "title": "Environment sensor",
+      "subtitle": "Redstone, light and day progress",
+      "blocks": [
+        {
+          "type": "recipe",
+          "id": "embeddeddev:i2c_sensor"
+        },
+        {
+          "type": "wiring",
+          "id": "embeddeddev:i2c_sensor",
+          "labels": [
+            "P1.6|SDA",
+            "P1.7|SCL"
+          ]
+        },
+        {
+          "type": "text",
+          "text": "The 7-bit address is 48H, with write 90H and read 91H. Write a register number, then switch to reading with a repeated START. Consecutive reads increment the register. Right-click to inspect current samples."
+        },
+        {
+          "type": "table",
+          "rows": [
+            [
+              "Register",
+              "Value and range"
+            ],
+            [
+              "00H",
+              "Strongest nearby redstone except board, 0–15"
+            ],
+            [
+              "01H",
+              "Sky light above the module, 0–15"
+            ],
+            [
+              "02H",
+              "Block light above the module, 0–15"
+            ],
+            [
+              "03H",
+              "Day progress percentage, 0–99"
+            ],
+            [
+              "Other",
+              "FFH"
+            ]
+          ]
+        },
+        {
+          "type": "text",
+          "text": "i2c_sensor.hex uses P1.6/P1.7 to read register 00H and write virtual DAC0. Bind DAC0 in another group and connect a redstone output to relay that strength to a remote location."
+        },
+        {
+          "type": "tip",
+          "text": "Its default address matches the PCF8591. Move the converter to 49H when sharing a bus. The OLED at 3CH does not conflict."
+        }
+      ],
+      "keywords": "sensor"
+    },
+    {
+      "id": "redstone",
+      "category": "modules",
+      "icon": "embeddeddev:redstone_port",
+      "title": "Redstone connector",
+      "subtitle": "Connect MCU logic to machinery",
+      "blocks": [
+        {
+          "type": "recipe",
+          "id": "embeddeddev:redstone_port"
+        },
+        {
+          "type": "text",
+          "text": "Place a connector beside a device and wire it to the board. Right-click to select input or output and the redstone-facing side. Direction is relative to the MCU: machine signals enter as input; MCU control signals leave as output."
+        },
+        {
+          "type": "table",
+          "rows": [
+            [
+              "Mode",
+              "Board pin",
+              "Range"
+            ],
+            [
+              "Digital input",
+              "GPIO",
+              "Read low/high"
+            ],
+            [
+              "Digital output",
+              "GPIO",
+              "Redstone 0 or 15"
+            ],
+            [
+              "Analog input",
+              "ADC0–7",
+              "Redstone 0–15"
+            ],
+            [
+              "Analog output",
+              "DAC0–7",
+              "Redstone 0–15"
+            ]
+          ]
+        },
+        {
+          "type": "heading",
+          "text": "Analog relay experiment"
+        },
+        {
+          "type": "text",
+          "text": "Configure one input connector and wire it to ADC0. Configure an output connector and wire it to DAC1. Run adc_mirror.hex to copy F000H input strength into F011H, relaying ADC0 to DAC1."
+        },
+        {
+          "type": "code",
+          "text": "#include <REG52.H>\n#include <absacc.h>\nvoid main(void) {\n    while (1)\n        XBYTE[0xF011] = XBYTE[0xF000];\n}"
+        },
+        {
+          "type": "text",
+          "text": "Use it for Create clutches, redstone links, and other mods accepting redstone control. The target mod determines machine behavior. Pulses shorter than one game tick may not appear in the redstone world."
+        },
+        {
+          "type": "tip",
+          "text": "Stopping the board or cutting a cable clears redstone output. Beside a legacy adjacent board, normal use may open the board; sneak-use opens connector settings."
+        }
+      ],
+      "keywords": "redstone"
+    },
+    {
+      "id": "relay",
+      "category": "modules",
+      "icon": "embeddeddev:wire_relay",
+      "title": "Junction post",
+      "subtitle": "Corners, extensions and branches",
+      "blocks": [
+        {
+          "type": "recipe",
+          "id": "embeddeddev:wire_relay"
+        },
+        {
+          "type": "text",
+          "text": "First connect a board group to an empty post so it inherits those labels. Wire the post to modules or further posts. Branches carry the mapped signals; they do not create extra MCU pins."
+        },
+        {
+          "type": "heading",
+          "text": "Useful circuits"
+        },
+        {
+          "type": "text",
+          "text": "A shared SDA/SCL pair can branch to an OLED, PCF8591 and environment sensor if addresses are unique. Several LEDs can branch from one GPIO and follow the same level."
+        },
+        {
+          "type": "tip",
+          "text": "A connected network has one controlling board group. Posts must be loaded to pass signals. Cutting the trunk disconnects downstream devices. Each post accepts up to eight segments and a network up to 64 endpoints."
+        },
+        {
+          "type": "link",
+          "target": "cables",
+          "text": "Coil and cutter operations >"
+        }
+      ],
+      "keywords": "relay"
+    },
+    {
+      "id": "compass",
+      "category": "modules",
+      "icon": "embeddeddev:compass",
+      "title": "Compass and world faces",
+      "subtitle": "Orient yourself before wiring",
+      "blocks": [
+        {
+          "type": "recipe",
+          "id": "embeddeddev:compass"
+        },
+        {
+          "type": "text",
+          "text": "The compass points to world north. Use it to show your current heading in the action bar. Board terminals also show player direction. Your visual left and right change with position; configured world faces do not."
+        },
+        {
+          "type": "text",
+          "text": "For adjacent connections, configure G1 on the board face touching the module. A module east of the board uses its east face. For remote groups on one face, aim at each group socket and check the HUD."
+        },
+        {
+          "type": "tip",
+          "text": "PCF8591 inputs always follow world north, east, south and west. A redstone connector instead lets you choose its own device-facing side."
+        }
+      ],
+      "keywords": "compass"
+    },
+    {
+      "id": "memory",
+      "category": "reference",
+      "icon": "embeddeddev:stc89c52rc",
+      "title": "RAM and Flash map",
+      "subtitle": "256-byte IDATA plus separate SFRs",
+      "blocks": [
+        {
+          "type": "table",
+          "rows": [
+            [
+              "Space",
+              "Range / size",
+              "Use"
+            ],
+            [
+              "CODE",
+              "0000H–1FFFH / 8 KiB",
+              "Code and code constants"
+            ],
+            [
+              "IDATA",
+              "00H–FFH / 256 B",
+              "Internal RAM, variables, stack"
+            ],
+            [
+              "SFR",
+              "80H–FFH / separate",
+              "Ports and control registers"
+            ],
+            [
+              "XDATA",
+              "0000H–FFFFH / 64 KiB",
+              "External data and virtual devices"
+            ]
+          ]
+        },
+        {
+          "type": "text",
+          "text": "The 256 bytes are the full indirect-addressable internal RAM, IDATA. The low half supports direct and indirect access; the upper half requires indirect addressing. Direct addresses 80H–FFH access SFRs, not the upper RAM bank."
+        },
+        {
+          "type": "table",
+          "rows": [
+            [
+              "IDATA area",
+              "Typical use"
+            ],
+            [
+              "00H–1FH",
+              "Four R0–R7 register banks"
+            ],
+            [
+              "20H–2FH",
+              "Bit-addressable RAM"
+            ],
+            [
+              "30H–7FH",
+              "General variables"
+            ],
+            [
+              "80H–FFH",
+              "Upper RAM, indirect access"
+            ]
+          ]
+        },
+        {
+          "type": "code",
+          "text": "MOV 80H,#00H ; writes P0 SFR\nMOV R0,#80H\nMOV @R0,#55H ; writes upper IDATA"
+        },
+        {
+          "type": "tip",
+          "text": "SP resets to 07H and the stack grows upward. Check register-bank, variable and stack overlap in larger C projects. HEX validation rejects code exceeding 8 KiB."
+        },
+        {
+          "type": "link",
+          "target": "xdata",
+          "text": "Virtual ADC/DAC and OLED address map >"
+        }
+      ],
+      "keywords": "memory"
+    },
+    {
+      "id": "registers",
+      "category": "reference",
+      "icon": "embeddeddev:stc89c52rc",
+      "title": "Common SFRs and interrupts",
+      "subtitle": "Control registers by address",
+      "blocks": [
+        {
+          "type": "table",
+          "rows": [
+            [
+              "Hex address",
+              "SFR",
+              "Purpose"
+            ],
+            [
+              "80 / 90 / A0 / B0",
+              "P0 / P1 / P2 / P3",
+              "GPIO ports"
+            ],
+            [
+              "81",
+              "SP",
+              "Stack pointer"
+            ],
+            [
+              "82 / 83",
+              "DPL / DPH",
+              "Data pointer"
+            ],
+            [
+              "87",
+              "PCON",
+              "Idle / Power-down"
+            ],
+            [
+              "88 / 89",
+              "TCON / TMOD",
+              "Timers 0 and 1"
+            ],
+            [
+              "8A / 8C",
+              "TL0 / TH0",
+              "Timer 0 counters"
+            ],
+            [
+              "8B / 8D",
+              "TL1 / TH1",
+              "Timer 1 counters"
+            ],
+            [
+              "98 / 99",
+              "SCON / SBUF",
+              "Virtual UART"
+            ],
+            [
+              "A8 / B8",
+              "IE / IP",
+              "Interrupt enable / priority"
+            ],
+            [
+              "C8 / CA–CD",
+              "T2CON / RCAP2 / T2",
+              "Timer 2"
+            ],
+            [
+              "D0 / E0 / F0",
+              "PSW / ACC / B",
+              "Status and arithmetic"
+            ]
+          ]
+        },
+        {
+          "type": "heading",
+          "text": "Three interrupt checks"
+        },
+        {
+          "type": "text",
+          "text": "Enable the interrupt source, enable global EA, and return from the handler with RETI. Timers 0/1/2, external interrupts and UART use the implemented two-level IE/IP scheme. Do not depend on STC-specific extra sources or four-level priorities."
+        },
+        {
+          "type": "tip",
+          "text": "The interpreter supports all 255 defined base opcodes, bit operations, MOVC/MOVX, arithmetic and BCD adjustment. Watchdog, IAP/EEPROM and 6T/1T acceleration are not implemented; avoid requiring them in startup code."
+        }
+      ],
+      "keywords": "registers"
+    },
+    {
+      "id": "xdata",
+      "category": "reference",
+      "icon": "embeddeddev:redstone_port",
+      "title": "Virtual device address map",
+      "subtitle": "MOVX and XBYTE conventions",
+      "blocks": [
+        {
+          "type": "table",
+          "rows": [
+            [
+              "XDATA address",
+              "Access",
+              "Contents"
+            ],
+            [
+              "F000H–F007H",
+              "Read",
+              "ADC0–7, 0–15"
+            ],
+            [
+              "F010H–F017H",
+              "Read/write",
+              "DAC0–7, clamped to 0–15"
+            ],
+            [
+              "F020H",
+              "Read/write",
+              "OLED bridge control"
+            ],
+            [
+              "F100H–F4FFH",
+              "Read/write",
+              "1024-byte connected OLED RAM"
+            ]
+          ]
+        },
+        {
+          "type": "text",
+          "text": "These mod-defined windows replace ordinary XDATA bytes at those addresses. At F020H, bit 0 controls display enable and writing bit 1 requests a clear. The OLED bridge requires an actual module connected through SDA/SCL."
+        },
+        {
+          "type": "code",
+          "text": "#include <absacc.h>\nXBYTE[0xF010] = 15; /* DAC0 */\nXBYTE[0xF020] = 3;  /* on + clear */\nXBYTE[0xF100] = 0xFF;"
+        },
+        {
+          "type": "tip",
+          "text": "Do not bulk-clear device windows in startup code. Software I²C and bridge access are separate options. A normal SSD1306 driver should use the GPIO bus, not assume these addresses exist on physical hardware."
+        }
+      ],
+      "keywords": "xdata"
+    },
+    {
+      "id": "i2c",
+      "category": "reference",
+      "icon": "embeddeddev:oled",
+      "title": "Software I²C",
+      "subtitle": "SDA/SCL can use any GPIO pair",
+      "blocks": [
+        {
+          "type": "text",
+          "text": "I²C is driven by GPIO transitions and needs no separate hardware-I²C page. Choose two GPIOs labelled SDA and SCL and operate them in firmware. Release SDA by writing 1 before reading; a device pulls it low for 0 or ACK."
+        },
+        {
+          "type": "table",
+          "rows": [
+            [
+              "Phase",
+              "Operation"
+            ],
+            [
+              "START",
+              "SDA high-to-low while SCL is high"
+            ],
+            [
+              "STOP",
+              "SDA low-to-high while SCL is high"
+            ],
+            [
+              "Byte transfer",
+              "MSB first; sample on rising SCL"
+            ],
+            [
+              "Ninth clock",
+              "Sender releases SDA; receiver ACKs or NACKs"
+            ],
+            [
+              "Final read byte",
+              "Controller NACK, then STOP"
+            ]
+          ]
+        },
+        {
+          "type": "table",
+          "rows": [
+            [
+              "Device",
+              "7-bit address",
+              "Write / read byte"
+            ],
+            [
+              "OLED",
+              "3CH",
+              "78H / 79H (primarily writes)"
+            ],
+            [
+              "Environment",
+              "48H",
+              "90H / 91H"
+            ],
+            [
+              "PCF8591",
+              "48H–4FH",
+              "Shift address left; add read bit"
+            ]
+          ]
+        },
+        {
+          "type": "text",
+          "text": "A seven-bit address differs from the byte on the bus. Shifting 48H left gives write 90H; setting bit 0 gives read 91H. Shifting 90H again targets the wrong address."
+        },
+        {
+          "type": "tip",
+          "text": "Different devices sharing SDA/SCL need unique addresses. The wiring page reports conflicts. I²C follows each MCU GPIO write and can complete inside one game tick; redstone world updates still occur by tick."
+        },
+        {
+          "type": "text",
+          "text": "START/STOP, repeated START, addresses and ACK/NACK are supported. Analog voltage, multi-master arbitration and clock stretching are not simulated. SSD1306 scroll commands are accepted but currently do not animate scrolling."
+        }
+      ],
+      "keywords": "i2c"
+    },
+    {
+      "id": "onewire",
+      "category": "reference",
+      "icon": "embeddeddev:ds18b20",
+      "title": "1-Wire and temperature data",
+      "subtitle": "Reset, presence and CRC8",
+      "blocks": [
+        {
+          "type": "text",
+          "text": "Standard-speed 1-Wire uses DQ. The controller holds low for at least 480 μs and releases. The probe gives a low presence pulse about 30–150 μs later. Each data slot begins low, then releases at the appropriate write/read time."
+        },
+        {
+          "type": "table",
+          "rows": [
+            [
+              "Command",
+              "HEX",
+              "Use"
+            ],
+            [
+              "Read ROM",
+              "33",
+              "Read one device ROM"
+            ],
+            [
+              "Match / Skip ROM",
+              "55 / CC",
+              "Select / skip selection"
+            ],
+            [
+              "Search / Alarm Search",
+              "F0 / EC",
+              "Search ROMs / alarms"
+            ],
+            [
+              "Convert T",
+              "44",
+              "Begin conversion"
+            ],
+            [
+              "Read Scratchpad",
+              "BE",
+              "Read nine bytes"
+            ],
+            [
+              "Write / Copy Scratchpad",
+              "4E / 48",
+              "Set / save thresholds and resolution"
+            ],
+            [
+              "Recall / Power Supply",
+              "B8 / B4",
+              "Recall config / query power"
+            ]
+          ]
+        },
+        {
+          "type": "heading",
+          "text": "One measurement sequence"
+        },
+        {
+          "type": "text",
+          "text": "Reset, CC, 44, wait for conversion, reset, CC, BE, then read nine bytes. A 12-bit conversion takes up to about 750 ms; lower resolutions finish sooner. All bytes transfer LSB first."
+        },
+        {
+          "type": "text",
+          "text": "CRC uses reflected Dallas polynomial 8CH over the first eight bytes and must match byte nine. Combine temperature low/high bytes as a signed number; at default 12-bit resolution divide by 16 for Celsius."
+        },
+        {
+          "type": "tip",
+          "text": "External power is implicit, so parasite-power strong pull-up is unnecessary. DQ still must be released before reads; holding it low prevents presence and data detection."
+        }
+      ],
+      "keywords": "onewire"
+    },
+    {
+      "id": "examples",
+      "category": "reference",
+      "icon": "embeddeddev:manual",
+      "title": "Example firmware index",
+      "subtitle": "Verify a known program, then edit it",
+      "blocks": [
+        {
+          "type": "text",
+          "text": "Examples are in the source repository examples folder and the same directory in your local project. Installing the JAR does not copy these files into the game instance. Obtain the desired HEX, then select it on the board."
+        },
+        {
+          "type": "table",
+          "rows": [
+            [
+              "HEX file",
+              "Wiring and clock"
+            ],
+            [
+              "redstone_blink.hex",
+              "GPIO P1.2 to digital redstone output"
+            ],
+            [
+              "adc_mirror.hex",
+              "ADC0 input to DAC1 output"
+            ],
+            [
+              "i2c_oled_hello.hex",
+              "SDA=P1.6 / SCL=P1.7"
+            ],
+            [
+              "oled_hello.hex",
+              "Same OLED wiring; MOVX bridge"
+            ],
+            [
+              "i2c_sensor.hex",
+              "SDA=P1.6 / SCL=P1.7, result to DAC0"
+            ],
+            [
+              "ds18b20_read.hex",
+              "DQ=P1.2; requires 12 MHz"
+            ],
+            [
+              "seven_segment_counter.hex",
+              "A–DP=P1.0–7; cathode; default clock"
+            ],
+            [
+              "oled_pattern.hex",
+              "Diagnostic stripes, not text"
+            ]
+          ]
+        },
+        {
+          "type": "heading",
+          "text": "Validation order"
+        },
+        {
+          "type": "text",
+          "text": "Match the oscillator and terminals first, then wire, flash and run. A working example verifies the basic interface before source or pin changes. Every physical-pin change must be reflected in firmware."
+        },
+        {
+          "type": "text",
+          "text": "The DS18B20 example stores data at 30H–38H and completion A5H at 3FH. The counter uses 30H for digit and 31H for code. The OLED upload marks completion A5H at 30H. These are per-example conventions, not universal registers."
+        },
+        {
+          "type": "tip",
+          "text": "Matching C sources target Keil C51. Bundled HEX is script-assembled; C software delays depend on optimization. Renaming a C source to .hex does not produce firmware."
+        }
+      ],
+      "keywords": "examples"
+    },
+    {
+      "id": "troubleshooting",
+      "category": "reference",
+      "icon": "embeddeddev:wire_cutter",
+      "title": "Troubleshooting",
+      "subtitle": "Isolate problems with a minimal circuit",
+      "blocks": [
+        {
+          "type": "heading",
+          "text": "Board and flashing"
+        },
+        {
+          "type": "table",
+          "rows": [
+            [
+              "Symptom",
+              "Action"
+            ],
+            [
+              "Flash rejected",
+              "Check HEX, checksums, EOF and 8 KiB limit"
+            ],
+            [
+              "Run fails",
+              "Install crystal and firmware; reset after faults"
+            ],
+            [
+              "Old behavior remains",
+              "Rebuild, select correct HEX, flash and run"
+            ],
+            [
+              "Stuck at one point",
+              "Distinguish intentional loops from opcode faults"
+            ]
+          ]
+        },
+        {
+          "type": "heading",
+          "text": "Wiring and ports"
+        },
+        {
+          "type": "table",
+          "rows": [
+            [
+              "Symptom",
+              "Action"
+            ],
+            [
+              "Module disconnected",
+              "Check face, group, labels and all required pins"
+            ],
+            [
+              "No pairing options",
+              "Apply board pins, then select endpoints again"
+            ],
+            [
+              "Input always 0",
+              "Write 1 to release the latch before reading"
+            ],
+            [
+              "Remote offline",
+              "Load endpoints and posts; check trunk cables"
+            ],
+            [
+              "Address conflict",
+              "Change device address or use a separate bus"
+            ]
+          ]
+        },
+        {
+          "type": "heading",
+          "text": "Displays and sensors"
+        },
+        {
+          "type": "table",
+          "rows": [
+            [
+              "Symptom",
+              "Action"
+            ],
+            [
+              "OLED stripes",
+              "Use readable-text HEX; check glyph addressing"
+            ],
+            [
+              "OLED blank",
+              "Check AF, address 3CH, SDA/SCL and connection"
+            ],
+            [
+              "Wrong digit shape",
+              "Check polarity and A–DP bit order"
+            ],
+            [
+              "PCF8591 stale value",
+              "Discard first read; use the second conversion"
+            ],
+            [
+              "DS18B20 reads 85 °C",
+              "Wait for conversion before scratchpad read"
+            ],
+            [
+              "DS18B20 all FFH",
+              "Check DQ, release, 12 MHz and reset timing"
+            ]
+          ]
+        },
+        {
+          "type": "tip",
+          "text": "The best diagnostic circuit is one board, one module and one cable. Verify a known HEX first, then restore posts, branches, sensors and control logic one at a time."
+        }
+      ],
+      "keywords": "troubleshooting"
+    },
+    {
+      "id": "compatibility",
+      "category": "reference",
+      "icon": "embeddeddev:ds18b20",
+      "title": "Machines and temperature sources",
+      "subtitle": "Redstone, heat capabilities and estimates",
+      "blocks": [
+        {
+          "type": "heading",
+          "text": "Control machines with redstone"
+        },
+        {
+          "type": "text",
+          "text": "Redstone connectors work with technology components accepting vanilla redstone, such as Create clutches and links. Check the target component behavior before selecting GPIO or DAC output. The board does not directly rewrite Create rotational speed."
+        },
+        {
+          "type": "heading",
+          "text": "Where DS18B20 readings come from"
+        },
+        {
+          "type": "table",
+          "rows": [
+            [
+              "Source",
+              "Reading convention"
+            ],
+            [
+              "Mekanism",
+              "Contact-side heat capability; K minus 273.15"
+            ],
+            [
+              "Create boiler",
+              "Controller heat converted by a game model"
+            ],
+            [
+              "Lit furnace / campfire",
+              "Simulated 90 °C / 95 °C"
+            ],
+            [
+              "Magma / ice and snow",
+              "Simulated 110 °C / 0 °C"
+            ],
+            [
+              "Lava",
+              "Source 1000 °C; probe reports overrange"
+            ],
+            [
+              "Other blocks",
+              "Biome model or provided temperature capability"
+            ]
+          ]
+        },
+        {
+          "type": "text",
+          "text": "Create heat levels are not native Celsius. Active heat levels 0–18 map to 20+5*level °C, passive heating to 60 °C and no heat to 20 °C. The probe explicitly labels this as Create heat conversion."
+        },
+        {
+          "type": "tip",
+          "text": "The probe still clamps to -55 to 125 °C and marks overrange. Other temperature mods are not universally detected: they need the embeddeddev:temperature capability or the corresponding provider interface."
+        },
+        {
+          "type": "text",
+          "text": "Technology mods are optional. Boards, GPIO buses, electronics and vanilla temperature models remain usable without them."
+        }
+      ],
+      "keywords": "compatibility"
+    }
+  ]
+}

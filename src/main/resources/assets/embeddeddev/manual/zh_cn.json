@@ -1,0 +1,1992 @@
+{
+  "title": "嵌入式开发手册",
+  "subtitle": "在方块里搭建你的电子实验室",
+  "categories": [
+    {
+      "id": "start",
+      "title": "入门",
+      "icon": "embeddeddev:manual"
+    },
+    {
+      "id": "develop",
+      "title": "开发",
+      "icon": "embeddeddev:51systemboard"
+    },
+    {
+      "id": "modules",
+      "title": "模块",
+      "icon": "embeddeddev:oled"
+    },
+    {
+      "id": "reference",
+      "title": "速查",
+      "icon": "embeddeddev:stc89c52rc"
+    }
+  ],
+  "entries": [
+    {
+      "id": "welcome",
+      "category": "start",
+      "icon": "embeddeddev:manual",
+      "title": "打开你的电子工作台",
+      "subtitle": "从第一盏 LED 到一条软件总线",
+      "blocks": [
+        {
+          "type": "heading",
+          "text": "欢迎来到方块里的 51 实验室"
+        },
+        {
+          "type": "text",
+          "text": "这本手册是一条可以照着完成的实验路线：制造材料与开发板，给 GPIO 起名字，接上一盏 LED，烧录程序，再把按钮、显示器和传感器接进同一套电路。所有模块都在「模块」分类中有独立条目。"
+        },
+        {
+          "type": "tip",
+          "text": "第一次使用？先看「第一盏 LED」。成功后再做「按钮控制 LED」，最后尝试 OLED 或温度探头。每次只增加一个模块，问题更容易定位。"
+        },
+        {
+          "type": "heading",
+          "text": "这本书怎么用"
+        },
+        {
+          "type": "text",
+          "text": "上方四个分类切换目录；左侧搜索会查找整本书的标题、正文、端子和地址。滚轮在目录上滚动条目，在正文上翻页；左右方向键也能翻页。Ctrl+F 聚焦搜索，Home 回到这里。"
+        },
+        {
+          "type": "text",
+          "text": "点右上角的星标按钮收藏当前条目，点左下「书签」筛选收藏。配方直接读取当前世界的配方数据，材料会显示物品提示；有对应条目的材料可以点击跳转。代码框右上角可以复制完整代码。"
+        },
+        {
+          "type": "heading",
+          "text": "先准备一本手册"
+        },
+        {
+          "type": "recipe",
+          "id": "embeddeddev:manual"
+        },
+        {
+          "type": "link",
+          "target": "first_led",
+          "text": "开始实验：第一盏 LED >"
+        },
+        {
+          "type": "link",
+          "target": "survival",
+          "text": "生存路线：从沙子到开发板 >"
+        }
+      ],
+      "keywords": "welcome"
+    },
+    {
+      "id": "survival",
+      "category": "start",
+      "icon": "embeddeddev:silicon_wafer",
+      "title": "从原料到芯片",
+      "subtitle": "矿物、硅片与覆铜板",
+      "blocks": [
+        {
+          "type": "heading",
+          "text": "两条获得粗硅料的路线"
+        },
+        {
+          "type": "text",
+          "text": "在主世界新生成的区块里寻找硅石矿，分布高度 Y=-56 到 40。石镐或更好的镐可以采出粗硅料；时运增加掉落，精准采集保留矿石。已有区块需要前往新生成区域。"
+        },
+        {
+          "type": "text",
+          "text": "不想先去挖矿，可以把木炭放在工作台中心，上下左右各放沙子，合成粗硅料。粗硅料、普通硅石矿和深层硅石矿都可以烧成硅片。"
+        },
+        {
+          "type": "recipe",
+          "id": "embeddeddev:raw_silicon"
+        },
+        {
+          "type": "recipe",
+          "id": "embeddeddev:silicon_wafer_from_smelting"
+        },
+        {
+          "type": "recipe",
+          "id": "embeddeddev:silicon_wafer_from_blasting"
+        },
+        {
+          "type": "heading",
+          "text": "制作电路板与 MCU"
+        },
+        {
+          "type": "text",
+          "text": "铜锭、黏土球与红石无序合成两块覆铜电路板。硅片是芯片和晶振的基础材料。下面的配方会生成 STC89C52RC，再与晶振和电路板组装成可运行的最小系统。"
+        },
+        {
+          "type": "recipe",
+          "id": "embeddeddev:circuit_board"
+        },
+        {
+          "type": "recipe",
+          "id": "embeddeddev:stc89c52rc"
+        },
+        {
+          "type": "tip",
+          "text": "拾取关键材料会解锁原版配方书中的对应配方。这本手册的配方图也会反映数据包对配方的修改。"
+        },
+        {
+          "type": "link",
+          "target": "board",
+          "text": "下一步：组装最小系统板 >"
+        }
+      ],
+      "items": [
+        "embeddeddev:raw_silicon",
+        "embeddeddev:silicon_wafer",
+        "embeddeddev:circuit_board",
+        "embeddeddev:silicon_ore",
+        "embeddeddev:deepslate_silicon_ore",
+        "embeddeddev:stc89c52rc"
+      ],
+      "keywords": "survival"
+    },
+    {
+      "id": "first_led",
+      "category": "start",
+      "icon": "embeddeddev:led_module",
+      "title": "第一盏 LED",
+      "subtitle": "一块主板、一根线、一个输出",
+      "blocks": [
+        {
+          "type": "heading",
+          "text": "目标与材料"
+        },
+        {
+          "type": "text",
+          "text": "目标：用自己的 51 程序点亮 LED。准备最小系统板、LED 模块、绝缘线卷和一个 HEX 文件。新主板已装好 11.0592 MHz 晶振，六面端子初始没有绑定。"
+        },
+        {
+          "type": "heading",
+          "text": "1 · 给端子一个名字"
+        },
+        {
+          "type": "text",
+          "text": "放下主板，空手右键，打开「六面端子」。选一个容易够到的方向，管理 G1，引脚标号填 LED，用途选 GPIO，物理引脚选 P1.0。保存后点击「应用」。"
+        },
+        {
+          "type": "wiring",
+          "id": "embeddeddev:led_module",
+          "labels": [
+            "P1.0|LED"
+          ]
+        },
+        {
+          "type": "heading",
+          "text": "2 · 把模块接上"
+        },
+        {
+          "type": "text",
+          "text": "在旁边放 LED 模块。手持线卷，先点主板刚配置的线组，再点 LED。只有一个端子时会自动匹配。接线完成后把线卷收起来，线仍然可见。"
+        },
+        {
+          "type": "heading",
+          "text": "3 · 烧录一个最小程序"
+        },
+        {
+          "type": "text",
+          "text": "在 Keil C51 中编译下面的程序并生成 HEX。把 HEX 路径填进开发板「烧录与调试」页，烧录后点击运行。也可以把 HEX 文件拖入该界面。"
+        },
+        {
+          "type": "code",
+          "text": "#include <REG52.H>\nsbit LED = P1^0;\nvoid main(void) {\n    LED = 1;\n    while (1) { }\n}"
+        },
+        {
+          "type": "tip",
+          "text": "GPIO 1 点亮 LED，0 熄灭。点击「停止」会暂停 CPU；LED 保持端口电平。开发板与红石接口的红石输出在停止时会归零。"
+        },
+        {
+          "type": "link",
+          "target": "button",
+          "text": "下一个实验：按钮控制 LED >"
+        },
+        {
+          "type": "link",
+          "target": "troubleshooting",
+          "text": "没有点亮？按现象排查 >"
+        }
+      ],
+      "keywords": "first_led"
+    },
+    {
+      "id": "flashing",
+      "category": "start",
+      "icon": "embeddeddev:51systemboard",
+      "title": "烧录与首次运行",
+      "subtitle": "HEX 是固件，C 文件是源代码",
+      "blocks": [
+        {
+          "type": "heading",
+          "text": "在 Keil 准备固件"
+        },
+        {
+          "type": "text",
+          "text": "新建 8051/C51 工程，选择兼容 STC89C52 的目标，使用 SMALL 内存模型和 12T 时序。在 Output 里勾选 Create HEX File，编译后选择生成的 .hex。本模组读取 Intel HEX，不能直接烧录 .c、.obj 或 .a51 源文件。"
+        },
+        {
+          "type": "heading",
+          "text": "烧录面板上的顺序"
+        },
+        {
+          "type": "table",
+          "rows": [
+            [
+              "步骤",
+              "作用"
+            ],
+            [
+              "烧录 HEX",
+              "校验文件，然后替换程序并复位 CPU"
+            ],
+            [
+              "运行",
+              "从当前 PC 继续执行"
+            ],
+            [
+              "停止",
+              "暂停执行，保留 CPU 和 RAM"
+            ],
+            [
+              "复位",
+              "回到程序开头，清空 CPU RAM"
+            ],
+            [
+              "单步",
+              "执行一条指令并刷新状态"
+            ]
+          ]
+        },
+        {
+          "type": "text",
+          "text": "路径是运行客户端的那台电脑上的文件路径。相对路径从游戏实例目录解析。烧录时只把固件内容发给服务器，服务器不会按你填写的路径去读文件。"
+        },
+        {
+          "type": "tip",
+          "text": "每次换线、换晶振或换驱动后，先停止再检查配置。烧录和复位保留接线；独立 OLED 的显存也不会被 CPU 复位清空。"
+        },
+        {
+          "type": "heading",
+          "text": "HEX 校验失败时"
+        },
+        {
+          "type": "text",
+          "text": "检查是否完整复制了文件、是否有 EOF 结束记录、校验和是否正确，以及代码是否超出 0000H–1FFFH 的 8 KiB 程序区。损坏或越界的 HEX 不会覆盖原固件。文本文件上限为 128 KiB。"
+        },
+        {
+          "type": "link",
+          "target": "examples",
+          "text": "先用已附带的 HEX 验证接线 >"
+        }
+      ],
+      "keywords": "flashing"
+    },
+    {
+      "id": "board",
+      "category": "develop",
+      "icon": "embeddeddev:51systemboard",
+      "title": "最小系统板",
+      "subtitle": "程序、接线与时钟的中心",
+      "blocks": [
+        {
+          "type": "recipe",
+          "id": "embeddeddev:51systemboard"
+        },
+        {
+          "type": "text",
+          "text": "STC89C52RC、晶振、铜锭和覆铜电路板组成最小系统。新板预装 11.0592 MHz 晶振；每块主板有自己的程序、CPU、RAM、GPIO 和线组配置，互不共享内存。"
+        },
+        {
+          "type": "heading",
+          "text": "三个常用页面"
+        },
+        {
+          "type": "table",
+          "rows": [
+            [
+              "页面",
+              "用来做什么"
+            ],
+            [
+              "烧录与调试",
+              "导入 HEX、运行、停止、复位和单步"
+            ],
+            [
+              "六面端子",
+              "配置世界方向、G1–G4、标号及物理引脚"
+            ],
+            [
+              "接线一览",
+              "查看远端设备、引脚、离线和地址冲突"
+            ]
+          ]
+        },
+        {
+          "type": "text",
+          "text": "主板右上角的晶振槽连接真实背包。换晶振或取下晶振会暂停 CPU，装回后点运行。主板的接线使用世界东南西北上下，不会跟着你转身；拿罗盘确认方向。"
+        },
+        {
+          "type": "heading",
+          "text": "存档与掉落"
+        },
+        {
+          "type": "text",
+          "text": "CPU 状态、RAM、固件、DAC 和接线随主板存档。区块卸载时 CPU 暂停，不补跑离线时间。破坏主板会回收相关线缆，但掉落的主板不保留程序和 RAM；晶振随主板物品保存。"
+        },
+        {
+          "type": "tip",
+          "text": "比较器读取主板的运行状态：正在运行为 15，停止为 0。可以把它用于程序运行指示，而不额外占用一个 GPIO。"
+        },
+        {
+          "type": "link",
+          "target": "pins",
+          "text": "配置六面线组 >"
+        },
+        {
+          "type": "link",
+          "target": "memory",
+          "text": "芯片存储器分区 >"
+        }
+      ],
+      "keywords": "board"
+    },
+    {
+      "id": "pins",
+      "category": "develop",
+      "icon": "embeddeddev:51systemboard",
+      "title": "六面端子与标号",
+      "subtitle": "先定义接口，再连接模块",
+      "blocks": [
+        {
+          "type": "text",
+          "text": "每个世界方向都有 G1–G4 四组独立端子。每组可以改名，并添加多个引脚。标号是模块理解的接口名，例如 SDA、SCL、DQ、LED；物理引脚则是程序使用的 P0.0–P3.7。"
+        },
+        {
+          "type": "table",
+          "rows": [
+            [
+              "用途",
+              "物理通道",
+              "适合连接"
+            ],
+            [
+              "GPIO",
+              "P0.0–P3.7",
+              "按钮、LED、I²C、1-Wire、数码管"
+            ],
+            [
+              "ADC",
+              "ADC0–ADC7",
+              "输入红石强度 0–15"
+            ],
+            [
+              "DAC",
+              "DAC0–DAC7",
+              "输出红石强度 0–15"
+            ]
+          ]
+        },
+        {
+          "type": "heading",
+          "text": "添加与应用"
+        },
+        {
+          "type": "text",
+          "text": "选方向后打开管理引脚，选择线组并填写组名。点添加引脚，填写标号、用途和物理通道。组内标号不区分大小写且不能重复；同一物理通道在同组也只能使用一次。最后应用保存这一面的全部四组。"
+        },
+        {
+          "type": "wiring",
+          "id": "embeddeddev:oled",
+          "labels": [
+            "P1.6|SDA",
+            "P1.7|SCL"
+          ]
+        },
+        {
+          "type": "text",
+          "text": "同一面可以让 G1 接 OLED，G2 接另一个 I²C 总线，G3 接温度探头，G4 接 LED。不同线组可以使用相同标号，但应按电路意图选择独立 GPIO。只改标号会保留物理连线；删除或更换已接物理引脚后需要重新配对。"
+        },
+        {
+          "type": "tip",
+          "text": "GPIO 同时负责输入与输出，不需要切换数字输入/输出模式。读取外部输入前，先把对应端口锁存位置 1，释放引脚。清空线组会拆除并回收该组的线。"
+        },
+        {
+          "type": "link",
+          "target": "cables",
+          "text": "把接口连出去 >"
+        }
+      ],
+      "keywords": "pins"
+    },
+    {
+      "id": "cables",
+      "category": "develop",
+      "icon": "embeddeddev:wire_coil",
+      "title": "自由连线与接线柱",
+      "subtitle": "两点连线，按标号配对",
+      "blocks": [
+        {
+          "type": "recipe",
+          "id": "embeddeddev:wire_coil"
+        },
+        {
+          "type": "recipe",
+          "id": "embeddeddev:wire_cutter"
+        },
+        {
+          "type": "heading",
+          "text": "连接两个位置"
+        },
+        {
+          "type": "text",
+          "text": "线卷先点主板端子，再点模块。瞄准该面对应的 G1–G4 接线点，准星提示会显示组名和引脚。单引脚直接匹配，多引脚按标号自动配对；不能唯一匹配时会打开配对窗口。"
+        },
+        {
+          "type": "text",
+          "text": "一根线缆可以带多个信号，例如一根线同时承载 OLED 的 SDA 与 SCL，或数码管的八个段信号。按钮面板则每个按键是独立接线点，一个键一根线。"
+        },
+        {
+          "type": "heading",
+          "text": "距离、分支与路由"
+        },
+        {
+          "type": "text",
+          "text": "每段线缆在同一维度内最多 32 格，耗材按长度向上取整。可以用接线柱转角、延长和分支；空接线柱会继承第一次接入的端子名称。路径需要避开实心障碍。"
+        },
+        {
+          "type": "recipe",
+          "id": "embeddeddev:wire_relay"
+        },
+        {
+          "type": "tip",
+          "text": "每个连通端子网络由一块主板的一个线组控制。不要把两块主板的输出直接并在一起。相同总线地址的外设可以放到不同 GPIO 线组上使用。"
+        },
+        {
+          "type": "heading",
+          "text": "拆线与离线"
+        },
+        {
+          "type": "text",
+          "text": "潜行使用线卷取消当前选点。手持线钳瞄准可见线段右键拆线，或拆除端点回收相关线缆。两端和沿途接线柱所在区块都加载时才传输信号；接线一览中的离线条目会保留供排查。"
+        },
+        {
+          "type": "link",
+          "target": "relay",
+          "text": "接线柱的分支规则 >"
+        },
+        {
+          "type": "link",
+          "target": "i2c",
+          "text": "多个 I²C 设备共享一组线 >"
+        }
+      ],
+      "items": [
+        "embeddeddev:wire_coil",
+        "embeddeddev:wire_cutter"
+      ],
+      "keywords": "cables"
+    },
+    {
+      "id": "crystals",
+      "category": "develop",
+      "icon": "embeddeddev:crystal_11_0592mhz",
+      "title": "晶振与时序",
+      "subtitle": "软件延时必须匹配频率",
+      "blocks": [
+        {
+          "type": "text",
+          "text": "可以安装 6、11.0592、12、22.1184 和 24 MHz 晶振。开发板右上角打开晶振槽，从背包放入或取出晶振。操作会暂停执行，但保留 CPU 与 RAM；重新点运行继续。"
+        },
+        {
+          "type": "table",
+          "rows": [
+            [
+              "晶振",
+              "12T 机器周期"
+            ],
+            [
+              "6 MHz",
+              "2.000 μs"
+            ],
+            [
+              "11.0592 MHz",
+              "约 1.085 μs"
+            ],
+            [
+              "12 MHz",
+              "1.000 μs"
+            ],
+            [
+              "22.1184 MHz",
+              "约 0.543 μs"
+            ],
+            [
+              "24 MHz",
+              "0.500 μs"
+            ]
+          ]
+        },
+        {
+          "type": "tip",
+          "text": "DS18B20 随附 HEX 固定按 12 MHz/12T 编写；默认 11.0592 MHz 晶振不能直接替代。OLED 的 GPIO 边沿驱动不做严格总线速率检查，但你自己的延时仍会改变。"
+        },
+        {
+          "type": "recipe",
+          "id": "embeddeddev:crystal_6mhz"
+        },
+        {
+          "type": "recipe",
+          "id": "embeddeddev:crystal_11_0592mhz"
+        },
+        {
+          "type": "recipe",
+          "id": "embeddeddev:crystal_12mhz"
+        },
+        {
+          "type": "recipe",
+          "id": "embeddeddev:crystal_22_1184mhz"
+        },
+        {
+          "type": "recipe",
+          "id": "embeddeddev:crystal_24mhz"
+        },
+        {
+          "type": "text",
+          "text": "默认每游戏 tick 执行的机器周期按晶振频率除以 240 计算，对应 20 TPS 下的 12T 时序。服务器负载降低 TPS 时，游戏内运行进度也会放慢；区块卸载后不会继续计时执行。"
+        },
+        {
+          "type": "link",
+          "target": "temperature",
+          "text": "按正确晶振驱动温度探头 >"
+        }
+      ],
+      "items": [
+        "embeddeddev:crystal_6mhz",
+        "embeddeddev:crystal_11_0592mhz",
+        "embeddeddev:crystal_12mhz",
+        "embeddeddev:crystal_22_1184mhz",
+        "embeddeddev:crystal_24mhz"
+      ],
+      "keywords": "crystals"
+    },
+    {
+      "id": "keil",
+      "category": "develop",
+      "icon": "embeddeddev:stc89c52rc",
+      "title": "Keil 工程与 GPIO",
+      "subtitle": "用你熟悉的 C51 或汇编",
+      "blocks": [
+        {
+          "type": "heading",
+          "text": "推荐起点"
+        },
+        {
+          "type": "text",
+          "text": "使用 8051/C51 工具链，程序限制在 8 KiB，先用 SMALL 内存模型。REG52.H 能提供常见 SFR 和位定义。勾选 HEX 输出，再把文件烧进游戏里的开发板。C 源码在电脑上编译，游戏负责执行机器码。"
+        },
+        {
+          "type": "heading",
+          "text": "位操作与整口操作"
+        },
+        {
+          "type": "code",
+          "text": "#include <REG52.H>\nsbit LED = P1^0;\nsbit KEY = P1^1;\nvoid main(void) {\n    KEY = 1;\n    while (1) LED = !KEY;\n}"
+        },
+        {
+          "type": "text",
+          "text": "上面是低有效按键驱动高有效 LED。KEY 对应的 GPIO 要先写 1 以释放端口，然后读取；写 0 会持续把它拉低。P1=0x3F 则一次设置 P1 的八个位，适合直接驱动数码管。"
+        },
+        {
+          "type": "heading",
+          "text": "访问扩展模拟量"
+        },
+        {
+          "type": "code",
+          "text": "#include <absacc.h>\nunsigned char level;\nlevel = XBYTE[0xF000];\nXBYTE[0xF010] = level;"
+        },
+        {
+          "type": "text",
+          "text": "F000H 是虚拟 ADC0，F010H 是虚拟 DAC0，范围都是 0–15。它们属于本模组的 XDATA 扩展，并非 STC89C52 内置 ADC/DAC。可以使用 MOVX 或 Keil 的 XBYTE 访问。"
+        },
+        {
+          "type": "tip",
+          "text": "随附 HEX 是项目脚本生成的等价手写机器码。提供的 C 文件方便你在 Keil 修改；具体软件延时可能随编译优化而变化。"
+        },
+        {
+          "type": "link",
+          "target": "registers",
+          "text": "常见寄存器速查 >"
+        }
+      ],
+      "keywords": "keil"
+    },
+    {
+      "id": "debug",
+      "category": "develop",
+      "icon": "embeddeddev:51systemboard",
+      "title": "烧录面板里的调试",
+      "subtitle": "PC、机器码、反汇编与单步",
+      "blocks": [
+        {
+          "type": "text",
+          "text": "打开烧录与调试页，可以查看当前 PC 对应的机器码和反汇编，并预览后续三条顺序指令。遇到跳转时，预览仍是地址顺序，实际下一条执行位置由 CPU 决定。"
+        },
+        {
+          "type": "heading",
+          "text": "一个可复现的调试顺序"
+        },
+        {
+          "type": "text",
+          "text": "先停止并记录 PC。检查当前晶振和接线，再复位。用单步观察端口写入是否到达你预期的引脚。最小输出测试通过后，再加入按钮、传感器和循环逻辑。"
+        },
+        {
+          "type": "table",
+          "rows": [
+            [
+              "现象",
+              "先检查"
+            ],
+            [
+              "PC 不动",
+              "是否点运行、是否安装晶振、CPU 是否故障"
+            ],
+            [
+              "PC 在同处反复",
+              "是否是正常等待循环或按键未释放"
+            ],
+            [
+              "输出与程序不符",
+              "物理引脚、标号、共阳/共阴与红石模式"
+            ],
+            [
+              "修改 HEX 没变化",
+              "是否重新烧录并运行了正确文件"
+            ]
+          ]
+        },
+        {
+          "type": "text",
+          "text": "虚拟 UART 可作为调试控制台：写 SBUF 会立即追加字符并置 TI；输入需要程序开启接收并处理 RI。控制台保留最近 512 个字符，不模拟真实电压和串口电缆。"
+        },
+        {
+          "type": "tip",
+          "text": "A5H 是保留操作码，执行它会停机并报告故障。HEX 落在擦除区或跑飞时，先检查程序边界与跳转目标，再复位后运行。"
+        },
+        {
+          "type": "link",
+          "target": "troubleshooting",
+          "text": "完整故障排查表 >"
+        }
+      ],
+      "keywords": "debug"
+    },
+    {
+      "id": "button",
+      "category": "modules",
+      "icon": "embeddeddev:button_module",
+      "title": "按钮面板",
+      "subtitle": "一个方块，最多九个独立按键",
+      "blocks": [
+        {
+          "type": "recipe",
+          "id": "embeddeddev:button_module"
+        },
+        {
+          "type": "text",
+          "text": "潜行空手右键，或右键没有按键的面板区域，打开设置。数量可以选 1–9，每个键都有自己的标号。默认第一个键叫 KEY，新增键叫 KEY2–KEY9，也可以改成 START、STOP 等。"
+        },
+        {
+          "type": "text",
+          "text": "主板端子里添加同名 GPIO，再用线卷依次点主板和具体按键。几个按键就接几根线，多个按键可以接到同一个已配置线组。改名保留物理连线；减少数量会回收被移除键的线。"
+        },
+        {
+          "type": "wiring",
+          "id": "embeddeddev:button_module",
+          "labels": [
+            "P1.0|KEY"
+          ]
+        },
+        {
+          "type": "wiring",
+          "id": "embeddeddev:led_module",
+          "labels": [
+            "P1.1|LED"
+          ]
+        },
+        {
+          "type": "heading",
+          "text": "按下为 0，松开为 1"
+        },
+        {
+          "type": "text",
+          "text": "空手点一个键，会把该键信号拉低 10 tick，随后自动释放。读取前把 MCU 对应端口锁存位置 1。下面的完整程序让 LED 随按键点亮；请按接线图分别把按钮和 LED 接到主板。"
+        },
+        {
+          "type": "code",
+          "text": "#include <REG52.H>\nsbit KEY = P1^0;\nsbit LED = P1^1;\nvoid main(void) {\n    KEY = 1;\n    while (1) LED = !KEY;\n}"
+        },
+        {
+          "type": "tip",
+          "text": "这里的按键按游戏 tick 保持低电平，不模拟机械触点抖动。移除正在按下的键也会释放它，不会留下永久低电平。"
+        }
+      ],
+      "keywords": "button"
+    },
+    {
+      "id": "led",
+      "category": "modules",
+      "icon": "embeddeddev:led_module",
+      "title": "LED 指示灯",
+      "subtitle": "最适合验证 GPIO 的模块",
+      "blocks": [
+        {
+          "type": "recipe",
+          "id": "embeddeddev:led_module"
+        },
+        {
+          "type": "wiring",
+          "id": "embeddeddev:led_module",
+          "labels": [
+            "P1.0|LED"
+          ]
+        },
+        {
+          "type": "text",
+          "text": "模块只需要一个名为 LED 的 GPIO 端子。连接后 GPIO 高电平点亮，低电平熄灭。适合做运行状态、阈值报警、按键反馈，或用单步验证程序是否写到了预期的端口位。"
+        },
+        {
+          "type": "code",
+          "text": "#include <REG52.H>\nsbit LED = P1^0;\nvoid main(void) {\n    LED = 1;\n    while (1) { }\n}"
+        },
+        {
+          "type": "text",
+          "text": "可以与主板相邻并在接触面的 G1 绑定 LED，也可以用线卷远程连接任意线组。若改用 P2.3，必须同时更改接线配置和程序里的 sbit 定义。"
+        },
+        {
+          "type": "tip",
+          "text": "LED 是高有效逻辑指示灯。想把 GPIO 变为驱动机器的红石信号，请使用红石接口模块。"
+        },
+        {
+          "type": "link",
+          "target": "redstone",
+          "text": "把逻辑信号送给机器 >"
+        }
+      ],
+      "keywords": "led"
+    },
+    {
+      "id": "seven_segment",
+      "category": "modules",
+      "icon": "embeddeddev:seven_segment",
+      "title": "八段数码管",
+      "subtitle": "七段字形与独立小数点",
+      "blocks": [
+        {
+          "type": "recipe",
+          "id": "embeddeddev:seven_segment"
+        },
+        {
+          "type": "text",
+          "text": "模块显示一个数字，由 A–G 七个发光段和 DP 小数点组成。模块内置公共供电与限流，只连接八根信号即可。一根包含八条信号的线缆能完成全部配对。"
+        },
+        {
+          "type": "wiring",
+          "id": "embeddeddev:seven_segment",
+          "labels": [
+            "P1.0|A",
+            "P1.1|B",
+            "P1.2|C",
+            "P1.3|D",
+            "P1.4|E",
+            "P1.5|F",
+            "P1.6|G",
+            "P1.7|DP"
+          ]
+        },
+        {
+          "type": "heading",
+          "text": "极性与段位"
+        },
+        {
+          "type": "text",
+          "text": "默认共阴，1 点亮；潜行空手右键切换共阳，0 点亮。bit0–bit7 依次对应 A B C D E F G DP。共阳模式应把整个段码字节取反。断线或引脚不全时，两种模式都会熄灭。"
+        },
+        {
+          "type": "table",
+          "rows": [
+            [
+              "数字",
+              "共阴 HEX"
+            ],
+            [
+              "0 / 1 / 2",
+              "3F / 06 / 5B"
+            ],
+            [
+              "3 / 4 / 5",
+              "4F / 66 / 6D"
+            ],
+            [
+              "6 / 7 / 8 / 9",
+              "7D / 07 / 7F / 6F"
+            ],
+            [
+              "小数点",
+              "在字形上加 80H（按位或）"
+            ]
+          ]
+        },
+        {
+          "type": "code",
+          "text": "#include <REG52.H>\nvoid main(void) {\n    P1 = 0x5B;  /* digit 2 */\n    while (1) { }\n}"
+        },
+        {
+          "type": "text",
+          "text": "随附 seven_segment_counter.hex 在默认晶振下循环显示 0–9，奇数时点亮小数点，约每 0.55 秒切换。IDATA 30H 保存当前数字，31H 保存段码。模式随模块存档保存。"
+        },
+        {
+          "type": "link",
+          "target": "examples",
+          "text": "查找计数示例文件 >"
+        }
+      ],
+      "keywords": "seven_segment"
+    },
+    {
+      "id": "oled",
+      "category": "modules",
+      "icon": "embeddeddev:oled",
+      "title": "SSD1306 OLED",
+      "subtitle": "0.96 寸，128×64 独立显存",
+      "blocks": [
+        {
+          "type": "recipe",
+          "id": "embeddeddev:oled"
+        },
+        {
+          "type": "wiring",
+          "id": "embeddeddev:oled",
+          "labels": [
+            "P1.6|SDA",
+            "P1.7|SCL"
+          ]
+        },
+        {
+          "type": "text",
+          "text": "OLED 是独立方块，拥有 SSD1306 控制器和 1024 字节显存。七位 I²C 地址是 3CH，写地址字节是 78H。右键只打开屏幕放大窗口，不打开主板。世界中的显示和放大窗口使用同一幅像素数据。"
+        },
+        {
+          "type": "heading",
+          "text": "先跑可读文字示例"
+        },
+        {
+          "type": "text",
+          "text": "按接线图配置 SDA=P1.6、SCL=P1.7，烧录 i2c_oled_hello.hex 并运行。应显示 EMBEDDED DEV、STC89C52、HELLO MINECRAFT、I2C 0X3C。oled_pattern.hex 只是条纹诊断，画面本来就不是文字。"
+        },
+        {
+          "type": "heading",
+          "text": "发送指令与显存"
+        },
+        {
+          "type": "table",
+          "rows": [
+            [
+              "内容",
+              "发送顺序"
+            ],
+            [
+              "指令流",
+              "START → 78H → 00H → 指令 → STOP"
+            ],
+            [
+              "像素流",
+              "START → 78H → 40H → 显存字节 → STOP"
+            ],
+            [
+              "常用指令",
+              "AE 关屏 / AF 开屏 / A6 正常 / A7 反显"
+            ],
+            [
+              "地址范围",
+              "21 设置列范围 / 22 设置页范围"
+            ]
+          ]
+        },
+        {
+          "type": "text",
+          "text": "显存按页排列：一个字节是同一列竖向的 8 个像素，bit0 对应该页最上面的点。像素 (x,y) 的偏移为 (y>>3)×128+x，位掩码为 1<<(y&7)。初始化寻址模式后再发送自己的字模。"
+        },
+        {
+          "type": "tip",
+          "text": "OLED 保存自己的显存和显示设置。CPU 复位不会自动清屏。若画面残留，应由程序发送清屏数据；若为空白，先检查 AF 开屏、SDA/SCL 接线和地址。"
+        },
+        {
+          "type": "text",
+          "text": "可选 MOVX 桥接访问第一块已通过 SDA/SCL 接上的 OLED：F020H 控制显示，F100H–F4FFH 为显存。oled_hello.hex 使用这个接口。它是模组扩展，不是 SSD1306 的原生引脚接口。"
+        },
+        {
+          "type": "link",
+          "target": "i2c",
+          "text": "I²C 起停、ACK 与共享总线 >"
+        }
+      ],
+      "keywords": "oled"
+    },
+    {
+      "id": "rtc",
+      "category": "modules",
+      "icon": "embeddeddev:ds1302",
+      "title": "DS1302 实时时钟",
+      "subtitle": "三线、BCD 日历与 31 字节 RAM",
+      "blocks": [
+        {
+          "type": "recipe",
+          "id": "embeddeddev:ds1302"
+        },
+        {
+          "type": "wiring",
+          "id": "embeddeddev:ds1302",
+          "labels": [
+            "P1.0|CE",
+            "P1.1|SCLK",
+            "P1.2|IO"
+          ]
+        },
+        {
+          "type": "text",
+          "text": "DS1302 使用 CE、SCLK、IO 三线接口，不是 I²C。CE 拉高开始一次传输，拉低提交并结束。命令和数据低位先行。上升沿写入，读取时在下降沿更新输出；读取前释放 IO。"
+        },
+        {
+          "type": "table",
+          "rows": [
+            [
+              "寄存器",
+              "写 / 读"
+            ],
+            [
+              "秒（bit7=CH）",
+              "80H / 81H"
+            ],
+            [
+              "分 / 时",
+              "82/83H / 84/85H"
+            ],
+            [
+              "日 / 月",
+              "86/87H / 88/89H"
+            ],
+            [
+              "星期 / 年",
+              "8A/8BH / 8C/8DH"
+            ],
+            [
+              "写保护（bit7）",
+              "8EH / 8FH"
+            ],
+            [
+              "时钟突发",
+              "BEH / BFH"
+            ],
+            [
+              "RAM 突发",
+              "FEH / FFH"
+            ]
+          ]
+        },
+        {
+          "type": "heading",
+          "text": "初始化时钟"
+        },
+        {
+          "type": "text",
+          "text": "先向 8EH 写 00H 关闭写保护，再写入 BCD 日历。秒寄存器 bit7 为 CH，置 1 停表，清 0 运行。BCD 的 23 是 23H，不是十进制 23 的 17H；转换时十位乘 16 后加个位。"
+        },
+        {
+          "type": "text",
+          "text": "读秒时发送 81H，再释放 IO 并读取 8 位。使用突发读可以拿到同一次日历快照，避免跨秒时分别读出的日期不一致。31 字节 RAM 也可用于保存小型参数。"
+        },
+        {
+          "type": "tip",
+          "text": "时钟按游戏 tick 推进，不读取电脑的真实时间。时间、停表位、写保护和 RAM 随模块保存。主板卸载不会执行程序，时钟的进度受游戏世界时间影响。"
+        }
+      ],
+      "keywords": "rtc"
+    },
+    {
+      "id": "adc",
+      "category": "modules",
+      "icon": "embeddeddev:pcf8591",
+      "title": "PCF8591 ADC / DAC",
+      "subtitle": "四路模拟采样，一路模拟输出",
+      "blocks": [
+        {
+          "type": "recipe",
+          "id": "embeddeddev:pcf8591"
+        },
+        {
+          "type": "wiring",
+          "id": "embeddeddev:pcf8591",
+          "labels": [
+            "P1.6|SDA",
+            "P1.7|SCL"
+          ]
+        },
+        {
+          "type": "text",
+          "text": "PCF8591 默认七位地址 48H，写地址 90H，读地址 91H。潜行空手右键在 48H–4FH 间切换地址。AIN0–AIN3 分别从世界北、东、南、西面采样，AOUT 向上输出红石。"
+        },
+        {
+          "type": "text",
+          "text": "红石输入强度 0–15 映射为 0–255，即每级乘 17。DAC 把 0–255 换算为 0–15 红石输出。与主板自带的虚拟 ADC/DAC 通道不同，这个芯片通过真实的 GPIO I²C 事务控制。"
+        },
+        {
+          "type": "table",
+          "rows": [
+            [
+              "控制字位",
+              "作用"
+            ],
+            [
+              "bit6",
+              "允许 AOUT 输出"
+            ],
+            [
+              "bit5:4",
+              "输入模式：单端或差分"
+            ],
+            [
+              "bit2",
+              "读取后自动递增通道"
+            ],
+            [
+              "bit1:0",
+              "起始输入通道"
+            ]
+          ]
+        },
+        {
+          "type": "heading",
+          "text": "读取 AIN2 的完整顺序"
+        },
+        {
+          "type": "text",
+          "text": "START，发送 90H 和控制字 02H；重复 START，发送 91H。先读并丢弃第一个字节，给 ACK；再读取第二个字节，它才是当前采样值，最后给 NACK 并 STOP。"
+        },
+        {
+          "type": "tip",
+          "text": "首个读数是上一次转换值，不能把它当成当前输入。向写地址发送控制字 40H 后再发送 DAC 字节，可以启用并设置模拟输出。"
+        },
+        {
+          "type": "text",
+          "text": "环境传感器也默认使用 48H。两者挂同一条 SDA/SCL 时，把 PCF8591 改到 49H，或者给它们分配两组独立 GPIO 总线。"
+        },
+        {
+          "type": "link",
+          "target": "i2c",
+          "text": "地址冲突与重复 START >"
+        }
+      ],
+      "keywords": "adc"
+    },
+    {
+      "id": "temperature",
+      "category": "modules",
+      "icon": "embeddeddev:ds18b20",
+      "title": "DS18B20 温度探头",
+      "subtitle": "贴着设备，用 DQ 读取温度",
+      "blocks": [
+        {
+          "type": "recipe",
+          "id": "embeddeddev:ds18b20"
+        },
+        {
+          "type": "wiring",
+          "id": "embeddeddev:ds18b20",
+          "labels": [
+            "P1.2|DQ"
+          ]
+        },
+        {
+          "type": "text",
+          "text": "把探头贴在被测方块表面，探头只测接触的那个方块。主板任意线组绑定 GPIO 标号 DQ，再用线卷连上。右键探头查看温度、来源，以及是否超出量程。"
+        },
+        {
+          "type": "table",
+          "rows": [
+            [
+              "特性",
+              "数值"
+            ],
+            [
+              "量程",
+              "-55～125 ℃"
+            ],
+            [
+              "分辨率",
+              "9–12 位，最高 1/16 ℃"
+            ],
+            [
+              "12 位转换",
+              "最长约 750 ms"
+            ],
+            [
+              "上电温度",
+              "85 ℃，需启动一次转换"
+            ],
+            [
+              "数据顺序",
+              "低位先行，暂存器含 CRC8"
+            ]
+          ]
+        },
+        {
+          "type": "heading",
+          "text": "先使用随附示例"
+        },
+        {
+          "type": "text",
+          "text": "安装 12 MHz 晶振，DQ=P1.2，烧录 ds18b20_read.hex。它发出复位，Skip ROM、Convert T，等待约 800 ms，然后读取 9 字节 Scratchpad。完成标志为 3FH=A5H，数据在 IDATA 30H–38H。"
+        },
+        {
+          "type": "text",
+          "text": "把前两个字节按有符号 16 位小端数合并，再除以 16，得到摄氏度。负温度应保留符号，不能把高字节当成无符号数直接拼接。最后一个字节是 Dallas CRC8。"
+        },
+        {
+          "type": "tip",
+          "text": "读到 85 ℃通常表示尚未转换完成；始终 FFH 通常表示 DQ 未接通、没有释放或没有正确复位。先核对 12 MHz 晶振，再查 1-Wire 时序。"
+        },
+        {
+          "type": "link",
+          "target": "onewire",
+          "text": "复位、转换命令与 CRC >"
+        },
+        {
+          "type": "link",
+          "target": "compatibility",
+          "text": "机械动力和通用温度来源 >"
+        }
+      ],
+      "keywords": "temperature"
+    },
+    {
+      "id": "sensor",
+      "category": "modules",
+      "icon": "embeddeddev:i2c_sensor",
+      "title": "环境传感器",
+      "subtitle": "红石、光照与日进度",
+      "blocks": [
+        {
+          "type": "recipe",
+          "id": "embeddeddev:i2c_sensor"
+        },
+        {
+          "type": "wiring",
+          "id": "embeddeddev:i2c_sensor",
+          "labels": [
+            "P1.6|SDA",
+            "P1.7|SCL"
+          ]
+        },
+        {
+          "type": "text",
+          "text": "七位 I²C 地址 48H，写地址 90H，读地址 91H。先写入寄存器编号，再以重复 START 切换到读操作；连续读取会递增寄存器号。右键模块可直接查看当前采样值。"
+        },
+        {
+          "type": "table",
+          "rows": [
+            [
+              "寄存器",
+              "读数与范围"
+            ],
+            [
+              "00H",
+              "周围除主板外的最大红石强度，0–15"
+            ],
+            [
+              "01H",
+              "模块上方天光，0–15"
+            ],
+            [
+              "02H",
+              "模块上方方块光，0–15"
+            ],
+            [
+              "03H",
+              "一天进度百分比，0–99"
+            ],
+            [
+              "其他",
+              "FFH"
+            ]
+          ]
+        },
+        {
+          "type": "text",
+          "text": "i2c_sensor.hex 按图中 P1.6/P1.7 读取寄存器 00H，再写入主板虚拟 DAC0。另选一组绑定 DAC0 并连接红石输出接口，就能把模块周围的红石强度转发到远处。"
+        },
+        {
+          "type": "tip",
+          "text": "它和 PCF8591 默认地址相同。在同一总线使用时，需要把 PCF8591 改到 49H；OLED 的 3CH 不与它冲突。"
+        }
+      ],
+      "keywords": "sensor"
+    },
+    {
+      "id": "redstone",
+      "category": "modules",
+      "icon": "embeddeddev:redstone_port",
+      "title": "红石接口模块",
+      "subtitle": "让 MCU 接入红石与机器",
+      "blocks": [
+        {
+          "type": "recipe",
+          "id": "embeddeddev:redstone_port"
+        },
+        {
+          "type": "text",
+          "text": "把红石接口放在需要读取或控制的设备旁，用线卷接到主板。空手右键设置输入或输出，并选择朝向设备的红石侧。这里的输入/输出是相对主板而言：机器信号进 MCU 是输入，MCU 控制机器是输出。"
+        },
+        {
+          "type": "table",
+          "rows": [
+            [
+              "模式",
+              "主板引脚",
+              "范围"
+            ],
+            [
+              "数字输入",
+              "GPIO",
+              "读取低/高电平"
+            ],
+            [
+              "数字输出",
+              "GPIO",
+              "0 或 15 红石"
+            ],
+            [
+              "模拟输入",
+              "ADC0–7",
+              "红石 0–15"
+            ],
+            [
+              "模拟输出",
+              "DAC0–7",
+              "红石 0–15"
+            ]
+          ]
+        },
+        {
+          "type": "heading",
+          "text": "一个模拟量转发实验"
+        },
+        {
+          "type": "text",
+          "text": "输入接口选择输入与取样侧，接主板 ADC0；输出接口选择输出与驱动侧，接主板 DAC1。烧录 adc_mirror.hex。它把 F000H 读到的强度写到 F011H，实现从 ADC0 到 DAC1 的转发。"
+        },
+        {
+          "type": "code",
+          "text": "#include <REG52.H>\n#include <absacc.h>\nvoid main(void) {\n    while (1)\n        XBYTE[0xF011] = XBYTE[0xF000];\n}"
+        },
+        {
+          "type": "text",
+          "text": "可以控制机械动力中接受红石的离合器、红石链路，以及其他科技模组的红石控制口。机器实际如何响应由目标模组决定。小于一个游戏 tick 的脉冲可能不会在红石世界中显现。"
+        },
+        {
+          "type": "tip",
+          "text": "停止主板或断线会把红石输出归零。接口紧贴旧主板时，普通右键可能打开主板；潜行右键可以打开接口自身的端子设置。"
+        }
+      ],
+      "keywords": "redstone"
+    },
+    {
+      "id": "relay",
+      "category": "modules",
+      "icon": "embeddeddev:wire_relay",
+      "title": "接线柱",
+      "subtitle": "转角、延长和总线分支",
+      "blocks": [
+        {
+          "type": "recipe",
+          "id": "embeddeddev:wire_relay"
+        },
+        {
+          "type": "text",
+          "text": "先把主板线组连到空接线柱，接线柱便会继承这组端子的名称。随后从柱子再拉线到模块，或连接下一根柱子。分支只传递已经映射的信号，不会自动创造新的 MCU 引脚。"
+        },
+        {
+          "type": "heading",
+          "text": "适合的电路"
+        },
+        {
+          "type": "text",
+          "text": "一组 SDA/SCL 可以通过接线柱分接 OLED、PCF8591 和环境传感器，但每个设备的七位地址要唯一。多个 LED 也可以分接到同一 GPIO，它们会跟随同一电平。"
+        },
+        {
+          "type": "tip",
+          "text": "同一连通网络只能有一个主板线组作为控制端。柱子需要加载才传输信号；切断主干后，下游模块会离线。每根柱子最多连接八段线，每个网络最多 64 个端点。"
+        },
+        {
+          "type": "link",
+          "target": "cables",
+          "text": "查看线卷与线钳操作 >"
+        }
+      ],
+      "keywords": "relay"
+    },
+    {
+      "id": "compass",
+      "category": "modules",
+      "icon": "embeddeddev:compass",
+      "title": "罗盘与世界方向",
+      "subtitle": "先分清方向，再给端子起名",
+      "blocks": [
+        {
+          "type": "recipe",
+          "id": "embeddeddev:compass"
+        },
+        {
+          "type": "text",
+          "text": "罗盘指向世界北方，右键在操作栏显示当前朝向。主板的六面接线页也显示玩家方向。站在不同位置看到的左和右会改变，配置中的东南西北上下不会改变。"
+        },
+        {
+          "type": "text",
+          "text": "做相邻连接时，要在主板面向模块的那个方向配置 G1。例如模块放在主板东边，就编辑东面；想在远程连接中选择同面的不同线组，需要瞄准各组接线点并查看准星提示。"
+        },
+        {
+          "type": "tip",
+          "text": "PCF8591 的 AIN0–AIN3 永远按世界北、东、南、西取样。红石接口的驱动侧则可在自身设置里选择，别把这两个规则混淆。"
+        }
+      ],
+      "keywords": "compass"
+    },
+    {
+      "id": "memory",
+      "category": "reference",
+      "icon": "embeddeddev:stc89c52rc",
+      "title": "内存与 Flash 分区",
+      "subtitle": "256 字节 IDATA，不含独立 SFR",
+      "blocks": [
+        {
+          "type": "table",
+          "rows": [
+            [
+              "空间",
+              "范围 / 容量",
+              "用途"
+            ],
+            [
+              "CODE",
+              "0000H–1FFFH / 8 KiB",
+              "程序与 code 常量"
+            ],
+            [
+              "IDATA",
+              "00H–FFH / 256 B",
+              "内部 RAM、变量、栈"
+            ],
+            [
+              "SFR",
+              "80H–FFH / 独立空间",
+              "端口和控制寄存器"
+            ],
+            [
+              "XDATA",
+              "0000H–FFFFH / 64 KiB",
+              "外部数据与虚拟设备窗口"
+            ]
+          ]
+        },
+        {
+          "type": "text",
+          "text": "是的，256 字节指完整内部 RAM，也就是可以间接寻址的 IDATA。低 128 字节可直接或间接访问；高 128 字节只能间接访问。直接地址 80H–FFH 访问的是 SFR，不能用直接 MOV 把它当作高半区 RAM。"
+        },
+        {
+          "type": "table",
+          "rows": [
+            [
+              "IDATA 区域",
+              "常见作用"
+            ],
+            [
+              "00H–1FH",
+              "四组 R0–R7"
+            ],
+            [
+              "20H–2FH",
+              "位寻址 RAM"
+            ],
+            [
+              "30H–7FH",
+              "通用变量区"
+            ],
+            [
+              "80H–FFH",
+              "上半区 RAM，间接寻址"
+            ]
+          ]
+        },
+        {
+          "type": "code",
+          "text": "MOV 80H,#00H ; writes P0 SFR\nMOV R0,#80H\nMOV @R0,#55H ; writes upper IDATA"
+        },
+        {
+          "type": "tip",
+          "text": "SP 复位为 07H，栈向高地址增长。复杂 C 工程要留意寄存器组、变量和栈的重叠。代码超过 8 KiB 会被 HEX 校验拒绝。"
+        },
+        {
+          "type": "link",
+          "target": "xdata",
+          "text": "虚拟 ADC/DAC 与 OLED 地址表 >"
+        }
+      ],
+      "keywords": "memory"
+    },
+    {
+      "id": "registers",
+      "category": "reference",
+      "icon": "embeddeddev:stc89c52rc",
+      "title": "常见 SFR 与中断",
+      "subtitle": "按地址查控制寄存器",
+      "blocks": [
+        {
+          "type": "table",
+          "rows": [
+            [
+              "地址",
+              "寄存器",
+              "用途"
+            ],
+            [
+              "80 / 90 / A0 / B0",
+              "P0 / P1 / P2 / P3",
+              "四组 GPIO 端口"
+            ],
+            [
+              "81",
+              "SP",
+              "栈指针"
+            ],
+            [
+              "82 / 83",
+              "DPL / DPH",
+              "数据指针"
+            ],
+            [
+              "87",
+              "PCON",
+              "Idle / Power-down"
+            ],
+            [
+              "88 / 89",
+              "TCON / TMOD",
+              "定时器 0/1"
+            ],
+            [
+              "8A / 8C",
+              "TL0 / TH0",
+              "定时器 0 计数"
+            ],
+            [
+              "8B / 8D",
+              "TL1 / TH1",
+              "定时器 1 计数"
+            ],
+            [
+              "98 / 99",
+              "SCON / SBUF",
+              "虚拟串口"
+            ],
+            [
+              "A8 / B8",
+              "IE / IP",
+              "中断允许 / 优先级"
+            ],
+            [
+              "C8 / CA–CD",
+              "T2CON / RCAP2 / T2",
+              "定时器 2"
+            ],
+            [
+              "D0 / E0 / F0",
+              "PSW / ACC / B",
+              "状态与算术寄存器"
+            ]
+          ]
+        },
+        {
+          "type": "heading",
+          "text": "中断实验要检查三件事"
+        },
+        {
+          "type": "text",
+          "text": "先打开对应中断使能，再打开 EA 总使能，并确保服务函数以 RETI 返回。Timer 0/1/2、外部中断和串口按已实现的 IE/IP 两级优先级工作。不要依赖 STC 特有的额外中断源或四级优先级。"
+        },
+        {
+          "type": "tip",
+          "text": "模拟器支持 255 个已定义基础操作码、位操作、MOVC/MOVX、乘除与 BCD 调整。看门狗、IAP/EEPROM 和 6T/1T 加速尚未实现，工程初始化不要依赖这些功能。"
+        }
+      ],
+      "keywords": "registers"
+    },
+    {
+      "id": "xdata",
+      "category": "reference",
+      "icon": "embeddeddev:redstone_port",
+      "title": "扩展设备地址表",
+      "subtitle": "MOVX 与 XBYTE 的约定",
+      "blocks": [
+        {
+          "type": "table",
+          "rows": [
+            [
+              "XDATA 地址",
+              "读写",
+              "内容"
+            ],
+            [
+              "F000H–F007H",
+              "只读",
+              "ADC0–7，0–15"
+            ],
+            [
+              "F010H–F017H",
+              "读写",
+              "DAC0–7，写入限制为 0–15"
+            ],
+            [
+              "F020H",
+              "读写",
+              "OLED 桥接显示控制"
+            ],
+            [
+              "F100H–F4FFH",
+              "读写",
+              "已连接 OLED 的 1024 B 显存"
+            ]
+          ]
+        },
+        {
+          "type": "text",
+          "text": "这些地址是本模组定义的设备窗口，会覆盖对应的普通 XDATA 字节。F020H 写 bit0 控制显示开关，写 bit1 为 1 请求清屏。OLED 桥接需要先通过 SDA/SCL 连接到实际模块。"
+        },
+        {
+          "type": "code",
+          "text": "#include <absacc.h>\nXBYTE[0xF010] = 15; /* DAC0 */\nXBYTE[0xF020] = 3;  /* on + clear */\nXBYTE[0xF100] = 0xFF;"
+        },
+        {
+          "type": "tip",
+          "text": "不要让启动代码批量清零这些设备窗口。GPIO 软件 I²C 与桥接接口可分别使用；移植普通 SSD1306 驱动时，应按 GPIO 总线驱动，而不是假定真芯片拥有这些地址。"
+        }
+      ],
+      "keywords": "xdata"
+    },
+    {
+      "id": "i2c",
+      "category": "reference",
+      "icon": "embeddeddev:oled",
+      "title": "软件 I²C 接口",
+      "subtitle": "任意两根 GPIO 都能接 SDA/SCL",
+      "blocks": [
+        {
+          "type": "text",
+          "text": "I²C 通过 GPIO 电平变化实现，不需要单独的硬件 I²C 页面。选择两根 GPIO，标号 SDA 和 SCL，再让固件操作这两根引脚。每次读 SDA 前先写 1 释放它，外设通过拉低表示 0 或 ACK。"
+        },
+        {
+          "type": "table",
+          "rows": [
+            [
+              "阶段",
+              "操作"
+            ],
+            [
+              "START",
+              "SCL 高时 SDA 从高变低"
+            ],
+            [
+              "STOP",
+              "SCL 高时 SDA 从低变高"
+            ],
+            [
+              "发送一字节",
+              "高位先行，在 SCL 上升沿采样"
+            ],
+            [
+              "第九个时钟",
+              "发送方释放 SDA，接收方给 ACK/NACK"
+            ],
+            [
+              "控制器读最后字节",
+              "NACK，然后 STOP"
+            ]
+          ]
+        },
+        {
+          "type": "table",
+          "rows": [
+            [
+              "模块",
+              "七位地址",
+              "写 / 读字节"
+            ],
+            [
+              "OLED",
+              "3CH",
+              "78H / 79H（以写为主）"
+            ],
+            [
+              "环境传感器",
+              "48H",
+              "90H / 91H"
+            ],
+            [
+              "PCF8591",
+              "48H–4FH",
+              "地址左移一位，再加读位"
+            ]
+          ]
+        },
+        {
+          "type": "text",
+          "text": "七位地址和发到线上的地址字节不是同一个数。48H 左移一位是 90H，最低位加 1 就是读地址 91H。把 90H 再左移会找错设备。"
+        },
+        {
+          "type": "tip",
+          "text": "共享 SDA/SCL 的不同设备需要唯一地址。接线一览会报告地址冲突。I²C 传输按 CPU 的 GPIO 写入逐次处理，单个游戏 tick 内也能完成；红石世界本身仍按 tick 更新。"
+        },
+        {
+          "type": "text",
+          "text": "支持 START/STOP、重复 START、地址匹配及 ACK/NACK。不模拟模拟电压、多主仲裁和时钟拉伸。SSD1306 的滚动命令可接收，但当前不会产生滚动动画。"
+        }
+      ],
+      "keywords": "i2c"
+    },
+    {
+      "id": "onewire",
+      "category": "reference",
+      "icon": "embeddeddev:ds18b20",
+      "title": "1-Wire 与温度数据",
+      "subtitle": "复位、存在脉冲与 CRC8",
+      "blocks": [
+        {
+          "type": "text",
+          "text": "标准速率 1-Wire 只用 DQ。控制器先拉低至少 480 μs，再释放；探头会在释放后约 30–150 μs 拉低作为存在脉冲。每个数据时隙都先拉低，之后根据要写或读的位及时释放。"
+        },
+        {
+          "type": "table",
+          "rows": [
+            [
+              "命令",
+              "HEX",
+              "用途"
+            ],
+            [
+              "Read ROM",
+              "33",
+              "读取单个器件 ROM"
+            ],
+            [
+              "Match / Skip ROM",
+              "55 / CC",
+              "选择器件 / 省略选择"
+            ],
+            [
+              "Search / Alarm Search",
+              "F0 / EC",
+              "搜索 ROM / 报警器件"
+            ],
+            [
+              "Convert T",
+              "44",
+              "启动温度转换"
+            ],
+            [
+              "Read Scratchpad",
+              "BE",
+              "读取 9 字节结果"
+            ],
+            [
+              "Write / Copy Scratchpad",
+              "4E / 48",
+              "修改 / 保存阈值与分辨率"
+            ],
+            [
+              "Recall / Power Supply",
+              "B8 / B4",
+              "恢复配置 / 查询供电"
+            ]
+          ]
+        },
+        {
+          "type": "heading",
+          "text": "一次测量的顺序"
+        },
+        {
+          "type": "text",
+          "text": "复位 → CC → 44 → 等待转换结束 → 再次复位 → CC → BE → 读 9 字节。12 位转换最长约 750 ms。低分辨率对应更短转换时间。所有数据字节都低位先行。"
+        },
+        {
+          "type": "text",
+          "text": "CRC 使用 Dallas 反射多项式 8CH，对前八个字节逐位计算，结果应等于第九字节。温度的低、高字节按有符号数合并；默认 12 位时，原始值除以 16 即为摄氏度。"
+        },
+        {
+          "type": "tip",
+          "text": "模组假定外部供电，不要求你模拟寄生电源的强上拉。DQ 仍必须按端口规则释放后读取，固定拉低会使存在脉冲和数据都无法识别。"
+        }
+      ],
+      "keywords": "onewire"
+    },
+    {
+      "id": "examples",
+      "category": "reference",
+      "icon": "embeddeddev:manual",
+      "title": "示例固件索引",
+      "subtitle": "先用已知程序验证，再自己修改",
+      "blocks": [
+        {
+          "type": "text",
+          "text": "示例位于模组源码仓库的 examples 文件夹，和你电脑上项目目录中的同名文件夹。游戏安装 JAR 不会自动把示例复制到游戏目录；先取得需要的 HEX，再在主板选择它。"
+        },
+        {
+          "type": "table",
+          "rows": [
+            [
+              "HEX 文件",
+              "接线与频率"
+            ],
+            [
+              "redstone_blink.hex",
+              "GPIO P1.2 → 红石数字输出"
+            ],
+            [
+              "adc_mirror.hex",
+              "ADC0 输入 → DAC1 输出"
+            ],
+            [
+              "i2c_oled_hello.hex",
+              "SDA=P1.6 / SCL=P1.7"
+            ],
+            [
+              "oled_hello.hex",
+              "同样连接 OLED，使用 MOVX 桥接"
+            ],
+            [
+              "i2c_sensor.hex",
+              "SDA=P1.6 / SCL=P1.7，结果到 DAC0"
+            ],
+            [
+              "ds18b20_read.hex",
+              "DQ=P1.2，必须 12 MHz"
+            ],
+            [
+              "seven_segment_counter.hex",
+              "A–DP=P1.0–7，共阴，默认晶振"
+            ],
+            [
+              "oled_pattern.hex",
+              "诊断条纹，不是文字"
+            ]
+          ]
+        },
+        {
+          "type": "heading",
+          "text": "验证顺序"
+        },
+        {
+          "type": "text",
+          "text": "先确认晶振和端子与上表一致，再接线、烧录、运行。示例能工作说明基本接口正常，再修改源码或换引脚。每换一个物理引脚，固件中的定义也必须一起改。"
+        },
+        {
+          "type": "text",
+          "text": "ds18b20_read.hex 的 30H–38H 是结果，3FH=A5H 表示完成。数码管计数程序的 30H 是数字、31H 是段码。OLED 上传程序完成后 30H=A5H。它们是各示例自己的调试约定，不是通用寄存器。"
+        },
+        {
+          "type": "tip",
+          "text": "同名 C 源码用于 Keil C51。随附 HEX 由项目脚本汇编生成，C 版本的软件延时会受编译器优化影响。不要把 .c 文件改扩展名冒充 .hex。"
+        }
+      ],
+      "keywords": "examples"
+    },
+    {
+      "id": "troubleshooting",
+      "category": "reference",
+      "icon": "embeddeddev:wire_cutter",
+      "title": "按现象排查",
+      "subtitle": "从最少的设备开始定位问题",
+      "blocks": [
+        {
+          "type": "heading",
+          "text": "主板与烧录"
+        },
+        {
+          "type": "table",
+          "rows": [
+            [
+              "现象",
+              "处理"
+            ],
+            [
+              "烧录被拒绝",
+              "检查 HEX 完整性、校验和、EOF 和 8 KiB 范围"
+            ],
+            [
+              "运行按钮报错",
+              "装好晶振，检查是否有固件；故障后先复位"
+            ],
+            [
+              "程序没有更新",
+              "重新编译、选择正确 HEX、烧录并运行"
+            ],
+            [
+              "停在一处",
+              "区分正常等待循环与保留操作码故障"
+            ]
+          ]
+        },
+        {
+          "type": "heading",
+          "text": "接线与端口"
+        },
+        {
+          "type": "table",
+          "rows": [
+            [
+              "现象",
+              "处理"
+            ],
+            [
+              "模块未连接",
+              "检查方向、线组、标号及所有必需引脚"
+            ],
+            [
+              "配对窗口为空",
+              "先应用主板引脚，再重新点线卷端点"
+            ],
+            [
+              "输入始终为 0",
+              "先写 1 释放端口，再读取外部信号"
+            ],
+            [
+              "远端离线",
+              "加载两端及接线柱区块，检查主干是否被拆"
+            ],
+            [
+              "地址冲突",
+              "给同总线设备改地址或换独立 GPIO 线组"
+            ]
+          ]
+        },
+        {
+          "type": "heading",
+          "text": "显示与传感器"
+        },
+        {
+          "type": "table",
+          "rows": [
+            [
+              "现象",
+              "处理"
+            ],
+            [
+              "OLED 条纹像乱码",
+              "改用 i2c_oled_hello.hex，确认字模与寻址"
+            ],
+            [
+              "OLED 黑屏",
+              "检查 AF、3CH 地址、SDA/SCL 和接线状态"
+            ],
+            [
+              "数码管字形相反",
+              "核对共阳/共阴及 A–DP 的位顺序"
+            ],
+            [
+              "PCF8591 读数滞后",
+              "丢弃首字节，读取第二次转换值"
+            ],
+            [
+              "DS18B20 返回 85 ℃",
+              "等转换完成，再读暂存器"
+            ],
+            [
+              "DS18B20 全 FFH",
+              "核对 DQ、释放动作、12 MHz 与复位时序"
+            ]
+          ]
+        },
+        {
+          "type": "tip",
+          "text": "最有效的排查电路是主板 + 一个模块 + 一根线。确认已知 HEX 能工作，再逐一恢复接线柱、分支、传感器和控制程序。"
+        }
+      ],
+      "keywords": "troubleshooting"
+    },
+    {
+      "id": "compatibility",
+      "category": "reference",
+      "icon": "embeddeddev:ds18b20",
+      "title": "科技模组与温度来源",
+      "subtitle": "红石兼容、热能力与游戏折算",
+      "blocks": [
+        {
+          "type": "heading",
+          "text": "通过红石控制机器"
+        },
+        {
+          "type": "text",
+          "text": "红石接口可以连接接受原版红石的科技模组组件，例如机械动力的离合器和红石链路。先在目标组件中确认红石启停含义，再选择数字 GPIO 或模拟 DAC 输出。主板不直接改写 Create 的内部转速。"
+        },
+        {
+          "type": "heading",
+          "text": "DS18B20 从哪里得到温度"
+        },
+        {
+          "type": "table",
+          "rows": [
+            [
+              "来源",
+              "读数约定"
+            ],
+            [
+              "Mekanism",
+              "接触侧热容能力；开尔文减 273.15"
+            ],
+            [
+              "Create 锅炉",
+              "读取控制器热量，再按游戏模型折算"
+            ],
+            [
+              "点燃熔炉 / 营火",
+              "90 ℃ / 95 ℃ 模拟温度"
+            ],
+            [
+              "岩浆块 / 冰雪",
+              "110 ℃ / 0 ℃ 模拟温度"
+            ],
+            [
+              "熔岩",
+              "源温度 1000 ℃，探头显示超量程"
+            ],
+            [
+              "其他方块",
+              "群系环境模型，或模组温度能力"
+            ]
+          ]
+        },
+        {
+          "type": "text",
+          "text": "Create 的热量等级不是原生摄氏度。本模组把活跃热量 0–18 级映射为 20+5×等级 ℃，被动热为 60 ℃，停热为 20 ℃。探头右键会明确标注「Create 热量折算」。"
+        },
+        {
+          "type": "tip",
+          "text": "探头量程仍是 -55～125 ℃，超出范围会限制读数并提示超量程。其他有温度的模组不会自动全部兼容，需要提供 embeddeddev:temperature 能力或实现对应温度接口。"
+        },
+        {
+          "type": "text",
+          "text": "这些科技模组均为可选。没有安装它们时，开发板、GPIO 总线、所有电子模块和原版温度模型仍然可以独立使用。"
+        }
+      ],
+      "keywords": "compatibility"
+    }
+  ]
+}

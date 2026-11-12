@@ -108,7 +108,13 @@ export async function generate() {
     await json('assets/embeddeddev/models/item/'+id+'.json',{parent:'embeddeddev:item/crystal_base',
       textures:{mark:'minecraft:block/'+color+'_concrete'}});
   }
-  await json('assets/embeddeddev/models/item/manual.json',{parent:'minecraft:item/written_book'});
+  const handbook=model([cube([3,2,6],[13,14,6.7],'pcb'),cube([3.6,2.4,6.7],[12.6,13.6,9.1],'white'),
+    cube([3,2,9.1],[13,14,9.7],'pcb'),cube([2.7,2,6],[3.7,14,9.7],'dark'),
+    cube([5.3,6,5.86],[10.7,10.5,6],'gold'),cube([6.2,6.8,5.75],[9.8,9.7,5.86],'dark'),
+    cube([5,4,5.9],[11,4.3,6],'gold'),cube([5,12,5.9],[11,12.3,6],'gold'),
+    cube([10.9,1,7.1],[11.9,4,7.5],'red')]);
+  handbook.display.gui={rotation:[8,180,-10],translation:[0,0,0],scale:[1.03,1.03,1.03]};
+  await json('assets/embeddeddev/models/item/manual.json',handbook);
   const probe = model([cube([3,0,3],[13,1.2,13],'pcb'), cube([5.5,1.2,6],[10.5,3.8,10],'black'),
     cube([7,1.2,3.5],[9,5.8,5.5],'metal'), cube([7,5.8,3.5],[9,6.2,5.5],'white'),
     cube([4,1.2,11],[5,2.8,12],'gold'),cube([7.5,1.2,11],[8.5,2.8,12],'gold'),cube([11,1.2,11],[12,2.8,12],'gold')]);

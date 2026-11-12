@@ -12,7 +12,8 @@ import net.minecraft.gametest.framework.*;
 import net.minecraft.network.Connection;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.PacketFlow;
-import net.minecraft.network.protocol.game.ClientboundOpenBookPacket;
+import net.minecraft.network.protocol.common.ClientboundCustomPayloadPacket;
+import com.mysteryman.embeddeddev.network.BoardNetwork;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.network.CommonListenerCookie;
 import net.minecraft.server.network.ServerGamePacketListenerImpl;
@@ -50,7 +51,7 @@ public final class BoardGameTests {
     }
 
     @GameTest(template = "test_empty", timeoutTicks = 40)
-    public static void manualUseOpensHeldBook(GameTestHelper h) {
+    public static void manualUseOpensIllustratedHandbook(GameTestHelper h) {
         var level = h.getLevel();
         var server = level.getServer();
         var profile = new GameProfile(UUID.randomUUID(), "manual-test");
@@ -66,9 +67,11 @@ public final class BoardGameTests {
         ItemStack manual = new ItemStack(ModItems.MANUAL.get());
         player.setItemInHand(InteractionHand.OFF_HAND, manual);
         manual.use(level, player, InteractionHand.OFF_HAND);
-        h.assertTrue(packets.size() == 1 && packets.getFirst() instanceof ClientboundOpenBookPacket openBook
-                        && openBook.getHand() == InteractionHand.OFF_HAND,
-                "Using the manual must open the book in the hand that holds it");
+        h.assertTrue(packets.size() == 1 && packets.getFirst() instanceof ClientboundCustomPayloadPacket payload
+                        && payload.payload() instanceof BoardNetwork.State state && state.open()
+                        && state.data().getString("Screen").equals("manual")
+                        && state.data().getString("Hand").equals(InteractionHand.OFF_HAND.name()),
+                "An off-hand manual opens the illustrated handbook through a server-safe payload");
         h.succeed();
     }
 

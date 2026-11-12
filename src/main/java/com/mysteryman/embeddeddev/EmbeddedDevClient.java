@@ -37,6 +37,7 @@ public final class EmbeddedDevClient {
                 case "oled" -> new OledScreen(packet);
                 case "port" -> new RedstonePortScreen(packet);
                 case "buttons" -> new ButtonPanelScreen(packet);
+                case "manual" -> new ManualScreen();
                 default -> new BoardScreen(packet);
             });
             else if (mc.screen instanceof DeviceStateScreen screen && screen.matches(packet.pos())) screen.update(packet.data());

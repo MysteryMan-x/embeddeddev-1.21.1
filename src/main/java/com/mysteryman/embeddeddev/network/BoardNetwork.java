@@ -20,6 +20,7 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.SimpleMenuProvider;
 import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
@@ -51,7 +52,7 @@ public final class BoardNetwork {
         @Override public Type<State> type() { return TYPE; }
     }
     public static void register(RegisterPayloadHandlersEvent event) {
-        var registrar = event.registrar("7");
+        var registrar = event.registrar("8");
         registrar.playToServer(Action.TYPE, Action.CODEC, BoardNetwork::handle);
         registrar.playToClient(State.TYPE, State.CODEC, (state, context) -> clientReceiver.accept(state));
         WireNetwork.register(registrar);
@@ -198,6 +199,12 @@ public final class BoardNetwork {
         tag.putString("Message", message);
         module.buttons().save(tag);
         PacketDistributor.sendToPlayer(player, new State(module.getBlockPos(), open, tag));
+    }
+    public static void sendManual(ServerPlayer player, InteractionHand hand) {
+        var tag = new CompoundTag();
+        tag.putString("Screen", "manual");
+        tag.putString("Hand", hand.name());
+        PacketDistributor.sendToPlayer(player, new State(player.blockPosition(), true, tag));
     }
     private BoardNetwork() {}
 }

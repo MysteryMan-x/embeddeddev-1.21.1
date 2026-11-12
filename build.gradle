@@ -118,6 +118,8 @@ configurations {
 }
 
 dependencies {
+    // Minecraft supplies Gson to main; the standalone handbook verifier also needs it.
+    testImplementation 'com.google.code.gson:gson:2.10.1'
     // Example optional mod dependency with JEI
     // The JEI API is declared for compile time use, while the full JEI artifact is used at runtime
     // compileOnly "mezz.jei:jei-${mc_version}-common-api:${jei_version}"
@@ -192,7 +194,15 @@ tasks.register('verifyMcu', JavaExec) {
     mainClass = 'com.mysteryman.embeddeddev.mcu.McuVerification'
     workingDir = projectDir
 }
-tasks.named('check') { dependsOn 'verifyMcu' }
+tasks.register('verifyHandbook', JavaExec) {
+    group = 'verification'
+    description = 'Checks bilingual handbook links, live recipe references and device wiring diagrams.'
+    dependsOn testClasses
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'com.mysteryman.embeddeddev.manual.HandbookVerification'
+    workingDir = projectDir
+}
+tasks.named('check') { dependsOn 'verifyMcu', 'verifyHandbook' }
 tasks.named('test') {
     // Verification is an executable oracle suite, not a JUnit class.
     failOnNoDiscoveredTests = false
