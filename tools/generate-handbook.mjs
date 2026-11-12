@@ -1,5 +1,6 @@
 import fs from 'node:fs/promises';
 import {fileURLToPath} from 'node:url';
+import {addAnalogEntry} from './handbook-analog.mjs';
 
 // Original handbook prose and diagrams. Text is paired Chinese/English; IDs stay identical.
 const entries=[];
@@ -71,7 +72,9 @@ entry('pins','develop','51systemboard',['六面端子与标号','Faces and pin l
  p('选方向后打开管理引脚，选择线组并填写组名。点添加引脚，填写标号、用途和物理通道。组内标号不区分大小写且不能重复；同一物理通道在同组也只能使用一次。最后应用保存这一面的全部四组。','Open pin management for a face, choose a group and set its name. Add a label, kind and physical channel for each pin. Labels are case-insensitive and unique within a group, as are physical channels. Apply saves all four groups on that face.'),
  wire('oled','P1.6|SDA','P1.7|SCL'),
  p('同一面可以让 G1 接 OLED，G2 接另一个 I²C 总线，G3 接温度探头，G4 接 LED。不同线组可以使用相同标号，但应按电路意图选择独立 GPIO。只改标号会保留物理连线；删除或更换已接物理引脚后需要重新配对。','One face can use G1 for an OLED, G2 for another I²C bus, G3 for a thermometer and G4 for an LED. Groups may reuse labels, but choose independent GPIO where separate buses are intended. Renaming keeps physical wiring; removing or changing connected physical pins requires pairing again.'),
- tip('GPIO 同时负责输入与输出，不需要切换数字输入/输出模式。读取外部输入前，先把对应端口锁存位置 1，释放引脚。清空线组会拆除并回收该组的线。','GPIO handles both input and output without a direction selector. Before reading an external input, set its latch bit to 1 to release it. Clearing a group removes and refunds that group cables.'),link('cables','把接口连出去 >','Connect the interface with a cable >')]);
+ tip('GPIO 同时负责输入与输出，不需要切换数字输入/输出模式。读取外部输入前，先把对应端口锁存位置 1，释放引脚。清空线组会拆除并回收该组的线。','GPIO handles both input and output without a direction selector. Before reading an external input, set its latch bit to 1 to release it. Clearing a group removes and refunds that group cables.'),link('analog_extension','ADC/DAC 扩展的地址、配置与完整实验 >','ADC/DAC addresses, configuration and complete experiment >'),link('cables','把接口连出去 >','Connect the interface with a cable >')]);
+
+addAnalogEntry({entry,h,p,tip,table,wire,code,link});
 
 entry('cables','develop','wire_coil',['自由连线与接线柱','Cables and junctions'],['两点连线，按标号配对','Click two endpoints; match labels'],[
  recipe('wire_coil'),recipe('wire_cutter'),
@@ -157,7 +160,9 @@ entry('rtc','modules','ds1302',['DS1302 实时时钟','DS1302 clock'],['三线�
  p('读秒时发送 81H，再释放 IO 并读取 8 位。使用突发读可以拿到同一次日历快照，避免跨秒时分别读出的日期不一致。31 字节 RAM 也可用于保存小型参数。','For seconds, send 81H, release IO and read eight bits. Burst reads capture a consistent calendar snapshot instead of mixing fields across a second boundary. The 31-byte RAM can hold small parameters.'),
  tip('时钟按游戏 tick 推进，不读取电脑的真实时间。时间、停表位、写保护和 RAM 随模块保存。主板卸载不会执行程序，时钟的进度受游戏世界时间影响。','The clock follows game ticks rather than the computer wall clock. Calendar, halt state, write protection and RAM persist with the module. Firmware stops while its board is unloaded; clock progress follows world time.')]);
 
-entry('adc','modules','pcf8591',['PCF8591 ADC / DAC','PCF8591 ADC / DAC'],['四路模拟采样，一路模拟输出','Four inputs and one output'],[
+entry('adc','modules','pcf8591',['PCF8591 ADC / DAC','PCF8591 ADC / DAC'],['独立 I²C 芯片，与主板 MOVX 扩展不同','Separate I²C chip, not the board MOVX expansion'],[
+ tip('PCF8591 使用 SDA/SCL，有 4 路 8 位 ADC 和 1 路 DAC，七位 I²C 地址为 48H–4FH。主板虚拟扩展使用 MOVX，有 8 路 ADC 和 8 路 DAC，XDATA 地址从 F000H/F010H 起，直接用 0–15。两种驱动不能混用。','PCF8591 uses SDA/SCL, four 8-bit ADCs and one DAC at 7-bit addresses 48H–4FH. Board expansion uses MOVX, eight ADCs and eight DACs at XDATA F000H/F010H with values 0–15. Their drivers are not interchangeable.'),
+ link('analog_extension','主板引脚界面的 ADC0–7 怎么用？ >','Using ADC0–7 in the board editor? >'),
  recipe('pcf8591'),wire('pcf8591','P1.6|SDA','P1.7|SCL'),
  p('PCF8591 默认七位地址 48H，写地址 90H，读地址 91H。潜行空手右键在 48H–4FH 间切换地址。AIN0–AIN3 分别从世界北、东、南、西面采样，AOUT 向上输出红石。','The default 7-bit address is 48H: write byte 90H and read byte 91H. Sneak-use cycles addresses 48H–4FH. AIN0–AIN3 sample world north, east, south and west; AOUT drives redstone upward.'),
  p('红石输入强度 0–15 映射为 0–255，即每级乘 17。DAC 把 0–255 换算为 0–15 红石输出。与主板自带的虚拟 ADC/DAC 通道不同，这个芯片通过真实的 GPIO I²C 事务控制。','Redstone input 0–15 maps to 0–255 by multiplying by 17. The DAC maps 0–255 back to 0–15 redstone. Unlike the virtual MCU ADC/DAC channels, this chip is controlled through GPIO I²C transactions.'),
@@ -220,6 +225,7 @@ entry('registers','reference','stc89c52rc',['常见 SFR 与中断','Common SFRs 
  tip('模拟器支持 255 个已定义基础操作码、位操作、MOVC/MOVX、乘除与 BCD 调整。看门狗、IAP/EEPROM 和 6T/1T 加速尚未实现，工程初始化不要依赖这些功能。','The interpreter supports all 255 defined base opcodes, bit operations, MOVC/MOVX, arithmetic and BCD adjustment. Watchdog, IAP/EEPROM and 6T/1T acceleration are not implemented; avoid requiring them in startup code.')]);
 
 entry('xdata','reference','redstone_port',['扩展设备地址表','Virtual device address map'],['MOVX 与 XBYTE 的约定','MOVX and XBYTE conventions'],[
+ link('analog_extension','ADC/DAC 全部地址、配置步骤与完整程序 >','All ADC/DAC addresses, setup and complete programs >'),
  table([['XDATA 地址','读写','内容'],['F000H–F007H','只读','ADC0–7，0–15'],['F010H–F017H','读写','DAC0–7，写入限制为 0–15'],['F020H','读写','OLED 桥接显示控制'],['F100H–F4FFH','读写','已连接 OLED 的 1024 B 显存']],[['XDATA address','Access','Contents'],['F000H–F007H','Read','ADC0–7, 0–15'],['F010H–F017H','Read/write','DAC0–7, clamped to 0–15'],['F020H','Read/write','OLED bridge control'],['F100H–F4FFH','Read/write','1024-byte connected OLED RAM']]),
  p('这些地址是本模组定义的设备窗口，会覆盖对应的普通 XDATA 字节。F020H 写 bit0 控制显示开关，写 bit1 为 1 请求清屏。OLED 桥接需要先通过 SDA/SCL 连接到实际模块。','These mod-defined windows replace ordinary XDATA bytes at those addresses. At F020H, bit 0 controls display enable and writing bit 1 requests a clear. The OLED bridge requires an actual module connected through SDA/SCL.'),
  code('#include <absacc.h>\nXBYTE[0xF010] = 15; /* DAC0 */\nXBYTE[0xF020] = 3;  /* on + clear */\nXBYTE[0xF100] = 0xFF;'),

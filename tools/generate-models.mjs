@@ -108,12 +108,29 @@ export async function generate() {
     await json('assets/embeddeddev/models/item/'+id+'.json',{parent:'embeddeddev:item/crystal_base',
       textures:{mark:'minecraft:block/'+color+'_concrete'}});
   }
-  const handbook=model([cube([3,2,6],[13,14,6.7],'pcb'),cube([3.6,2.4,6.7],[12.6,13.6,9.1],'white'),
-    cube([3,2,9.1],[13,14,9.7],'pcb'),cube([2.7,2,6],[3.7,14,9.7],'dark'),
-    cube([5.3,6,5.86],[10.7,10.5,6],'gold'),cube([6.2,6.8,5.75],[9.8,9.7,5.86],'dark'),
-    cube([5,4,5.9],[11,4.3,6],'gold'),cube([5,12,5.9],[11,12.3,6],'gold'),
-    cube([10.9,1,7.1],[11.9,4,7.5],'red')]);
-  handbook.display.gui={rotation:[8,180,-10],translation:[0,0,0],scale:[1.03,1.03,1.03]};
+  // A front-lit, open-book silhouette stays legible at the inventory's 16px size.
+  const book=[];
+  const paper=(x0,y0,x1,y1,material,depth=8)=>book.push(cube([x0,y0,depth],[x1,y1,depth+.04],material));
+  paper(.6,1.8,7.8,13.5,'black',7.7);paper(8.2,1.8,15.4,13.5,'black',7.7);paper(7.2,1.2,8.8,3.4,'black',7.7);
+  paper(.9,2.1,7.8,13.2,'cover',7.8);paper(8.2,2.1,15.1,13.2,'cover',7.8);
+  paper(1.8,3.2,7.5,14,'white');paper(2.5,14,6.8,14.6,'white');
+  paper(8.5,3.2,14.2,14,'white');paper(9.2,14,13.5,14.6,'white');
+  paper(7,3.2,7.5,13.6,'page_edge',8.06);paper(8.5,3.2,9,13.6,'page_edge',8.06);
+  paper(7.5,3,8.5,13.4,'dark',8.08);paper(7.88,3.4,8.12,13.1,'gold',8.12);
+  paper(3.2,7.8,6,11,'black',8.2);paper(3.8,8.5,5.4,10.3,'cover',8.25);paper(5,9.9,5.4,10.3,'white',8.3);
+  for(const py of [8.2,9.3,10.4]){paper(2.6,py,3.2,py+.35,'gold',8.24);paper(6,py,6.6,py+.35,'gold',8.24);}
+  for(const py of [5.1,6.1])paper(2.6,py,6.4,py+.3,'ink',8.2);
+  paper(9.6,12,13.4,12.3,'ink',8.2);paper(9.6,11,12.5,11.3,'ink',8.2);
+  for(const [a,b,c,d] of [[9.7,6.3,10.5,6.7],[10.1,6.3,10.5,9.2],[10.1,8.8,11.7,9.2],
+    [11.3,5.7,11.7,9.2],[11.3,5.7,13.2,6.1]])paper(a,b,c,d,'cover',8.2);
+  paper(9.5,6.2,10,6.8,'gold',8.25);paper(13,5.6,13.5,6.2,'gold',8.25);
+  paper(12.4,1,13.2,4.7,'red',8.3);paper(12.4,.6,12.8,1,'red',8.3);
+  const handbook=model(book);
+  handbook.ambientocclusion=false;handbook.gui_light='front';
+  handbook.textures={...textures,cover:'minecraft:block/cyan_concrete',page_edge:'minecraft:block/light_gray_concrete',ink:'minecraft:block/gray_concrete'};
+  handbook.display.gui={rotation:[0,0,0],translation:[0,0,0],scale:[1,1,1]};
+  handbook.display.fixed={rotation:[0,0,0],translation:[0,0,0],scale:[.9,.9,.9]};
+  handbook.display.firstperson_righthand={rotation:[0,-15,10],translation:[0,2,0],scale:[.7,.7,.7]};
   await json('assets/embeddeddev/models/item/manual.json',handbook);
   const probe = model([cube([3,0,3],[13,1.2,13],'pcb'), cube([5.5,1.2,6],[10.5,3.8,10],'black'),
     cube([7,1.2,3.5],[9,5.8,5.5],'metal'), cube([7,5.8,3.5],[9,6.2,5.5],'white'),

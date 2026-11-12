@@ -413,11 +413,277 @@
         },
         {
           "type": "link",
+          "target": "analog_extension",
+          "text": "ADC/DAC 扩展的地址、配置与完整实验 >"
+        },
+        {
+          "type": "link",
           "target": "cables",
           "text": "把接口连出去 >"
         }
       ],
       "keywords": "pins"
+    },
+    {
+      "id": "analog_extension",
+      "category": "develop",
+      "icon": "embeddeddev:redstone_port",
+      "title": "主板 ADC/DAC 扩展",
+      "subtitle": "8 路红石输入 + 8 路红石输出",
+      "blocks": [
+        {
+          "type": "heading",
+          "text": "先分清芯片和开发板扩展"
+        },
+        {
+          "type": "tip",
+          "text": "STC89C52RC 本身没有 ADC，也没有 DAC。本模组在开发板外部提供虚拟红石采样/输出设备，通过 MOVX 访问 XDATA 窗口。它们不是 STC 的片内寄存器，也不是 PCF8591 芯片。"
+        },
+        {
+          "type": "text",
+          "text": "每块主板独立拥有 ADC0–ADC7 与 DAC0–DAC7。通道和世界方向没有固定关系：在六面端子中选择方向、G1–G4 线组及通道，决定它接到哪里。ADC0 不是 P1.0，DAC1 也不是 P1.1；它们不占用 MCU 的 32 根 GPIO。"
+        },
+        {
+          "type": "heading",
+          "text": "全部通道地址"
+        },
+        {
+          "type": "table",
+          "rows": [
+            [
+              "通道",
+              "ADC 只读地址",
+              "DAC 读写地址"
+            ],
+            [
+              "0",
+              "F000H",
+              "F010H"
+            ],
+            [
+              "1",
+              "F001H",
+              "F011H"
+            ],
+            [
+              "2",
+              "F002H",
+              "F012H"
+            ],
+            [
+              "3",
+              "F003H",
+              "F013H"
+            ],
+            [
+              "4",
+              "F004H",
+              "F014H"
+            ],
+            [
+              "5",
+              "F005H",
+              "F015H"
+            ],
+            [
+              "6",
+              "F006H",
+              "F016H"
+            ],
+            [
+              "7",
+              "F007H",
+              "F017H"
+            ]
+          ],
+          "id": "analog_map"
+        },
+        {
+          "type": "text",
+          "text": "公式：ADCn 地址为 F000H+n，DACn 地址为 F010H+n，n=0–7。它们是 16 位 XDATA 地址，必须用 MOVX，或 Keil C51 的 xdata 指针 / XBYTE。普通直接寻址 MOV 和普通 data 指针不会访问到这些设备。"
+        },
+        {
+          "type": "heading",
+          "text": "数值与转换时机"
+        },
+        {
+          "type": "table",
+          "rows": [
+            [
+              "项目",
+              "实际行为"
+            ],
+            [
+              "ADC 范围",
+              "0–15，读取结果的高四位为 0"
+            ],
+            [
+              "DAC 范围",
+              "0–15，写 16–255 均限制为 15"
+            ],
+            [
+              "换算示例",
+              "红石 7 → ADC 读 07H；DAC 写 0AH → 红石 10"
+            ],
+            [
+              "分辨率",
+              "16 级红石强度，不是 0–5 V 或 0–255 电压"
+            ],
+            [
+              "采样",
+              "每游戏 tick 更新，20 TPS 时约每 50 ms"
+            ],
+            [
+              "控制寄存器",
+              "无：不需要启动位、忙位、完成位或 ADC 中断"
+            ]
+          ]
+        },
+        {
+          "type": "text",
+          "text": "选好模拟输入后，开发板自动采样，程序直接读取地址即可。向 ADC 地址写入不能改变采样结果。DAC 写入后保持该值，直到程序改写、复位或烧录。短于一个 tick 的输入脉冲可能漏采。"
+        },
+        {
+          "type": "heading",
+          "text": "实验：远程 ADC0 → DAC1"
+        },
+        {
+          "type": "text",
+          "text": "材料：主板、两个红石接口模块、线卷、一个可调红石源和一个输出设备。下列东面 G2 输入、西面 G3 输出只是示例，可替换成其他方向和线组。"
+        },
+        {
+          "type": "table",
+          "rows": [
+            [
+              "位置",
+              "标号 / 用途 / 通道"
+            ],
+            [
+              "主板东面 G2",
+              "VIN / 模拟输入 ADC / ADC0"
+            ],
+            [
+              "主板西面 G3",
+              "VOUT / 模拟输出 DAC / DAC1"
+            ],
+            [
+              "输入红石接口",
+              "输入模式，红石侧朝向信号源"
+            ],
+            [
+              "输出红石接口",
+              "输出模式，红石侧朝向目标设备"
+            ]
+          ]
+        },
+        {
+          "type": "text",
+          "text": "1. 主板右键 → 六面端子 → 东面 → 管理引脚 → 选 G2 → 添加引脚。名字填 VIN，用途选模拟输入 ADC，选 ADC0，保存并应用。西面 G3 同样添加 VOUT，选模拟输出 DAC 和 DAC1。"
+        },
+        {
+          "type": "text",
+          "text": "2. 信号源旁放一个红石接口，设置输入，红石侧朝向信号源。目标设备旁再放一个接口，设置输出，红石侧朝向设备。这里输入/输出都相对主板而言，最后点应用。"
+        },
+        {
+          "type": "wiring",
+          "id": "embeddeddev:redstone_port",
+          "labels": [
+            "ADC0|SIGNAL"
+          ]
+        },
+        {
+          "type": "wiring",
+          "id": "embeddeddev:redstone_port",
+          "labels": [
+            "DAC1|SIGNAL"
+          ]
+        },
+        {
+          "type": "text",
+          "text": "3. 用线卷把东面 G2 接到输入接口，西面 G3 接到输出接口。接口只有一个 SIGNAL 端子，单通道会自动配对，VIN/VOUT 是便于识别的名字。先应用主板引脚再接线，确认接线一览中两个接口均已连接。"
+        },
+        {
+          "type": "heading",
+          "text": "4 · 完整 Keil C51 程序"
+        },
+        {
+          "type": "code",
+          "text": "#include <REG52.H>\n#include <absacc.h>\n\n#define ADC0 XBYTE[0xF000]\n#define DAC1 XBYTE[0xF011]\n\nvoid main(void) {\n    DAC1 = 0;\n    while (1) {\n        DAC1 = ADC0;\n    }\n}"
+        },
+        {
+          "type": "text",
+          "text": "也可以烧录 adc_mirror.hex，使用默认晶振即可。它读取 ADC0 并写入 DAC1。输入调为 0、7、15，输出也应分别为 0、7、15。没有输出时先点运行，再检查接口模式、红石侧和线组。"
+        },
+        {
+          "type": "heading",
+          "text": "汇编访问方法"
+        },
+        {
+          "type": "code",
+          "text": "LOOP:\nMOV DPTR,#0F000H ; ADC0 address\nMOVX A,@DPTR     ; A = 0..15\nMOV DPTR,#0F011H ; DAC1 address\nMOVX @DPTR,A     ; same output level\nSJMP LOOP"
+        },
+        {
+          "type": "heading",
+          "text": "相邻连接与多路规则"
+        },
+        {
+          "type": "text",
+          "text": "不拉线时，可在主板某方向 G1 绑定 ADC，从该面相邻红石取样；G1 绑定 DAC 时向该面输出。G2–G4 需要用线缆接到接口，不能直接当作该面的本地红石。"
+        },
+        {
+          "type": "text",
+          "text": "多个输入绑同一 ADC 通道时取最大强度，不是求和或平均。同一 DAC 通道可驱动多个输出，数值相同。若一个本地 G1 面绑定多个 DAC，该面取这些通道的最大值。各通道仍有独立地址。"
+        },
+        {
+          "type": "heading",
+          "text": "停止、复位与保存"
+        },
+        {
+          "type": "table",
+          "rows": [
+            [
+              "操作 / 状态",
+              "结果"
+            ],
+            [
+              "停止或单步暂停",
+              "DAC 值可保留，但红石输出为 0；运行后重新驱动"
+            ],
+            [
+              "复位或成功烧录",
+              "DAC 清零；接线配置保留"
+            ],
+            [
+              "保存与加载",
+              "DAC 数值及接线随主板保存"
+            ],
+            [
+              "未绑定 ADC",
+              "采样刷新后读 0"
+            ],
+            [
+              "区块卸载或线路离线",
+              "不跨未加载区块传输"
+            ]
+          ]
+        },
+        {
+          "type": "tip",
+          "text": "这些设备窗口覆盖普通 XDATA。不要把普通 xdata 变量、数组或启动清零区放到 F000H–F017H，也不要套用其他 STC 型号的 ADCCON/ADCDATA 初始化。没有固定 ADC 引脚，也无需 SFR 使能。"
+        },
+        {
+          "type": "link",
+          "target": "adc",
+          "text": "需要独立 I²C 芯片？看 PCF8591 >"
+        },
+        {
+          "type": "link",
+          "target": "redstone",
+          "text": "红石接口模式和方向 >"
+        }
+      ],
+      "items": [],
+      "keywords": "analog_extension"
     },
     {
       "id": "cables",
@@ -1018,8 +1284,17 @@
       "category": "modules",
       "icon": "embeddeddev:pcf8591",
       "title": "PCF8591 ADC / DAC",
-      "subtitle": "四路模拟采样，一路模拟输出",
+      "subtitle": "独立 I²C 芯片，与主板 MOVX 扩展不同",
       "blocks": [
+        {
+          "type": "tip",
+          "text": "PCF8591 使用 SDA/SCL，有 4 路 8 位 ADC 和 1 路 DAC，七位 I²C 地址为 48H–4FH。主板虚拟扩展使用 MOVX，有 8 路 ADC 和 8 路 DAC，XDATA 地址从 F000H/F010H 起，直接用 0–15。两种驱动不能混用。"
+        },
+        {
+          "type": "link",
+          "target": "analog_extension",
+          "text": "主板引脚界面的 ADC0–7 怎么用？ >"
+        },
         {
           "type": "recipe",
           "id": "embeddeddev:pcf8591"
@@ -1537,6 +1812,11 @@
       "title": "扩展设备地址表",
       "subtitle": "MOVX 与 XBYTE 的约定",
       "blocks": [
+        {
+          "type": "link",
+          "target": "analog_extension",
+          "text": "ADC/DAC 全部地址、配置步骤与完整程序 >"
+        },
         {
           "type": "table",
           "rows": [

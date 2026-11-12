@@ -413,11 +413,277 @@
         },
         {
           "type": "link",
+          "target": "analog_extension",
+          "text": "ADC/DAC addresses, configuration and complete experiment >"
+        },
+        {
+          "type": "link",
           "target": "cables",
           "text": "Connect the interface with a cable >"
         }
       ],
       "keywords": "pins"
+    },
+    {
+      "id": "analog_extension",
+      "category": "develop",
+      "icon": "embeddeddev:redstone_port",
+      "title": "Board ADC/DAC expansion",
+      "subtitle": "8 redstone inputs and 8 outputs",
+      "blocks": [
+        {
+          "type": "heading",
+          "text": "The MCU and its board expansion"
+        },
+        {
+          "type": "tip",
+          "text": "The STC89C52RC has no built-in ADC or DAC. This mod provides virtual redstone sampling/output devices accessed through MOVX in XDATA. They are not STC internal registers or the PCF8591 chip."
+        },
+        {
+          "type": "text",
+          "text": "Each board owns ADC0–ADC7 and DAC0–DAC7. Choose a face, G1–G4 group and channel in the terminal editor; no channel has a fixed world direction. ADC0 is not P1.0 and DAC1 is not P1.1. These devices do not consume the 32 GPIO pins."
+        },
+        {
+          "type": "heading",
+          "text": "Every channel address"
+        },
+        {
+          "type": "table",
+          "rows": [
+            [
+              "Channel",
+              "ADC read address",
+              "DAC read/write"
+            ],
+            [
+              "0",
+              "F000H",
+              "F010H"
+            ],
+            [
+              "1",
+              "F001H",
+              "F011H"
+            ],
+            [
+              "2",
+              "F002H",
+              "F012H"
+            ],
+            [
+              "3",
+              "F003H",
+              "F013H"
+            ],
+            [
+              "4",
+              "F004H",
+              "F014H"
+            ],
+            [
+              "5",
+              "F005H",
+              "F015H"
+            ],
+            [
+              "6",
+              "F006H",
+              "F016H"
+            ],
+            [
+              "7",
+              "F007H",
+              "F017H"
+            ]
+          ],
+          "id": "analog_map"
+        },
+        {
+          "type": "text",
+          "text": "ADCn is at F000H+n and DACn at F010H+n, for n=0–7. These are 16-bit XDATA addresses. Use MOVX, a C51 xdata pointer or XBYTE. Ordinary direct MOV or a data pointer does not reach these devices."
+        },
+        {
+          "type": "heading",
+          "text": "Values and sampling"
+        },
+        {
+          "type": "table",
+          "rows": [
+            [
+              "Item",
+              "Actual behavior"
+            ],
+            [
+              "ADC range",
+              "0–15; upper four bits read zero"
+            ],
+            [
+              "DAC range",
+              "0–15; byte writes 16–255 clamp to 15"
+            ],
+            [
+              "Examples",
+              "Redstone 7 reads 07H; writing 0AH outputs 10"
+            ],
+            [
+              "Resolution",
+              "16 redstone levels, not 0–5 V or 0–255 voltage"
+            ],
+            [
+              "Sampling",
+              "Once per game tick; about 50 ms at 20 TPS"
+            ],
+            [
+              "Control registers",
+              "None: no start, busy, done flag or ADC interrupt"
+            ]
+          ]
+        },
+        {
+          "type": "text",
+          "text": "Once analog input is configured, sampling is automatic and firmware reads the address directly. ADC writes do not change its sampled value. A DAC holds its value until rewritten, reset or flashing. Input pulses shorter than a tick may be missed."
+        },
+        {
+          "type": "heading",
+          "text": "Experiment: remote ADC0 to DAC1"
+        },
+        {
+          "type": "text",
+          "text": "Bring a board, two redstone connectors, a coil, a variable redstone source and an output device. East G2 input and west G3 output below are examples; other faces and groups work too."
+        },
+        {
+          "type": "table",
+          "rows": [
+            [
+              "Location",
+              "Label / kind / channel"
+            ],
+            [
+              "Board east G2",
+              "VIN / Analog input ADC / ADC0"
+            ],
+            [
+              "Board west G3",
+              "VOUT / Analog output DAC / DAC1"
+            ],
+            [
+              "Input connector",
+              "Input mode; redstone side faces the source"
+            ],
+            [
+              "Output connector",
+              "Output mode; redstone side faces the target"
+            ]
+          ]
+        },
+        {
+          "type": "text",
+          "text": "1. Open the board, Six-face terminals, east, Manage pins, G2, Add pin. Name it VIN, select Analog input ADC and ADC0, save and Apply. On west G3 add VOUT with Analog output DAC and DAC1."
+        },
+        {
+          "type": "text",
+          "text": "2. Place a connector beside the source, set Input and face its redstone side toward the source. Place another beside the target, set Output and face it toward the device. Direction is relative to the board. Apply each setting."
+        },
+        {
+          "type": "wiring",
+          "id": "embeddeddev:redstone_port",
+          "labels": [
+            "ADC0|SIGNAL"
+          ]
+        },
+        {
+          "type": "wiring",
+          "id": "embeddeddev:redstone_port",
+          "labels": [
+            "DAC1|SIGNAL"
+          ]
+        },
+        {
+          "type": "text",
+          "text": "3. Wire east G2 to the input connector and west G3 to the output connector. A connector has one SIGNAL terminal, so a single channel pairs automatically. VIN/VOUT are descriptive labels. Apply pins before wiring and confirm both routes are connected."
+        },
+        {
+          "type": "heading",
+          "text": "4 · Complete Keil C51 program"
+        },
+        {
+          "type": "code",
+          "text": "#include <REG52.H>\n#include <absacc.h>\n\n#define ADC0 XBYTE[0xF000]\n#define DAC1 XBYTE[0xF011]\n\nvoid main(void) {\n    DAC1 = 0;\n    while (1) {\n        DAC1 = ADC0;\n    }\n}"
+        },
+        {
+          "type": "text",
+          "text": "Alternatively run adc_mirror.hex with the default crystal. It reads ADC0 and writes DAC1. Inputs 0, 7 and 15 should produce outputs 0, 7 and 15. If output is absent, check Run, connector modes, redstone sides and groups."
+        },
+        {
+          "type": "heading",
+          "text": "Assembly access"
+        },
+        {
+          "type": "code",
+          "text": "LOOP:\nMOV DPTR,#0F000H ; ADC0 address\nMOVX A,@DPTR     ; A = 0..15\nMOV DPTR,#0F011H ; DAC1 address\nMOVX @DPTR,A     ; same output level\nSJMP LOOP"
+        },
+        {
+          "type": "heading",
+          "text": "Adjacent and multi-channel rules"
+        },
+        {
+          "type": "text",
+          "text": "Without cables, G1 ADC samples adjacent redstone on its face and G1 DAC drives that face. G2–G4 require cabled connectors; they do not directly sample or emit local redstone on that face."
+        },
+        {
+          "type": "text",
+          "text": "Inputs sharing an ADC combine by maximum, not sum or average. Outputs sharing a DAC mirror its value. A local G1 face with multiple DACs emits their maximum. Channels still have independent addresses."
+        },
+        {
+          "type": "heading",
+          "text": "Stop, reset and saving"
+        },
+        {
+          "type": "table",
+          "rows": [
+            [
+              "Action / state",
+              "Result"
+            ],
+            [
+              "Stopped or stepping",
+              "DAC can retain its value; redstone is 0 until Run"
+            ],
+            [
+              "Reset or successful flash",
+              "DAC clears; wiring remains"
+            ],
+            [
+              "Save and reload",
+              "DAC values and wiring persist"
+            ],
+            [
+              "Unassigned ADC",
+              "Reads 0 after sampling refresh"
+            ],
+            [
+              "Unloaded or offline",
+              "No signal through unloaded chunks"
+            ]
+          ]
+        },
+        {
+          "type": "tip",
+          "text": "These windows override ordinary XDATA. Keep normal variables, arrays and startup clearing away from F000H–F017H. Do not use other STC models ADCCON/ADCDATA initialization. No fixed ADC pin or SFR enable is required."
+        },
+        {
+          "type": "link",
+          "target": "adc",
+          "text": "Need a separate I²C chip? See PCF8591 >"
+        },
+        {
+          "type": "link",
+          "target": "redstone",
+          "text": "Connector modes and directions >"
+        }
+      ],
+      "items": [],
+      "keywords": "analog_extension"
     },
     {
       "id": "cables",
@@ -1018,8 +1284,17 @@
       "category": "modules",
       "icon": "embeddeddev:pcf8591",
       "title": "PCF8591 ADC / DAC",
-      "subtitle": "Four inputs and one output",
+      "subtitle": "Separate I²C chip, not the board MOVX expansion",
       "blocks": [
+        {
+          "type": "tip",
+          "text": "PCF8591 uses SDA/SCL, four 8-bit ADCs and one DAC at 7-bit addresses 48H–4FH. Board expansion uses MOVX, eight ADCs and eight DACs at XDATA F000H/F010H with values 0–15. Their drivers are not interchangeable."
+        },
+        {
+          "type": "link",
+          "target": "analog_extension",
+          "text": "Using ADC0–7 in the board editor? >"
+        },
         {
           "type": "recipe",
           "id": "embeddeddev:pcf8591"
@@ -1537,6 +1812,11 @@
       "title": "Virtual device address map",
       "subtitle": "MOVX and XBYTE conventions",
       "blocks": [
+        {
+          "type": "link",
+          "target": "analog_extension",
+          "text": "All ADC/DAC addresses, setup and complete programs >"
+        },
         {
           "type": "table",
           "rows": [
