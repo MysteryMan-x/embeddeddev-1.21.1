@@ -1,0 +1,367 @@
+{
+  "ambientocclusion": true,
+  "textures": {
+    "pcb": "minecraft:block/green_concrete",
+    "blue": "minecraft:block/blue_concrete",
+    "black": "minecraft:block/black_concrete",
+    "dark": "minecraft:block/gray_concrete",
+    "metal": "minecraft:block/iron_block",
+    "gold": "minecraft:block/yellow_concrete",
+    "red": "minecraft:block/red_concrete",
+    "led": "minecraft:block/lime_concrete",
+    "white": "minecraft:block/white_concrete",
+    "copper": "minecraft:block/cut_copper",
+    "particle": "minecraft:block/green_concrete"
+  },
+  "elements": [
+    {
+      "from": [
+        4,
+        4,
+        7
+      ],
+      "to": [
+        12,
+        12,
+        9.5
+      ],
+      "faces": {
+        "down": {
+          "uv": [
+            4,
+            4,
+            12,
+            12
+          ],
+          "texture": "#metal"
+        },
+        "up": {
+          "uv": [
+            4,
+            4,
+            12,
+            12
+          ],
+          "texture": "#metal"
+        },
+        "north": {
+          "uv": [
+            4,
+            4,
+            12,
+            12
+          ],
+          "texture": "#metal"
+        },
+        "south": {
+          "uv": [
+            4,
+            4,
+            12,
+            12
+          ],
+          "texture": "#metal"
+        },
+        "west": {
+          "uv": [
+            4,
+            4,
+            12,
+            12
+          ],
+          "texture": "#metal"
+        },
+        "east": {
+          "uv": [
+            4,
+            4,
+            12,
+            12
+          ],
+          "texture": "#metal"
+        }
+      }
+    },
+    {
+      "from": [
+        5,
+        7.5,
+        6.9
+      ],
+      "to": [
+        11,
+        9.7,
+        7
+      ],
+      "faces": {
+        "down": {
+          "uv": [
+            4,
+            4,
+            12,
+            12
+          ],
+          "texture": "#mark"
+        },
+        "up": {
+          "uv": [
+            4,
+            4,
+            12,
+            12
+          ],
+          "texture": "#mark"
+        },
+        "north": {
+          "uv": [
+            4,
+            4,
+            12,
+            12
+          ],
+          "texture": "#mark"
+        },
+        "south": {
+          "uv": [
+            4,
+            4,
+            12,
+            12
+          ],
+          "texture": "#mark"
+        },
+        "west": {
+          "uv": [
+            4,
+            4,
+            12,
+            12
+          ],
+          "texture": "#mark"
+        },
+        "east": {
+          "uv": [
+            4,
+            4,
+            12,
+            12
+          ],
+          "texture": "#mark"
+        }
+      }
+    },
+    {
+      "from": [
+        5.7,
+        1,
+        7.7
+      ],
+      "to": [
+        6.5,
+        4,
+        8.3
+      ],
+      "faces": {
+        "down": {
+          "uv": [
+            4,
+            4,
+            12,
+            12
+          ],
+          "texture": "#gold"
+        },
+        "up": {
+          "uv": [
+            4,
+            4,
+            12,
+            12
+          ],
+          "texture": "#gold"
+        },
+        "north": {
+          "uv": [
+            4,
+            4,
+            12,
+            12
+          ],
+          "texture": "#gold"
+        },
+        "south": {
+          "uv": [
+            4,
+            4,
+            12,
+            12
+          ],
+          "texture": "#gold"
+        },
+        "west": {
+          "uv": [
+            4,
+            4,
+            12,
+            12
+          ],
+          "texture": "#gold"
+        },
+        "east": {
+          "uv": [
+            4,
+            4,
+            12,
+            12
+          ],
+          "texture": "#gold"
+        }
+      }
+    },
+    {
+      "from": [
+        9.5,
+        1,
+        7.7
+      ],
+      "to": [
+        10.3,
+        4,
+        8.3
+      ],
+      "faces": {
+        "down": {
+          "uv": [
+            4,
+            4,
+            12,
+            12
+          ],
+          "texture": "#gold"
+        },
+        "up": {
+          "uv": [
+            4,
+            4,
+            12,
+            12
+          ],
+          "texture": "#gold"
+        },
+        "north": {
+          "uv": [
+            4,
+            4,
+            12,
+            12
+          ],
+          "texture": "#gold"
+        },
+        "south": {
+          "uv": [
+            4,
+            4,
+            12,
+            12
+          ],
+          "texture": "#gold"
+        },
+        "west": {
+          "uv": [
+            4,
+            4,
+            12,
+            12
+          ],
+          "texture": "#gold"
+        },
+        "east": {
+          "uv": [
+            4,
+            4,
+            12,
+            12
+          ],
+          "texture": "#gold"
+        }
+      }
+    }
+  ],
+  "display": {
+    "gui": {
+      "rotation": [
+        8,
+        22,
+        0
+      ],
+      "translation": [
+        0,
+        2,
+        0
+      ],
+      "scale": [
+        1.18,
+        1.18,
+        1.18
+      ]
+    },
+    "ground": {
+      "translation": [
+        0,
+        3,
+        0
+      ],
+      "scale": [
+        0.5,
+        0.5,
+        0.5
+      ]
+    },
+    "fixed": {
+      "rotation": [
+        -30,
+        0,
+        0
+      ],
+      "scale": [
+        0.8,
+        0.8,
+        0.8
+      ]
+    },
+    "firstperson_righthand": {
+      "rotation": [
+        0,
+        -45,
+        25
+      ],
+      "translation": [
+        0,
+        3,
+        1
+      ],
+      "scale": [
+        0.8,
+        0.8,
+        0.8
+      ]
+    },
+    "thirdperson_righthand": {
+      "rotation": [
+        75,
+        45,
+        0
+      ],
+      "translation": [
+        0,
+        2.5,
+        0
+      ],
+      "scale": [
+        0.65,
+        0.65,
+        0.65
+      ]
+    }
+  }
+}

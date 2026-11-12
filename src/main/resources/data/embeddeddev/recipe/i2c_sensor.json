@@ -1,0 +1,29 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "pattern": [
+    " G ",
+    "RWC",
+    " P "
+  ],
+  "key": {
+    "G": {
+      "item": "minecraft:glass"
+    },
+    "R": {
+      "item": "minecraft:redstone_torch"
+    },
+    "W": {
+      "item": "embeddeddev:silicon_wafer"
+    },
+    "C": {
+      "item": "minecraft:copper_ingot"
+    },
+    "P": {
+      "item": "embeddeddev:circuit_board"
+    }
+  },
+  "result": {
+    "id": "embeddeddev:i2c_sensor"
+  }
+}

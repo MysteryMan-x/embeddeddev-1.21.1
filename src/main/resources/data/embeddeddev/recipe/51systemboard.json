@@ -1,0 +1,26 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "pattern": [
+    " X ",
+    "CMC",
+    " P "
+  ],
+  "key": {
+    "X": {
+      "item": "embeddeddev:crystal_11_0592mhz"
+    },
+    "C": {
+      "item": "minecraft:copper_ingot"
+    },
+    "M": {
+      "item": "embeddeddev:stc89c52rc"
+    },
+    "P": {
+      "item": "embeddeddev:circuit_board"
+    }
+  },
+  "result": {
+    "id": "embeddeddev:51systemboard"
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "parent": "embeddeddev:item/crystal_base",
+  "textures": {
+    "mark": "minecraft:block/red_concrete"
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "pattern": [
+    " T ",
+    "GWG",
+    " P "
+  ],
+  "key": {
+    "T": {
+      "item": "minecraft:clock"
+    },
+    "G": {
+      "item": "minecraft:gold_nugget"
+    },
+    "W": {
+      "item": "embeddeddev:silicon_wafer"
+    },
+    "P": {
+      "item": "embeddeddev:circuit_board"
+    }
+  },
+  "result": {
+    "id": "embeddeddev:ds1302"
+  }
+}

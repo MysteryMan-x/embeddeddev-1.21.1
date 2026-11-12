@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "redstone",
+  "ingredients": [
+    {
+      "item": "minecraft:redstone_torch"
+    },
+    {
+      "item": "minecraft:glass"
+    },
+    {
+      "item": "embeddeddev:circuit_board"
+    }
+  ],
+  "result": {
+    "id": "embeddeddev:led_module"
+  }
+}

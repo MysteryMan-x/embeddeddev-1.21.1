@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:smelting",
+  "category": "misc",
+  "group": "silicon_wafer",
+  "ingredient": [
+    {
+      "item": "embeddeddev:raw_silicon"
+    },
+    {
+      "item": "embeddeddev:silicon_ore"
+    },
+    {
+      "item": "embeddeddev:deepslate_silicon_ore"
+    }
+  ],
+  "cookingtime": 200,
+  "experience": 0.5,
+  "result": {
+    "id": "embeddeddev:silicon_wafer"
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "pattern": [
+    "GGG",
+    "RWR",
+    " P "
+  ],
+  "key": {
+    "G": {
+      "item": "minecraft:glass_pane"
+    },
+    "R": {
+      "item": "minecraft:redstone"
+    },
+    "W": {
+      "item": "embeddeddev:silicon_wafer"
+    },
+    "P": {
+      "item": "embeddeddev:circuit_board"
+    }
+  },
+  "result": {
+    "id": "embeddeddev:oled"
+  }
+}

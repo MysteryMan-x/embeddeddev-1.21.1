@@ -1,0 +1,7 @@
+{
+    "variants":  {
+                     "":  {
+                              "model":  "embeddeddev:block/redstone_port"
+                          }
+                 }
+}

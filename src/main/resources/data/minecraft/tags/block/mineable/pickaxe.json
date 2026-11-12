@@ -1,0 +1,17 @@
+{
+  "replace": false,
+  "values": [
+    "embeddeddev:51systemboard",
+    "embeddeddev:redstone_port",
+    "embeddeddev:oled",
+    "embeddeddev:i2c_sensor",
+    "embeddeddev:wire_relay",
+    "embeddeddev:ds18b20",
+    "embeddeddev:button_module",
+    "embeddeddev:led_module",
+    "embeddeddev:ds1302",
+    "embeddeddev:pcf8591",
+    "embeddeddev:silicon_ore",
+    "embeddeddev:deepslate_silicon_ore"
+  ]
+}

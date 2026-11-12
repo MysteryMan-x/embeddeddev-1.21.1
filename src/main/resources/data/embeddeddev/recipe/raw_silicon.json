@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    " S ",
+    "SCS",
+    " S "
+  ],
+  "key": {
+    "S": {
+      "item": "minecraft:sand"
+    },
+    "C": {
+      "item": "minecraft:charcoal"
+    }
+  },
+  "result": {
+    "id": "embeddeddev:raw_silicon"
+  }
+}

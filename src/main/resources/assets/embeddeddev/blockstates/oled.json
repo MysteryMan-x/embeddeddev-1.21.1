@@ -1,0 +1,20 @@
+{
+    "variants":  {
+                     "facing=north":  {
+                                          "model":  "embeddeddev:block/oled",
+                                          "y":  0
+                                      },
+                     "facing=east":  {
+                                         "model":  "embeddeddev:block/oled",
+                                         "y":  90
+                                     },
+                     "facing=south":  {
+                                          "model":  "embeddeddev:block/oled",
+                                          "y":  180
+                                      },
+                     "facing=west":  {
+                                         "model":  "embeddeddev:block/oled",
+                                         "y":  270
+                                     }
+                 }
+}

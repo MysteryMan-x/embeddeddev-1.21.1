@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "embeddeddev:item/stc89c52rc"
+  }
+}

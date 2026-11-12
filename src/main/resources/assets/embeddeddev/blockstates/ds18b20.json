@@ -1,0 +1,29 @@
+{
+  "variants": {
+    "facing=down": {
+      "model": "embeddeddev:block/ds18b20"
+    },
+    "facing=up": {
+      "model": "embeddeddev:block/ds18b20",
+      "x": 180
+    },
+    "facing=north": {
+      "model": "embeddeddev:block/ds18b20",
+      "x": 90
+    },
+    "facing=south": {
+      "model": "embeddeddev:block/ds18b20",
+      "x": 270
+    },
+    "facing=east": {
+      "model": "embeddeddev:block/ds18b20",
+      "x": 90,
+      "y": 90
+    },
+    "facing=west": {
+      "model": "embeddeddev:block/ds18b20",
+      "x": 90,
+      "y": 270
+    }
+  }
+}

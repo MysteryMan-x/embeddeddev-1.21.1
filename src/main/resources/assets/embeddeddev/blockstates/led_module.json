@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "lit=false": {
+      "model": "embeddeddev:block/led_module"
+    },
+    "lit=true": {
+      "model": "embeddeddev:block/led_module_active"
+    }
+  }
+}
