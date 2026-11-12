@@ -45,6 +45,7 @@ public final class EmbeddedDevClient {
     private static void registerRenderers(EntityRenderersEvent.RegisterRenderers event) {
         event.registerBlockEntityRenderer(ModBlockEntities.OLED.get(), OledRenderer::new);
         event.registerBlockEntityRenderer(ModBlockEntities.PERIPHERAL.get(), ButtonPanelRenderer::new);
+        event.registerBlockEntityRenderer(ModBlockEntities.SEVEN_SEGMENT.get(), SevenSegmentRenderer::new);
     }
 
     private static void registerCompass(FMLClientSetupEvent event) {

@@ -147,8 +147,8 @@ public final class SystemBoardEntity extends BlockEntity {
             BlockEntity neighbor = level.hasChunkAt(adjacent) ? level.getBlockEntity(adjacent) : null;
             I2cDevice i2c = null;
             GpioDevice gpio = null;
-            if (neighbor instanceof I2cModule module && adjacentModuleBoard(level, adjacent) == this) {
-                i2c = module.i2cDevice();
+            if ((neighbor instanceof I2cModule || neighbor instanceof GpioModule) && adjacentModuleBoard(level, adjacent) == this) {
+                if (neighbor instanceof I2cModule module) i2c = module.i2cDevice();
                 if (neighbor instanceof GpioModule moduleGpio) gpio = moduleGpio.gpioDevice();
             }
             hardware.attach(face.get3DDataValue(), i2c);

@@ -121,6 +121,24 @@ export async function generate() {
   }});
   await json('data/embeddeddev/loot_table/blocks/ds18b20.json',{type:'minecraft:block',pools:[{rolls:1,
     entries:[{type:'minecraft:item',name:'embeddeddev:ds18b20'}],conditions:[{condition:'minecraft:survives_explosion'}]}]});
+  const digit = [...base('pcb'), cube([2.3,2.2,3.1],[13.7,14,6.2],'dark'),
+    cube([2.5,2.4,3],[13.5,13.8,6],'black'), cube([2.8,2.7,2.9],[13.2,13.5,3.01],'black'),
+    cube([3.5,1.25,4.2],[4.4,2.4,5.1],'metal'), cube([11.6,1.25,4.2],[12.5,2.4,5.1],'metal')];
+  for(let pin=0;pin<8;pin++) {
+    const x=2.4+pin*1.5;
+    digit.push(cube([x,1.25,11.2],[x+.9,2.4,12.3],'black'),cube([x+.22,2.4,11.5],[x+.68,3.4,12],'gold'),
+      cube([x+.3,1.26,6.2],[x+.6,1.3,11.2],'copper'));
+  }
+  await json('assets/embeddeddev/models/block/seven_segment.json',model(digit));
+  await json('assets/embeddeddev/blockstates/seven_segment.json',{variants:Object.fromEntries(
+    ['north','east','south','west'].map((face,i)=>['facing='+face,{model:'embeddeddev:block/seven_segment',y:i*90}]))});
+  const itemBars = [[2.1,1,7.5,1.8],[7.6,1.9,8.4,4.9],[7.6,5.9,8.4,8.9],[2.1,9,7.5,9.8],
+    [1.2,5.9,2,8.9],[1.2,1.9,2,4.9],[2.1,5,7.5,5.8],[9,9,10,10]];
+  const digitItem = model([...digit,...itemBars.map(([x0,y0,x1,y1])=>cube([13-x1,13-y1,2.87],[13-x0,13-y0,2.89],'red'))]);
+  digitItem.display.gui={rotation:[12,180,0],translation:[0,0,0],scale:[.94,.94,.94]};
+  await json('assets/embeddeddev/models/item/seven_segment.json',digitItem);
+  await json('data/embeddeddev/loot_table/blocks/seven_segment.json',{type:'minecraft:block',pools:[{rolls:1,
+    entries:[{type:'minecraft:item',name:'embeddeddev:seven_segment'}],conditions:[{condition:'minecraft:survives_explosion'}]}]});
   const parts = {
     raw_silicon: [cube([3,4,5],[8,9,12],'dark'), cube([6,3,4],[12,10,10],'metal'),
       cube([8,9,5],[12,12,9],'silicon'), cube([11,5,7],[14,8,12],'silicon')],
@@ -158,7 +176,7 @@ export async function generate() {
     await json(`assets/embeddeddev/models/item/${id}.json`, {parent: blockModel});
   }
   await json('data/minecraft/tags/block/mineable/pickaxe.json',{replace:false,
-    values:['51systemboard','redstone_port','oled','i2c_sensor','wire_relay','ds18b20',...Object.keys(modules),...ores].map(v=>'embeddeddev:'+v)});
+    values:['51systemboard','redstone_port','oled','i2c_sensor','wire_relay','ds18b20','seven_segment',...Object.keys(modules),...ores].map(v=>'embeddeddev:'+v)});
   await generateSurvivalData(json);
   return {board:board.length,oled:oled.length,port:port.length,sensor:sensor.length};
 }

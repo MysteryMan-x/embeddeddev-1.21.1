@@ -37,6 +37,7 @@ public final class EmbeddedDev {
                     output.accept(ModBlocks.DS1302.get());
                     output.accept(ModBlocks.PCF8591.get());
                     output.accept(ModBlocks.DS18B20.get());
+                    output.accept(ModBlocks.SEVEN_SEGMENT.get());
                     output.accept(ModItems.WIRE_COIL.get());
                     output.accept(ModItems.WIRE_CUTTER.get());
                     output.accept(ModBlocks.WIRE_RELAY.get());

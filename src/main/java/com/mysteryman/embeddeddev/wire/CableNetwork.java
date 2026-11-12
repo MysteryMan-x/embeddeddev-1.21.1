@@ -160,7 +160,7 @@ public final class CableNetwork extends SavedData {
             int key = peripheral.buttonAt(hit);
             return key < 0 ? null : new End(pos, buttonSocket(key));
         }
-        if (level.getBlockEntity(pos) instanceof I2cModule) return new End(pos, MODULE);
+        if (level.getBlockEntity(pos) instanceof I2cModule || level.getBlockEntity(pos) instanceof GpioModule) return new End(pos, MODULE);
         return null;
     }
 
@@ -168,7 +168,7 @@ public final class CableNetwork extends SavedData {
         if (!level.hasChunkAt(end.pos())) return false;
         if (end.board()) return level.getBlockEntity(end.pos()) instanceof SystemBoardEntity;
         return switch (end.socket()) {
-            case MODULE -> level.getBlockEntity(end.pos()) instanceof I2cModule;
+            case MODULE -> level.getBlockEntity(end.pos()) instanceof I2cModule || level.getBlockEntity(end.pos()) instanceof GpioModule;
             case RELAY -> level.getBlockState(end.pos()).is(ModBlocks.WIRE_RELAY.get());
             case REDSTONE -> level.getBlockEntity(end.pos()) instanceof RedstonePortEntity;
             default -> level.getBlockEntity(end.pos()) instanceof PeripheralEntity peripheral && peripheral.buttons() != null

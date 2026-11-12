@@ -7,6 +7,7 @@
     "embeddeddev:i2c_sensor",
     "embeddeddev:wire_relay",
     "embeddeddev:ds18b20",
+    "embeddeddev:seven_segment",
     "embeddeddev:button_module",
     "embeddeddev:led_module",
     "embeddeddev:ds1302",

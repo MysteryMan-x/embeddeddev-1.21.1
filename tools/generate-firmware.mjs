@@ -73,10 +73,20 @@ function thermometerProgram() {
   .call('ow_wait').rel(0xdf,'ow_read_bit').emit(0x22);
  return a.resolve();
 }
+function sevenSegmentProgram() {
+ const a = new Asm();
+ a.emit(0x75,0x90,0,0x78,0).absolute(0x90,'digit_codes');
+ a.label('digit_loop').emit(0xe8,0x93,0xf5,0x90,0x88,0x30,0x85,0x90,0x31,0x7c,5);
+ a.label('digit_delay_outer').emit(0x7d,200).label('digit_delay_middle').emit(0x7e,250)
+  .label('digit_delay_inner').rel(0xde,'digit_delay_inner').rel(0xdd,'digit_delay_middle').rel(0xdc,'digit_delay_outer');
+ a.emit(0x08).rel(0xb8,'digit_loop',10).emit(0x78,0).rel(0x80,'digit_loop');
+ a.label('digit_codes').emit(0x3f,0x86,0x5b,0xcf,0x66,0xed,0x7d,0x87,0x7f,0xef);
+ return a.resolve();
+}
 function hex(bytes){const rows=[];for(let at=0;at<bytes.length;at+=16){const data=bytes.slice(at,at+16);let sum=data.length+(at>>8)+(at&255);const x=n=>(n&255).toString(16).padStart(2,'0').toUpperCase();let r=':'+x(data.length)+at.toString(16).padStart(4,'0').toUpperCase()+'00';for(const v of data){r+=x(v);sum+=v;}rows.push(r+x(-sum));}return rows.join('\n')+'\n:00000001FF\n';}
 export async function generate(){
  const directory=fileURLToPath(new URL('../examples/',import.meta.url));const pixels=frame();
- for(const [name,bytes] of [['oled_hello',oledProgram(pixels,false)],['i2c_oled_hello',oledProgram(pixels,true)],['i2c_sensor',sensorProgram()],['ds18b20_read',thermometerProgram()],
+ for(const [name,bytes] of [['oled_hello',oledProgram(pixels,false)],['i2c_oled_hello',oledProgram(pixels,true)],['i2c_sensor',sensorProgram()],['ds18b20_read',thermometerProgram()],['seven_segment_counter',sevenSegmentProgram()],
   ['adc_mirror',Uint8Array.from([0x75,0x90,0,0x90,0xF0,0,0xE0,0x90,0xF0,0x11,0xF0,0x80,0xF6])]])await fs.writeFile(directory+name+'.hex',hex(bytes));
  await fs.writeFile(directory+'oled_hello_bitmap.h','/* Original 128x64 page bitmap: EMBEDDED DEV / STC89C52 / HELLO MINECRAFT / I2C 0X3C */\nconst unsigned char code hello_bitmap[1024] = {\n'+Array.from(pixels).map((v,i)=>(i%16===0?'    ':'')+'0x'+v.toString(16).padStart(2,'0')+(i===1023?'':',')+(i%16===15?'\n':' ')).join('')+'};\n');
  return {readablePixels:pixels.reduce((n,v)=>n+v.toString(2).replaceAll('0','').length,0),legacy:oledProgram(pixels,false).length,i2c:oledProgram(pixels,true).length,sensor:sensorProgram().length};

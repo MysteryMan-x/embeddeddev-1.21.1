@@ -34,6 +34,7 @@ public final class ModBlocks {
     public static final DeferredBlock<PeripheralBlock> PCF8591 = register("pcf8591",
             () -> new PeripheralBlock(properties(), PeripheralBlock.Kind.PCF8591));
     public static final DeferredBlock<Ds18b20Block> DS18B20 = register("ds18b20", () -> new Ds18b20Block(properties()));
+    public static final DeferredBlock<SevenSegmentBlock> SEVEN_SEGMENT = register("seven_segment", () -> new SevenSegmentBlock(properties()));
     private static BlockBehaviour.Properties properties() { return BlockBehaviour.Properties.of().strength(1.5F).sound(SoundType.METAL).noOcclusion(); }
     private static <T extends Block> DeferredBlock<T> register(String name, Supplier<T> factory) {
         DeferredBlock<T> block = BLOCKS.register(name, factory);

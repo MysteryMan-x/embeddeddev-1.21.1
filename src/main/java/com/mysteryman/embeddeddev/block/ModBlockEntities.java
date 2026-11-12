@@ -21,5 +21,7 @@ public final class ModBlockEntities {
                     ModBlocks.DS1302.get(), ModBlocks.PCF8591.get()).build(null));
     public static final Supplier<BlockEntityType<Ds18b20Entity>> DS18B20 = TYPES.register("ds18b20", () ->
             BlockEntityType.Builder.of(Ds18b20Entity::new, ModBlocks.DS18B20.get()).build(null));
+    public static final Supplier<BlockEntityType<SevenSegmentEntity>> SEVEN_SEGMENT = TYPES.register("seven_segment", () ->
+            BlockEntityType.Builder.of(SevenSegmentEntity::new, ModBlocks.SEVEN_SEGMENT.get()).build(null));
     private ModBlockEntities() {}
 }

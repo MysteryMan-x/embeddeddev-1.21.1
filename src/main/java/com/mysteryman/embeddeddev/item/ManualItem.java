@@ -30,7 +30,8 @@ public final class ManualItem extends WrittenBookItem {
             List.of("ds1302", "ds1302_registers", "ds1302_example"),
             List.of("pcf8591", "pcf8591_control", "pcf8591_example"),
             List.of("button"), List.of("led"), List.of("sensor"), List.of("redstone"), List.of("compass"),
-            List.of("ds18b20", "ds18b20_protocol", "ds18b20_temperature"));
+            List.of("ds18b20", "ds18b20_protocol", "ds18b20_temperature"),
+            List.of("seven_segment", "seven_segment_codes", "seven_segment_example"));
 
     public ManualItem() {
         super(new Properties().stacksTo(1).component(DataComponents.WRITTEN_BOOK_CONTENT, content()));

@@ -68,6 +68,7 @@ export async function generateSurvivalData(json) {
   }, pcb);
   await recipe('button_module', shapeless('stone_button', 'copper_ingot', pcb), pcb);
   await recipe('led_module', shapeless('redstone_torch', 'glass', pcb), pcb);
+  await recipe('seven_segment', shaped(['LLL', 'LPL', 'LLL'], {L: mod('led_module'), P: pcb}), mod('led_module'));
   await recipe('ds1302', shaped([' T ', 'GWG', ' P '], {
     T: 'clock', G: 'gold_nugget', W: wafer, P: pcb
   }), pcb);
