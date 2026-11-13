@@ -60,7 +60,7 @@ public final class BoardNetwork {
     private static void handle(Action action, IPayloadContext context) {
         if (!(context.player() instanceof ServerPlayer player)) return;
         var level = player.serverLevel();
-        if (!level.hasChunkAt(action.pos) || player.distanceToSqr(action.pos.getCenter()) > 64) return;
+        if (!level.hasChunkAt(action.pos) || com.mysteryman.embeddeddev.compat.SableCompat.distanceSquared(level, player.position(), action.pos) > 64) return;
         if (action.action == BUTTON_CONFIGURE) {
             if (level.getBlockEntity(action.pos) instanceof PeripheralEntity module && module.buttons() != null) {
                 String message = "";

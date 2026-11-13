@@ -38,3 +38,6 @@ run/
 **/src/generated/**/.cache/
 repo/
 !**/src/**/repo/
+
+# Private local flight experiment; not part of source/release distributions.
+local-flight-lab/

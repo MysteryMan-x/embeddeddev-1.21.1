@@ -91,9 +91,10 @@ public final class WireRenderer {
             Vec3 eye = mc.player.getEyePosition();
             Vec3 tip = mc.player.pick(mc.player.blockInteractionRange(), 1, false).getLocation();
             double best = .15 * .15;
-            for (var wire : segments) {
+            for (var local : segments) {
+                var wire=worldSegment(local);
                 double distance = CablePicking.distanceSquared(wire.a(), wire.b(), eye, tip);
-                if (distance < best) { best = distance; selected = wire; }
+                if (distance < best) { best = distance; selected = local; }
             }
         }
         if (segments.isEmpty() && target == null && (!coil || start == null)) return;
@@ -101,9 +102,10 @@ public final class WireRenderer {
         var camera = event.getCamera().getPosition();
         var buffers = mc.renderBuffers().bufferSource();
         VertexConsumer solid = buffers.getBuffer(CABLE);
-        for (Segment wire : segments) {
+        for (Segment local : segments) {
+            Segment wire=worldSegment(local);
             if (event.getFrustum() != null && !event.getFrustum().isVisible(wire.bounds())) continue;
-            drawSolid(stack.last(), solid, wire, camera, wire == selected ? 0xFFFF6868 : wire.color());
+            drawSolid(stack.last(), solid, wire, camera, local == selected ? 0xFFFF6868 : wire.color());
         }
         buffers.endBatch(CABLE);
         VertexConsumer buffer = buffers.getBuffer(LINE);
@@ -111,24 +113,33 @@ public final class WireRenderer {
             if (target.board()) for (int side = 0; side <= 5; side++) for (int group = 0; group < PinGroup.COUNT; group++) {
                 if (group > 0 && mc.level.getBlockEntity(target.pos()) instanceof SystemBoardEntity board && board.binding(side, group).pins().isEmpty()) continue;
                 var socket = new CableNetwork.End(target.pos(), CableNetwork.boardSocket(side, group));
-                var point = socket.anchor();
+                var point = world(socket.anchor());
                 mark(stack, buffer, point.subtract(camera), socket.equals(target));
             }
             else if (mc.level.getBlockEntity(target.pos()) instanceof PeripheralEntity panel && panel.buttons() != null) {
                 for (int key = 0; key < panel.buttons().count(); key++) {
                     var socket = new CableNetwork.End(target.pos(), CableNetwork.buttonSocket(key));
-                    mark(stack, buffer, socket.anchor().subtract(camera), socket.equals(target));
+                    mark(stack, buffer, world(socket.anchor()).subtract(camera), socket.equals(target));
                 }
-            } else mark(stack, buffer, target.anchor().subtract(camera), true);
+            } else mark(stack, buffer, world(target.anchor()).subtract(camera), true);
         }
         if (coil && start != null) {
-            mark(stack, buffer, start.anchor().subtract(camera), true);
+            mark(stack, buffer, world(start.anchor()).subtract(camera), true);
             if (target != null && !start.equals(target)) {
-                boolean valid = !start.pos().equals(target.pos()) && start.anchor().distanceTo(target.anchor()) <= CableNetwork.MAX_LENGTH;
-                drawCable(stack.last(), buffer, start.anchor(), target.anchor(), camera, valid ? 0xFF99F5B7 : 0xFFFF6868);
+                boolean valid = !start.pos().equals(target.pos()) && world(start.anchor()).distanceTo(world(target.anchor())) <= CableNetwork.MAX_LENGTH;
+                drawCable(stack.last(), buffer, world(start.anchor()), world(target.anchor()), camera, valid ? 0xFF99F5B7 : 0xFFFF6868);
             }
         }
         buffers.endBatch(LINE);
+    }
+
+    private static Vec3 world(Vec3 point) {
+        return com.mysteryman.embeddeddev.compat.SableCompat.worldPosition(Minecraft.getInstance().level,point);
+    }
+    private static Segment worldSegment(Segment local) {
+        Vec3 a=world(local.a()),b=world(local.b());
+        if(a.equals(local.a())&&b.equals(local.b()))return local;
+        return new Segment(a,b,local.color(),new AABB(a,b).inflate(.5),buildRings(a,b,local.color()==0xFFE7B66D?.016:.011));
     }
 
     private static Vec3[][] buildRings(Vec3 from, Vec3 to, double radius) {

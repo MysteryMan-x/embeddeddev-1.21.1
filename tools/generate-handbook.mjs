@@ -1,6 +1,8 @@
 import fs from 'node:fs/promises';
 import {fileURLToPath} from 'node:url';
 import {addAnalogEntry} from './handbook-analog.mjs';
+import {addMotionEntries} from './handbook-motion.mjs';
+import {addDriverAppendix} from './handbook-drivers.mjs';
 
 // Original handbook prose and diagrams. Text is paired Chinese/English; IDs stay identical.
 const entries=[];
@@ -76,6 +78,7 @@ entry('pins','develop','51systemboard',['六面端子与标号','Faces and pin l
  tip('GPIO 同时负责输入与输出，不需要切换数字输入/输出模式。读取外部输入前，先把对应端口锁存位置 1，释放引脚。清空线组会拆除并回收该组的线。模拟输入和输出请接独立 PCF8591。','GPIO handles both input and output without a direction selector. Before reading an external input, set its latch bit to 1 to release it. Clearing a group refunds its cables. Use an external PCF8591 for analog input and output.'),link('analog_io','模拟量芯片与完整实验 >','Analog conversion and complete experiment >'),link('cables','把接口连出去 >','Connect the interface with a cable >')]);
 
 addAnalogEntry({entry,h,p,tip,table,wire,code,link});
+addMotionEntries({entry,h,p,tip,table,wire,recipe,code,link});
 
 entry('cables','develop','wire_coil',['自由连线与接线柱','Cables and junctions'],['两点连线，按标号配对','Click two endpoints; match labels'],[
  recipe('wire_coil'),recipe('wire_cutter'),
@@ -276,7 +279,8 @@ entry('compatibility','reference','ds18b20',['科技模组与温度来源','Mach
  tip('探头量程仍是 -55～125 ℃，超出范围会限制读数并提示超量程。其他有温度的模组不会自动全部兼容，需要提供 embeddeddev:temperature 能力或实现对应温度接口。','The probe still clamps to -55 to 125 °C and marks overrange. Other temperature mods are not universally detected: they need the embeddeddev:temperature capability or the corresponding provider interface.'),
  p('这些科技模组均为可选。没有安装它们时，开发板、GPIO 总线、所有电子模块和原版温度模型仍然可以独立使用。','Technology mods are optional. Boards, GPIO buses, electronics and vanilla temperature models remain usable without them.')]);
 
-const categories=[['start',['入门','Start'],'manual'],['develop',['开发','Develop'],'51systemboard'],['modules',['模块','Modules'],'oled'],['reference',['速查','Reference'],'stc89c52rc']];
+const categories=[['start',['入门','Start'],'manual'],['develop',['开发','Develop'],'51systemboard'],['modules',['模块','Modules'],'oled'],['reference',['速查','Ref.'],'stc89c52rc'],['appendix',['附录','Appendix'],'manual']];
+addDriverAppendix({entry,h,p,tip,code,link,table,entries});
 export async function generate(){
  const root=fileURLToPath(new URL('../src/main/resources/assets/embeddeddev/manual/',import.meta.url));
  await fs.mkdir(root,{recursive:true});

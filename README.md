@@ -1,10 +1,10 @@
-# Embedded Development 1.11.0 · Minecraft 1.21.1
+# Embedded Development 1.13.0 · Minecraft 1.21.1
 
-NeoForge **21.1.233** / Java **21**。1.11.0 版在烧录界面提供可直接选择的 8 个内置 HEX 示例、本地文件选择器和右上角退出按钮。ADC、DAC、OLED 均通过独立模块和 GPIO 协议访问，不再占用 MCU 内存窗口；整个 64 KiB XDATA 为普通 XRAM。主板端子只使用 GPIO，模拟量使用 PCF8591，OLED 使用软件 I²C。
+NeoForge **21.1.233** / Java **21**。1.13.0 新增 MPU6050、高度计、多通道近邻电机接口和完整驱动附录。烧录页提供可直接选择的 8 个内置 HEX 示例、本地文件选择器和右上角退出按钮。ADC、DAC、OLED 均通过独立模块和 GPIO 协议访问，整个 64 KiB XDATA 为普通 XRAM。
 
 ## 安装与烧录
 
-执行 `gradlew.bat build`，将 `build/libs/embeddeddev-1.11.0.jar` 放进实例 `mods`，替换旧版本。客户端与服务端均须更新。
+执行 `gradlew.bat build`，将 `build/libs/embeddeddev-1.13.0.jar` 放进实例 `mods`，替换旧版本。客户端与服务端均须更新。
 
 1. 放置 **51 单片机最小系统板**，空手右键打开。
 2. 切换到 **六面端子**。东、南、西、北、上、下各有一张卡。点击「管理引脚 → 添加引脚」，在弹出的窗口中填写标号，选择用途和物理引脚，保存后在该面点击「应用」。
@@ -29,7 +29,7 @@ NeoForge **21.1.233** / Java **21**。1.11.0 版在烧录界面提供可直接�
 
 ## 游戏内手册与晶振
 
-用书、纸和红石无序合成 **手册**，主手或副手右键打开独立图文界面。旧手册物品也可继续使用。手册分为「入门、开发、模块、速查」四类，共 **30 个双语条目**，覆盖全部芯片、模块和生存配方。条目以实验步骤、配方卡、接线图、寄存器表、故障排查和可复制的代码组织。
+用书、纸和红石无序合成 **手册**，主手或副手右键打开独立图文界面。旧手册物品也可继续使用。手册分为「入门、开发、模块、速查、附录」五类，共 **46 个双语条目**，覆盖全部芯片、模块和生存配方。条目以实验步骤、配方卡、接线图、寄存器表、故障排查和可复制的代码组织。
 
 「开发 → 模拟量与外部芯片」说明 STC89C52RC 没有片内 ADC/DAC。1.10.0 删除虚拟 ADC/DAC，1.10.1 再删除 OLED 桥接，原设备地址均恢复为普通 XRAM。章节包含 PCF8591 接线、控制字、C51 程序和 ADC→DAC 实验。独立 PCF8591 通过 GPIO 软件 I²C 控制，48H–4FH 是总线地址，不占 MCU 内存窗口。
 
@@ -164,7 +164,7 @@ PCF8591 的 AIN0–AIN3 按北、东、南、西取样，将红石强度 0–15 
 
 ## 程序与示例
 
-Keil C51 建议 SMALL 内存模型、11.0592 MHz、勾选 Create HEX File。代码地址限制在 0000h–1FFFh，不要在启动代码中清零设备地址区域。
+Keil C51 建议 SMALL 内存模型、11.0592 MHz、勾选 Create HEX File。代码地址限制在 0000h–1FFFh；全部 64 KiB XDATA 为普通 RAM，外设不再保留内存窗口。
 
 | 文件 | 接线要求 |
 |---|---|
@@ -216,3 +216,11 @@ $env:JAVA_TOOL_OPTIONS = '-Djdk.net.unixdomain.tmpdir=' + (Resolve-Path build/so
 ```
 
 模拟通道、连接规则和环境传感器寄存器为本模组约定。参考资料包括 [STC89 数据手册](https://www.stcmicro.com/datasheet/STC89C51RC-en.pdf)、[DS1302 数据手册](https://www.analog.com/media/en/technical-documentation/data-sheets/DS1302.pdf)、[PCF8591 数据手册](https://www.nxp.com/docs/en/data-sheet/PCF8591.pdf)、[SSD1306 数据手册](https://cdn-shop.adafruit.com/datasheets/SSD1306.pdf)及 [NXP I²C 总线规范](https://www.nxp.com/docs/en/user-guide/UM10204.pdf)。
+
+## 独立传感器、多通道电机接口与驱动附录
+
+新增 MPU6050 惯性传感器（68H/69H）、ALT-01 高度计（76H）和多通道电机接口（60H–67H）。它们均通过现有线缆连接普通 GPIO 软件 I²C。每块电机接口只控制其六个紧邻面上的创造马达，六路有符号 RPM 原子提交并带看门狗；八个地址可提供 48 路。MPU6050 和高度计不依赖机械动力，Sable 为可选运动数据来源。
+
+手册新增独立「附录」分类，提供 11 组驱动、40 份完整 .h/.c（包含最小主程序），从 examples/drivers 逐字生成，可按文件复制。覆盖软件 I²C、MPU6050、高度计、电机接口、PCF8591、环境传感器、按钮/LED、红石、数码管、DS1302、DS18B20 和 SSD1306。详见 [驱动源码使用说明](examples/drivers/README.md)。
+
+详细寄存器与开发说明见 [独立模块与驱动手册](docs/modules-and-drivers.md)。

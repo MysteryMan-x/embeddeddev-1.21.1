@@ -24,6 +24,9 @@ public final class ModBlocks {
     public static final DeferredBlock<RedstonePortBlock> REDSTONE_PORT = register("redstone_port", () -> new RedstonePortBlock(properties()));
     public static final DeferredBlock<OledBlock> OLED = register("oled", () -> new OledBlock(properties()));
     public static final DeferredBlock<SensorBlock> SENSOR = register("i2c_sensor", () -> new SensorBlock(properties()));
+    public static final DeferredBlock<BusModuleBlock> MPU6050 = register("mpu6050", () -> new BusModuleBlock(properties(),BusModuleBlock.Kind.MPU6050));
+    public static final DeferredBlock<BusModuleBlock> ALTIMETER = register("altimeter", () -> new BusModuleBlock(properties(),BusModuleBlock.Kind.ALTIMETER));
+    public static final DeferredBlock<BusModuleBlock> MOTOR_INTERFACE = register("motor_interface", () -> new BusModuleBlock(properties(),BusModuleBlock.Kind.MOTOR));
     public static final DeferredBlock<PeripheralBlock> BUTTON = register("button_module",
             () -> new PeripheralBlock(properties(), PeripheralBlock.Kind.BUTTON));
     public static final DeferredBlock<PeripheralBlock> LED = register("led_module",

@@ -149,7 +149,7 @@ public final class WireNetwork {
 
     private static ItemStack checkWireStack(ServerPlayer player, InteractionHand hand, CableNetwork.End a, CableNetwork.End b) {
         ItemStack stack = player.getItemInHand(hand);
-        if (!stack.is(ModItems.WIRE_COIL.get()) || !player.getAbilities().instabuild && stack.getCount() < CableNetwork.units(a, b)) {
+        if (!stack.is(ModItems.WIRE_COIL.get()) || !player.getAbilities().instabuild && stack.getCount() < CableNetwork.units(player.level(),a, b)) {
             throw CableNetwork.error("not_enough");
         }
         return stack;
@@ -166,8 +166,9 @@ public final class WireNetwork {
         var tip = player.pick(player.blockInteractionRange(), 1, false).getLocation();
         CableNetwork.Wire selected = null;
         double best = .15 * .15;
-        for (var wire : cables.near(player.chunkPosition(), 1, 1024)) {
-            double distance = CablePicking.distanceSquared(wire.a().anchor(), wire.b().anchor(), eye, tip);
+        for (var wire : cables.nearWorld(level,player.chunkPosition(), 1, 1024)) {
+            double distance = CablePicking.distanceSquared(com.mysteryman.embeddeddev.compat.SableCompat.worldPosition(level,wire.a().anchor()),
+                    com.mysteryman.embeddeddev.compat.SableCompat.worldPosition(level,wire.b().anchor()), eye, tip);
             if (distance < best) { selected = wire; best = distance; }
         }
         if (selected == null) { message(player, "wire.embeddeddev.no_wire"); return; }
@@ -207,12 +208,12 @@ public final class WireNetwork {
         var level = player.serverLevel();
         var cables = CableNetwork.get(level);
         var scene = new Scene(level.dimension(), player.chunkPosition(), cables.revision());
-        if (scene.equals(SCENES.put(player, scene))) return;
+        if (scene.equals(SCENES.put(player, scene)) && !net.neoforged.fml.ModList.get().isLoaded("sable")) return;
         var data = new CompoundTag();
         data.putString("Kind", "scene");
         data.putString("Dimension", level.dimension().location().toString());
         var entries = new ListTag();
-        for (var wire : cables.near(scene.chunk(), 4, 1024)) {
+        for (var wire : cables.nearWorld(level,scene.chunk(), 4, 1024)) {
             var tag = new CompoundTag();
             tag.put("A", wire.a().save());
             tag.put("B", wire.b().save());

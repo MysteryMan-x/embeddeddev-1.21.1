@@ -1,0 +1,26 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "pattern": [
+    " Q ",
+    "RWR",
+    " P "
+  ],
+  "key": {
+    "Q": {
+      "item": "minecraft:quartz"
+    },
+    "R": {
+      "item": "minecraft:redstone"
+    },
+    "W": {
+      "item": "embeddeddev:silicon_wafer"
+    },
+    "P": {
+      "item": "embeddeddev:circuit_board"
+    }
+  },
+  "result": {
+    "id": "embeddeddev:mpu6050"
+  }
+}

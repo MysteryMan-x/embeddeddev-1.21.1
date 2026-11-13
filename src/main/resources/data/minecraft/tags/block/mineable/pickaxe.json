@@ -12,6 +12,9 @@
     "embeddeddev:led_module",
     "embeddeddev:ds1302",
     "embeddeddev:pcf8591",
+    "embeddeddev:mpu6050",
+    "embeddeddev:altimeter",
+    "embeddeddev:motor_interface",
     "embeddeddev:silicon_ore",
     "embeddeddev:deepslate_silicon_ore"
   ]

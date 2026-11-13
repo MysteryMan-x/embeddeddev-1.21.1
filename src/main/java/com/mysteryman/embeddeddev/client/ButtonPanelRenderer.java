@@ -9,6 +9,9 @@ import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
+import com.mojang.math.Axis;
+import net.minecraft.client.gui.Font;
+import net.minecraft.client.renderer.LightTexture;
 
 public final class ButtonPanelRenderer implements BlockEntityRenderer<PeripheralEntity> {
     public ButtonPanelRenderer(BlockEntityRendererProvider.Context context) {}
@@ -22,6 +25,11 @@ public final class ButtonPanelRenderer implements BlockEntityRenderer<Peripheral
             boolean pressed = buttons.pressed(key);
             part(pressed ? Blocks.ORANGE_CONCRETE : Blocks.RED_CONCRETE, x, z, .195, pressed ? .264 : .333, .175,
                     pose, buffers, light, overlay);
+            var font=Minecraft.getInstance().font;String label=buttons.names().get(key);
+            float scale=Math.min(.0045F,.15F/Math.max(1,font.width(label)));
+            pose.pushPose();pose.translate(x,pressed?.265:.334,z);pose.mulPose(Axis.XP.rotationDegrees(90));pose.scale(scale,scale,scale);
+            font.drawInBatch(label,-font.width(label)/2F,-font.lineHeight/2F,0xFFFFFFFF,false,pose.last().pose(),buffers,Font.DisplayMode.NORMAL,0,LightTexture.FULL_BRIGHT);
+            pose.popPose();
         }
     }
 

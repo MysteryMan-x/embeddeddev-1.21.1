@@ -32,6 +32,9 @@ public final class EmbeddedDev {
                     output.accept(ModBlocks.REDSTONE_PORT.get());
                     output.accept(ModBlocks.OLED.get());
                     output.accept(ModBlocks.SENSOR.get());
+                    output.accept(ModBlocks.MPU6050.get());
+                    output.accept(ModBlocks.ALTIMETER.get());
+                    output.accept(ModBlocks.MOTOR_INTERFACE.get());
                     output.accept(ModBlocks.BUTTON.get());
                     output.accept(ModBlocks.LED.get());
                     output.accept(ModBlocks.DS1302.get());

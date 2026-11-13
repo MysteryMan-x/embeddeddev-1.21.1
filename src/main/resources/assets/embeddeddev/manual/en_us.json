@@ -19,8 +19,13 @@
     },
     {
       "id": "reference",
-      "title": "Reference",
+      "title": "Ref.",
       "icon": "embeddeddev:stc89c52rc"
+    },
+    {
+      "id": "appendix",
+      "title": "Appendix",
+      "icon": "embeddeddev:manual"
     }
   ],
   "entries": [
@@ -536,10 +541,320 @@
           "type": "link",
           "target": "xdata",
           "text": "XDATA versus I²C addresses >"
+        },
+        {
+          "type": "link",
+          "target": "source_pcf8591",
+          "text": "Appendix: copy complete .h / .c >"
         }
       ],
       "items": [],
       "keywords": "analog_io"
+    },
+    {
+      "id": "mpu6050",
+      "category": "modules",
+      "icon": "embeddeddev:mpu6050",
+      "title": "MPU6050 inertial sensor",
+      "subtitle": "Raw acceleration and angular rate; estimate attitude in firmware",
+      "blocks": [
+        {
+          "type": "recipe",
+          "id": "embeddeddev:mpu6050"
+        },
+        {
+          "type": "wiring",
+          "id": "embeddeddev:mpu6050",
+          "labels": [
+            "P1.6|SDA",
+            "P1.7|SCL"
+          ]
+        },
+        {
+          "type": "text",
+          "text": "Independent software-I²C peripheral. Address defaults to 68H. Sneak-use with an empty hand toggles AD0 between 68H/69H and saves it. WHO_AM_I remains 68H. Share named SDA/SCL wires with the OLED and altimeter on the same GPIO pair."
+        },
+        {
+          "type": "tip",
+          "text": "Works alone: stationary blocks report +1 g on Z and zero gyro. On Sable bodies it samples actual three-axis rate and acceleration. Create/Aeronautics are optional. It exposes no hidden Euler angles and runs no Java attitude solver or PID."
+        },
+        {
+          "type": "heading",
+          "text": "Axes and format"
+        },
+        {
+          "type": "text",
+          "text": "Local axes: X east, Y north, Z up, forming a right-handed frame. All raw signed 16-bit measurements are big-endian, two’s complement. Each read transaction latches a frame. Gravity and translational acceleration affect measurements; acceleration is not itself an angle."
+        },
+        {
+          "type": "table",
+          "rows": [
+            [
+              "Register",
+              "Use"
+            ],
+            [
+              "19H / 1AH",
+              "Sample divider / CONFIG; retained for readback"
+            ],
+            [
+              "1BH",
+              "GYRO_CONFIG FS_SEL=bits4:3"
+            ],
+            [
+              "1CH",
+              "ACCEL_CONFIG AFS_SEL=bits4:3"
+            ],
+            [
+              "38H / 3AH",
+              "Interrupt-enable readback; data-ready clears on reading 3AH"
+            ],
+            [
+              "3BH–40H",
+              "AX, AY, AZ; high byte first"
+            ],
+            [
+              "41H–42H",
+              "Temperature: raw/340+36.53 Celsius"
+            ],
+            [
+              "43H–48H",
+              "GX, GY, GZ; high byte first"
+            ],
+            [
+              "6BH",
+              "Power: reset=80H, sleep=40H, wake=00H"
+            ],
+            [
+              "6CH",
+              "Axis standby bits"
+            ],
+            [
+              "75H",
+              "WHO_AM_I=68H"
+            ]
+          ]
+        },
+        {
+          "type": "table",
+          "rows": [
+            [
+              "Range bits",
+              "Gyro / sensitivity",
+              "Accel / sensitivity"
+            ],
+            [
+              "0",
+              "250 dps; 131 LSB/dps",
+              "2 g; 16384 LSB/g"
+            ],
+            [
+              "1",
+              "500 dps; 65.5 LSB/dps",
+              "4 g; 8192 LSB/g"
+            ],
+            [
+              "2",
+              "1000 dps; 32.8 LSB/dps",
+              "8 g; 4096 LSB/g"
+            ],
+            [
+              "3",
+              "2000 dps; 16.4 LSB/dps",
+              "16 g; 2048 LSB/g"
+            ]
+          ]
+        },
+        {
+          "type": "code",
+          "text": "write(0x68,0x6B,0x00); // wake\nwrite(0x68,0x1B,0x00); // 250 deg/s\nwrite(0x68,0x1C,0x00); // 2 g\nread(0x68,0x3B,14);   // accel, temperature, gyro"
+        },
+        {
+          "type": "text",
+          "text": "This simulates the common raw-register subset. Values update once per game tick, normally 20 Hz. Divider and CONFIG retain values but generate no 1 kHz subsampling or hardware DLPF. FIFO, DMP, auxiliary-master I²C, interrupt pins, self-test and real thermal noise are not implemented. Temperature is currently fixed at 25 Celsius."
+        },
+        {
+          "type": "link",
+          "target": "source_mpu6050",
+          "text": "Copy the complete MPU6050 driver >"
+        },
+        {
+          "type": "link",
+          "target": "source_mpu6050",
+          "text": "Appendix: copy complete .h / .c >"
+        }
+      ],
+      "keywords": "mpu6050"
+    },
+    {
+      "id": "altimeter",
+      "category": "modules",
+      "icon": "embeddeddev:altimeter",
+      "title": "ALT-01 height sensor",
+      "subtitle": "World altitude, relative height and vertical speed",
+      "blocks": [
+        {
+          "type": "recipe",
+          "id": "embeddeddev:altimeter"
+        },
+        {
+          "type": "wiring",
+          "id": "embeddeddev:altimeter",
+          "labels": [
+            "P1.6|SDA",
+            "P1.7|SCL"
+          ]
+        },
+        {
+          "type": "text",
+          "text": "A mod-defined altimeter, not a BMP280 emulation. Seven-bit address 76H, write ECH/read EDH. Works alone using the module center’s world Y. On Sable bodies it follows actual physics position and vertical speed. Height is independent of redstone and does not require ground beneath."
+        },
+        {
+          "type": "table",
+          "rows": [
+            [
+              "Address",
+              "Format / meaning"
+            ],
+            [
+              "00H / 03H",
+              "Identity 41H / protocol 1"
+            ],
+            [
+              "01H",
+              "bit0 valid, bit1 on a moving body"
+            ],
+            [
+              "02H",
+              "Wrapping per-tick sample sequence"
+            ],
+            [
+              "04H–07H",
+              "Absolute altitude, signed 32-bit cm"
+            ],
+            [
+              "08H–09H",
+              "Vertical speed, signed 16-bit cm/s"
+            ],
+            [
+              "0AH–0DH",
+              "Saved zero reference, signed 32-bit cm"
+            ],
+            [
+              "0EH–11H",
+              "Relative altitude, signed 32-bit cm"
+            ],
+            [
+              "12H",
+              "Write A5H to capture the current zero"
+            ]
+          ]
+        },
+        {
+          "type": "tip",
+          "text": "Altimeter fields are little-endian, unlike the MPU6050. The zero reference persists and applications can recapture it as needed. Players implement altitude control in firmware."
+        },
+        {
+          "type": "code",
+          "text": "write(0x76,0x12,0xA5); // capture takeoff zero\nread(0x76,0x0E,4);     // signed little-endian cm"
+        },
+        {
+          "type": "link",
+          "target": "source_altimeter",
+          "text": "Copy the complete altimeter driver >"
+        },
+        {
+          "type": "link",
+          "target": "source_altimeter",
+          "text": "Appendix: copy complete .h / .c >"
+        }
+      ],
+      "keywords": "altimeter"
+    },
+    {
+      "id": "motor_interface",
+      "category": "modules",
+      "icon": "embeddeddev:motor_interface",
+      "title": "Multi-channel motor interface",
+      "subtitle": "Six adjacent faces, independent signed RPM",
+      "blocks": [
+        {
+          "type": "recipe",
+          "id": "embeddeddev:motor_interface"
+        },
+        {
+          "type": "wiring",
+          "id": "embeddeddev:motor_interface",
+          "labels": [
+            "P1.6|SDA",
+            "P1.7|SCL"
+          ]
+        },
+        {
+          "type": "text",
+          "text": "Each interface controls only Create creative motors directly touching its six faces. It never looks up remote motors relative to the board. Channels 0–5 are down, up, north, south, west, east, each accepting signed -256 to +256 RPM. Without Create, I²C still works and the detected mask is zero; no mechanical power is created."
+        },
+        {
+          "type": "text",
+          "text": "Default address 60H. While SAFE, sneak-use with an empty hand to cycle 60H through 67H. The address persists. Eight different addresses on one SDA/SCL pair provide 48 channels. Another GPIO pair can form a separate bus. Duplicate addresses are reported as conflicts in Wiring."
+        },
+        {
+          "type": "table",
+          "rows": [
+            [
+              "Register",
+              "Use"
+            ],
+            [
+              "00H / 03H",
+              "Identity 4DH / protocol 1"
+            ],
+            [
+              "01H",
+              "Read bit0 armed; write A5H to arm, other values to stop"
+            ],
+            [
+              "02H",
+              "Status sequence"
+            ],
+            [
+              "04H",
+              "Adjacent-motor mask, bits0–5 by face"
+            ],
+            [
+              "05H",
+              "Wired controller running"
+            ],
+            [
+              "20H–2BH",
+              "Six staged signed little-endian RPM words"
+            ],
+            [
+              "2CH",
+              "Write A5H: atomically commit six channels and refresh watchdog"
+            ]
+          ]
+        },
+        {
+          "type": "tip",
+          "text": "Firmware must keep committing fresh commands. More than four ticks without activity, disconnection, stopped MCU or reload disarms and zeros adjacent motor commands. Write A5H again to rearm. Arming gives a short initial commit grace period. Existing rotor inertia remains."
+        },
+        {
+          "type": "text",
+          "text": "Firmware chooses channels and output values. The interface supports independently controlled motors in arbitrary layouts."
+        },
+        {
+          "type": "link",
+          "target": "source_motor_driver",
+          "text": "Copy the complete motor interface driver >"
+        },
+        {
+          "type": "link",
+          "target": "source_motor_driver",
+          "text": "Appendix: copy complete .h / .c >"
+        }
+      ],
+      "keywords": "motor_interface"
     },
     {
       "id": "cables",
@@ -852,6 +1167,11 @@
         {
           "type": "tip",
           "text": "Keys hold a logical low for game ticks; mechanical contact bounce is not simulated. Removing an active key releases it rather than leaving a permanently low input."
+        },
+        {
+          "type": "link",
+          "target": "source_gpio_panel",
+          "text": "Appendix: copy complete .h / .c >"
         }
       ],
       "keywords": "button"
@@ -972,6 +1292,11 @@
           "type": "link",
           "target": "examples",
           "text": "Find the counter example >"
+        },
+        {
+          "type": "link",
+          "target": "source_seven_segment",
+          "text": "Appendix: copy complete .h / .c >"
         }
       ],
       "keywords": "seven_segment"
@@ -1052,6 +1377,11 @@
           "type": "link",
           "target": "i2c",
           "text": "I²C starts, ACKs and shared buses >"
+        },
+        {
+          "type": "link",
+          "target": "source_ssd1306",
+          "text": "Appendix: copy complete .h / .c >"
         }
       ],
       "keywords": "oled"
@@ -1132,6 +1462,11 @@
         {
           "type": "tip",
           "text": "The clock follows game ticks rather than the computer wall clock. Calendar, halt state, write protection and RAM persist with the module. Firmware stops while its board is unloaded; clock progress follows world time."
+        },
+        {
+          "type": "link",
+          "target": "source_ds1302",
+          "text": "Appendix: copy complete .h / .c >"
         }
       ],
       "keywords": "rtc"
@@ -1217,6 +1552,11 @@
           "type": "link",
           "target": "i2c",
           "text": "Address conflicts and repeated START >"
+        },
+        {
+          "type": "link",
+          "target": "source_pcf8591",
+          "text": "Appendix: copy complete .h / .c >"
         }
       ],
       "keywords": "adc"
@@ -1297,6 +1637,11 @@
           "type": "link",
           "target": "compatibility",
           "text": "Create and other temperature sources >"
+        },
+        {
+          "type": "link",
+          "target": "source_ds18b20",
+          "text": "Appendix: copy complete .h / .c >"
         }
       ],
       "keywords": "temperature"
@@ -1360,6 +1705,11 @@
         {
           "type": "tip",
           "text": "Its default address matches the PCF8591. Move the converter to 49H when sharing a bus. The OLED at 3CH does not conflict."
+        },
+        {
+          "type": "link",
+          "target": "source_environment",
+          "text": "Appendix: copy complete .h / .c >"
         }
       ],
       "keywords": "sensor"
@@ -1419,6 +1769,11 @@
         {
           "type": "tip",
           "text": "Stopping the board or cutting a cable clears redstone output. Beside a legacy adjacent board, normal use may open the board; sneak-use opens connector settings."
+        },
+        {
+          "type": "link",
+          "target": "source_gpio_redstone",
+          "text": "Appendix: copy complete .h / .c >"
         }
       ],
       "keywords": "redstone"
@@ -1811,6 +2166,11 @@
         {
           "type": "text",
           "text": "START/STOP, repeated START, addresses and ACK/NACK are supported. Analog voltage, multi-master arbitration and clock stretching are not simulated. SSD1306 scroll commands are accepted but currently do not animate scrolling."
+        },
+        {
+          "type": "link",
+          "target": "source_ssd1306",
+          "text": "Appendix: copy complete .h / .c >"
         }
       ],
       "keywords": "i2c"
@@ -1886,6 +2246,11 @@
         {
           "type": "tip",
           "text": "External power is implicit, so parasite-power strong pull-up is unnecessary. DQ still must be released before reads; holding it low prevents presence and data detection."
+        },
+        {
+          "type": "link",
+          "target": "source_ds18b20",
+          "text": "Appendix: copy complete .h / .c >"
         }
       ],
       "keywords": "onewire"
@@ -2137,9 +2502,779 @@
         {
           "type": "text",
           "text": "Technology mods are optional. Boards, GPIO buses, electronics and vanilla temperature models remain usable without them."
+        },
+        {
+          "type": "link",
+          "target": "source_ds18b20",
+          "text": "Appendix: copy complete .h / .c >"
         }
       ],
       "keywords": "compatibility"
+    },
+    {
+      "id": "driver_sources",
+      "category": "appendix",
+      "icon": "embeddeddev:manual",
+      "title": "Appendix: complete copyable drivers",
+      "subtitle": "11 driver groups; copy each .h, .c and minimal main",
+      "blocks": [
+        {
+          "type": "text",
+          "text": "Code is read verbatim from examples/drivers when the handbook is generated. Each Copy button copies the entire file. Each driver includes its header, implementation and complete main demo; copy shared dependencies once."
+        },
+        {
+          "type": "tip",
+          "text": "Defaults use 12 MHz / 12T, especially DS18B20 short-slot sampling. Install a 12 MHz crystal, or adjust ED_FOSC_HZ and short delays first. Configured GPIO labels and pin numbers must match."
+        },
+        {
+          "type": "text",
+          "text": "Keil C51: create an 8051 SMALL-model project, add the required .c files and one demo main, and add the header directory to Include Path. SDCC: compile each .c with -c into .rel, then link with main.c. Do not add every module to one 8 KiB project. Actual validation uses SDCC; the C51 declarations have not been verified with the Keil compiler."
+        },
+        {
+          "type": "text",
+          "text": "I²C and most chip functions return 1 for success, 0 for NACK/CRC/invalid arguments. Do not use stale samples after failure. 1-Wire and 3-wire are separate protocols. Drivers use ordinary program memory/RAM, reserving no mapped peripheral window."
+        },
+        {
+          "type": "link",
+          "target": "source_common",
+          "text": "Copy platform and software I2C first >"
+        },
+        {
+          "type": "link",
+          "target": "source_mpu6050",
+          "text": "Complete driver: mpu6050 >"
+        },
+        {
+          "type": "link",
+          "target": "source_altimeter",
+          "text": "Complete driver: altimeter >"
+        },
+        {
+          "type": "link",
+          "target": "source_motor_driver",
+          "text": "Complete driver: motor_driver >"
+        },
+        {
+          "type": "link",
+          "target": "source_pcf8591",
+          "text": "Complete driver: pcf8591 >"
+        },
+        {
+          "type": "link",
+          "target": "source_environment",
+          "text": "Complete driver: environment >"
+        },
+        {
+          "type": "link",
+          "target": "source_gpio_panel",
+          "text": "Complete driver: gpio_panel >"
+        },
+        {
+          "type": "link",
+          "target": "source_gpio_redstone",
+          "text": "Complete driver: gpio_redstone >"
+        },
+        {
+          "type": "link",
+          "target": "source_seven_segment",
+          "text": "Complete driver: seven_segment >"
+        },
+        {
+          "type": "link",
+          "target": "source_ds1302",
+          "text": "Complete driver: ds1302 >"
+        },
+        {
+          "type": "link",
+          "target": "source_ds18b20",
+          "text": "Complete driver: ds18b20 >"
+        },
+        {
+          "type": "link",
+          "target": "source_ssd1306",
+          "text": "Complete driver: ssd1306 >"
+        }
+      ],
+      "keywords": "driver_sources"
+    },
+    {
+      "id": "source_common",
+      "category": "appendix",
+      "icon": "embeddeddev:51systemboard",
+      "title": "Source: platform, delay and software I2C",
+      "subtitle": "Shared header and complete transport",
+      "blocks": [
+        {
+          "type": "text",
+          "text": "Every project needs ed_platform.h. I²C drivers also need i2c_bus.h/.c; DS18B20 needs ed_delay.h/.c. ed_delay owns Timer0 and disables ET0; use Timer1/2 for other timing. Software I²C checks ACK and issues STOP on errors. Hardware clock stretching is not implemented."
+        },
+        {
+          "type": "table",
+          "rows": [
+            [
+              "Signal",
+              "Default GPIO"
+            ],
+            [
+              "SDA / SCL",
+              "P1.6 / P1.7"
+            ],
+            [
+              "LED / redstone SIGNAL",
+              "P1.0 / P1.2"
+            ],
+            [
+              "Keys1–8 / key9",
+              "P0.0–P0.7 / P2.0"
+            ],
+            [
+              "DS1302 CE / SCLK / IO",
+              "P3.0 / P3.1 / P3.2"
+            ],
+            [
+              "DS18B20 DQ",
+              "P3.7"
+            ],
+            [
+              "Seven-segment A–G / DP",
+              "P2.0–P2.6 / P2.7"
+            ]
+          ]
+        },
+        {
+          "type": "tip",
+          "text": "The display owns all of P2, conflicting with default key9 on P2.0. RTC P3.0/P3.1 conflict with UART. Demos are independent. For a combined project, edit this header and configure matching block pins first."
+        },
+        {
+          "type": "heading",
+          "text": "ed_platform.h"
+        },
+        {
+          "type": "code",
+          "text": "#ifndef ED_PLATFORM_H\n#define ED_PLATFORM_H\n/* Edit these pins to match the labels configured in the Minecraft board UI.\n * Drivers are independent projects: SEG=P2 conflicts with KEY9=P2.0.\n * DS1302 uses P3.0/P3.1/P3.2, so do not enable UART on those pins.\n * Timing examples use 12 MHz / 12T. Change ED_FOSC_HZ with the installed crystal.\n */\n#ifndef ED_FOSC_HZ\n#define ED_FOSC_HZ 12000000UL\n#endif\n#ifdef __SDCC\n__sfr __at(0x80) P0; __sfr __at(0x90) P1;\n__sfr __at(0xA0) P2; __sfr __at(0xB0) P3;\n__sfr __at(0x88) TCON; __sfr __at(0x89) TMOD;\n__sfr __at(0x8A) TL0; __sfr __at(0x8C) TH0;\n__sbit __at(0x8C) TR0; __sbit __at(0x8D) TF0; __sbit __at(0xA9) ET0;\n__sbit __at(0x96) ED_SDA; __sbit __at(0x97) ED_SCL;\n__sbit __at(0x90) ED_LED; __sbit __at(0xA0) ED_KEY9;\n__sbit __at(0x92) ED_REDSTONE;\n__sbit __at(0xB0) ED_RTC_CE; __sbit __at(0xB1) ED_RTC_CLK; __sbit __at(0xB2) ED_RTC_IO;\n__sbit __at(0xB7) ED_DQ;\n#define ED_CODE __code\n#define ED_IDATA __idata\n#define ED_NOP() __asm nop __endasm\n#else\n#include <REG52.H>\n#include <intrins.h>\nsbit ED_SDA=P1^6; sbit ED_SCL=P1^7;\nsbit ED_LED=P1^0; sbit ED_KEY9=P2^0;\nsbit ED_REDSTONE=P1^2;\nsbit ED_RTC_CE=P3^0; sbit ED_RTC_CLK=P3^1; sbit ED_RTC_IO=P3^2;\nsbit ED_DQ=P3^7;\n#define ED_CODE code\n#define ED_IDATA idata\n#define ED_NOP() _nop_()\n#endif\ntypedef unsigned char ed_u8;\ntypedef signed char ed_i8;\ntypedef unsigned int ed_u16;\ntypedef signed int ed_i16;\ntypedef unsigned long ed_u32;\ntypedef signed long ed_i32;\n#endif\n"
+        },
+        {
+          "type": "heading",
+          "text": "ed_delay.h"
+        },
+        {
+          "type": "code",
+          "text": "#ifndef ED_DELAY_H\n#define ED_DELAY_H\n#include \"ed_platform.h\"\n/* Blocking delay; reserves Timer0, disables ET0, leaves T0 stopped.\n * Setup/call overhead is additional. Do not use this for the initial 1-Wire read edge.\n */\nvoid ed_delay_us(ed_u16 us);\nvoid ed_delay_ms(ed_u16 ms);\n#endif\n"
+        },
+        {
+          "type": "heading",
+          "text": "ed_delay.c"
+        },
+        {
+          "type": "code",
+          "text": "#include \"ed_delay.h\"\nvoid ed_delay_us(ed_u16 us) {\n    ed_u16 ticks,start,part;\n    while(us){part=us>10000?10000:us;us-=part;\n#if ED_FOSC_HZ == 12000000UL\n    ticks=part;\n#else\n    ticks=(ed_u16)(((ed_u32)part*(ED_FOSC_HZ/12000UL)+999UL)/1000UL);\n#endif\n    start=0u-ticks; TR0=0; ET0=0; TMOD=(TMOD&0xF0)|1;\n    TH0=(ed_u8)(start>>8);TL0=(ed_u8)start;TF0=0;TR0=1;\n    while(!TF0) {} TR0=0;\n    }\n}\nvoid ed_delay_ms(ed_u16 ms) { while(ms--)ed_delay_us(1000); }\n"
+        },
+        {
+          "type": "heading",
+          "text": "i2c_bus.h"
+        },
+        {
+          "type": "code",
+          "text": "#ifndef ED_I2C_BUS_H\n#define ED_I2C_BUS_H\n#include \"ed_platform.h\"\n/* Seven-bit addresses. Return 1=ACK/success, 0=NACK/failure.\n * Release SDA/SCL with 1; never drive an open-drain bus high via another output.\n */\nvoid ed_i2c_start(void);\nvoid ed_i2c_stop(void);\ned_u8 ed_i2c_write(ed_u8 value);\ned_u8 ed_i2c_read(ed_u8 ack);\ned_u8 ed_i2c_recover(void);\ned_u8 ed_i2c_write_regs(ed_u8 address,ed_u8 reg,const ed_u8 *data,ed_u8 length);\ned_u8 ed_i2c_write_reg(ed_u8 address,ed_u8 reg,ed_u8 value);\ned_u8 ed_i2c_read_regs(ed_u8 address,ed_u8 reg,ed_u8 *data,ed_u8 length);\n#endif\n"
+        },
+        {
+          "type": "heading",
+          "text": "i2c_bus.c"
+        },
+        {
+          "type": "code",
+          "text": "#include \"i2c_bus.h\"\nstatic void pause(void) { ED_NOP();ED_NOP();ED_NOP(); }\nvoid ed_i2c_start(void) { ED_SDA=1;ED_SCL=1;pause();ED_SDA=0;pause();ED_SCL=0; }\nvoid ed_i2c_stop(void) { ED_SDA=0;ED_SCL=1;pause();ED_SDA=1;pause(); }\ned_u8 ed_i2c_write(ed_u8 value) {\n    ed_u8 i,ack;\n    for(i=0;i<8;i++){ED_SDA=(value&128)!=0;pause();ED_SCL=1;pause();ED_SCL=0;value<<=1;}\n    ED_SDA=1;ED_SCL=1;pause();ack=!ED_SDA;ED_SCL=0;return ack;\n}\ned_u8 ed_i2c_read(ed_u8 ack) {\n    ed_u8 i,value=0;ED_SDA=1;\n    for(i=0;i<8;i++){ED_SCL=1;pause();value=(value<<1)|ED_SDA;ED_SCL=0;pause();}\n    ED_SDA=!ack;ED_SCL=1;pause();ED_SCL=0;ED_SDA=1;return value;\n}\ned_u8 ed_i2c_recover(void) { ed_u8 i;ED_SDA=1;for(i=0;i<9;i++){ED_SCL=0;pause();ED_SCL=1;pause();}ed_i2c_stop();return ED_SDA&&ED_SCL; }\ned_u8 ed_i2c_write_regs(ed_u8 a,ed_u8 reg,const ed_u8 *data,ed_u8 length) {\n    ed_u8 i;ed_i2c_start();\n    if(!ed_i2c_write(a<<1)||!ed_i2c_write(reg)){ed_i2c_stop();return 0;}\n    for(i=0;i<length;i++)if(!ed_i2c_write(data[i])){ed_i2c_stop();return 0;}\n    ed_i2c_stop();return 1;\n}\ned_u8 ed_i2c_write_reg(ed_u8 a,ed_u8 reg,ed_u8 value){return ed_i2c_write_regs(a,reg,&value,1);}\ned_u8 ed_i2c_read_regs(ed_u8 a,ed_u8 reg,ed_u8 *data,ed_u8 length) {\n    ed_u8 i;ed_i2c_start();\n    if(!length||!ed_i2c_write(a<<1)||!ed_i2c_write(reg)){ed_i2c_stop();return 0;}\n    ed_i2c_start();if(!ed_i2c_write((a<<1)|1)){ed_i2c_stop();return 0;}\n    for(i=0;i<length;i++)data[i]=ed_i2c_read(i+1<length);\n    ed_i2c_stop();return 1;\n}\n"
+        }
+      ],
+      "keywords": "source_common"
+    },
+    {
+      "id": "source_mpu6050",
+      "category": "appendix",
+      "icon": "embeddeddev:mpu6050",
+      "title": "Source: mpu6050",
+      "subtitle": "Raw samples, ranges and big-endian conversion",
+      "blocks": [
+        {
+          "type": "text",
+          "text": "Purpose: Raw samples, ranges and big-endian conversion. Add mpu6050.c, i2c_bus.c and demos/mpu6050_demo.c as the only main. Copy required shared headers from the common source entry."
+        },
+        {
+          "type": "link",
+          "target": "source_common",
+          "text": "Shared dependencies and pin map >"
+        },
+        {
+          "type": "heading",
+          "text": "mpu6050.h"
+        },
+        {
+          "type": "code",
+          "text": "#ifndef ED_MPU6050_H\n#define ED_MPU6050_H\n#include \"i2c_bus.h\"\n#define MPU6050_ADDRESS 0x68\ntypedef struct { ed_i16 ax,ay,az,temperature,gx,gy,gz; } mpu6050_raw;\ned_u8 mpu6050_init(ed_u8 address);\ned_u8 mpu6050_set_ranges(ed_u8 address,ed_u8 gyro_range,ed_u8 accel_range);\ned_u8 mpu6050_read_raw(ed_u8 address,mpu6050_raw *sample);\n/* Gyro full-scale code 0: raw / 131 degrees/s. Accel code 0: raw / 16384 g.\n * This is a raw driver, not a DMP/attitude filter. All sample words are big-endian.\n */\n#endif\n"
+        },
+        {
+          "type": "heading",
+          "text": "mpu6050.c"
+        },
+        {
+          "type": "code",
+          "text": "#include \"mpu6050.h\"\nstatic ed_i16 signed_be(const ed_u8 *p){return (ed_i16)(((ed_u16)p[0]<<8)|p[1]);}\ned_u8 mpu6050_set_ranges(ed_u8 a,ed_u8 gyro,ed_u8 accel) {\n    if(gyro>3||accel>3)return 0;\n    return ed_i2c_write_reg(a,0x1B,gyro<<3)&&ed_i2c_write_reg(a,0x1C,accel<<3);\n}\ned_u8 mpu6050_init(ed_u8 a) {\n    ed_u8 id;\n    if(!ed_i2c_read_regs(a,0x75,&id,1)||id!=0x68)return 0;\n    return ed_i2c_write_reg(a,0x6B,0)&&ed_i2c_write_reg(a,0x1A,3)&&mpu6050_set_ranges(a,0,0);\n}\ned_u8 mpu6050_read_raw(ed_u8 a,mpu6050_raw *s) {\n    ed_u8 bytes[14];if(!ed_i2c_read_regs(a,0x3B,bytes,14))return 0;\n    s->ax=signed_be(bytes);s->ay=signed_be(bytes+2);s->az=signed_be(bytes+4);\n    s->temperature=signed_be(bytes+6);s->gx=signed_be(bytes+8);s->gy=signed_be(bytes+10);s->gz=signed_be(bytes+12);return 1;\n}\n"
+        },
+        {
+          "type": "heading",
+          "text": "demos/mpu6050_demo.c"
+        },
+        {
+          "type": "code",
+          "text": "#include \"mpu6050.h\"\nvolatile ed_u8 demo_ok,demo_done;\nvolatile ed_i16 demo_value;\nmpu6050_raw sample;\nvoid main(void){\n    ED_SDA=ED_SCL=1;\n    demo_ok=mpu6050_init(MPU6050_ADDRESS);\n    while(1){if(demo_ok&&mpu6050_read_raw(MPU6050_ADDRESS,&sample))demo_value=sample.gx;demo_done=0xA5;}\n}\n"
+        },
+        {
+          "type": "text",
+          "text": "demo_ok=1 indicates success, demo_value stores the example result, and demo_done=A5H marks one completed pass. These are ordinary RAM variables for debugging, not mapped peripheral addresses. Extend the example with OLED or redstone output as needed."
+        },
+        {
+          "type": "link",
+          "target": "driver_sources",
+          "text": "Back to driver index >"
+        }
+      ],
+      "keywords": "source_mpu6050"
+    },
+    {
+      "id": "source_altimeter",
+      "category": "appendix",
+      "icon": "embeddeddev:altimeter",
+      "title": "Source: altimeter",
+      "subtitle": "32-bit altitude, zero reference and little-endian conversion",
+      "blocks": [
+        {
+          "type": "text",
+          "text": "Purpose: 32-bit altitude, zero reference and little-endian conversion. Add altimeter.c, i2c_bus.c and demos/altimeter_demo.c as the only main. Copy required shared headers from the common source entry."
+        },
+        {
+          "type": "link",
+          "target": "source_common",
+          "text": "Shared dependencies and pin map >"
+        },
+        {
+          "type": "heading",
+          "text": "altimeter.h"
+        },
+        {
+          "type": "code",
+          "text": "#ifndef ED_ALTIMETER_H\n#define ED_ALTIMETER_H\n#include \"i2c_bus.h\"\n#define ALTIMETER_ADDRESS 0x76\ntypedef struct { ed_u8 status,sequence;ed_i32 absolute_cm,zero_cm,relative_cm;ed_i16 velocity_cm_s; } altimeter_sample;\ned_u8 altimeter_present(void);\ned_u8 altimeter_zero(void);\ned_u8 altimeter_read(altimeter_sample *sample);\n#endif\n"
+        },
+        {
+          "type": "heading",
+          "text": "altimeter.c"
+        },
+        {
+          "type": "code",
+          "text": "#include \"altimeter.h\"\nstatic ed_i32 signed_le32(const ed_u8 *p){return (ed_i32)((ed_u32)p[0]|((ed_u32)p[1]<<8)|((ed_u32)p[2]<<16)|((ed_u32)p[3]<<24));}\ned_u8 altimeter_present(void){ed_u8 id;return ed_i2c_read_regs(0x76,0,&id,1)&&id==0x41;}\ned_u8 altimeter_zero(void){return ed_i2c_write_reg(0x76,0x12,0xA5);}\ned_u8 altimeter_read(altimeter_sample *s){\n    ed_u8 p[18];if(!ed_i2c_read_regs(0x76,0,p,18)||p[0]!=0x41)return 0;\n    s->status=p[1];s->sequence=p[2];s->absolute_cm=signed_le32(p+4);\n    s->velocity_cm_s=(ed_i16)((ed_u16)p[8]|((ed_u16)p[9]<<8));s->zero_cm=signed_le32(p+10);s->relative_cm=signed_le32(p+14);return 1;\n}\n"
+        },
+        {
+          "type": "heading",
+          "text": "demos/altimeter_demo.c"
+        },
+        {
+          "type": "code",
+          "text": "#include \"altimeter.h\"\nvolatile ed_u8 demo_ok,demo_done;\nvolatile ed_i16 demo_value;\naltimeter_sample sample;\nvoid main(void){\n    ED_SDA=ED_SCL=1;demo_ok=altimeter_present();\n    while(1){if(demo_ok&&altimeter_read(&sample))demo_value=(ed_i16)sample.absolute_cm;demo_done=0xA5;}\n}\n"
+        },
+        {
+          "type": "text",
+          "text": "demo_ok=1 indicates success, demo_value stores the example result, and demo_done=A5H marks one completed pass. These are ordinary RAM variables for debugging, not mapped peripheral addresses. Extend the example with OLED or redstone output as needed."
+        },
+        {
+          "type": "link",
+          "target": "driver_sources",
+          "text": "Back to driver index >"
+        }
+      ],
+      "keywords": "source_altimeter"
+    },
+    {
+      "id": "source_motor_driver",
+      "category": "appendix",
+      "icon": "embeddeddev:motor_interface",
+      "title": "Source: motor_driver",
+      "subtitle": "Six signed RPM channels and atomic commit; read-only demo needs no Create",
+      "blocks": [
+        {
+          "type": "text",
+          "text": "Purpose: Six signed RPM channels and atomic commit; read-only demo needs no Create. Add motor_driver.c, i2c_bus.c and demos/motor_driver_demo.c as the only main. Copy required shared headers from the common source entry."
+        },
+        {
+          "type": "link",
+          "target": "source_common",
+          "text": "Shared dependencies and pin map >"
+        },
+        {
+          "type": "heading",
+          "text": "motor_driver.h"
+        },
+        {
+          "type": "code",
+          "text": "#ifndef ED_MOTOR_DRIVER_H\n#define ED_MOTOR_DRIVER_H\n#include \"i2c_bus.h\"\nenum { MOTOR_DOWN=0,MOTOR_UP,MOTOR_NORTH,MOTOR_SOUTH,MOTOR_WEST,MOTOR_EAST };\ned_u8 motor_driver_present(ed_u8 address,ed_u8 *mask);\ned_u8 motor_driver_arm(ed_u8 address,ed_u8 enable);\ned_u8 motor_driver_set_all(ed_u8 address,const ed_i16 rpm[6]);\n/* Address 60H..67H; keep sending all channels faster than the 4-tick watchdog.\n * Six little-endian signed words are committed atomically by the final A5H.\n */\n#endif\n"
+        },
+        {
+          "type": "heading",
+          "text": "motor_driver.c"
+        },
+        {
+          "type": "code",
+          "text": "#include \"motor_driver.h\"\ned_u8 motor_driver_present(ed_u8 a,ed_u8 *mask){ed_u8 p[5];if(!ed_i2c_read_regs(a,0,p,5)||p[0]!=0x4D)return 0;*mask=p[4];return 1;}\ned_u8 motor_driver_arm(ed_u8 a,ed_u8 enable){return ed_i2c_write_reg(a,1,enable?0xA5:0);}\ned_u8 motor_driver_set_all(ed_u8 a,const ed_i16 rpm[6]){\n    ed_u8 i;ed_i16 v;ed_i2c_start();\n    if(!ed_i2c_write(a<<1)||!ed_i2c_write(0x20)){ed_i2c_stop();return 0;}\n    for(i=0;i<6;i++){\n        v=rpm[i];if(v>256)v=256;if(v< -256)v=-256;\n        if(!ed_i2c_write((ed_u8)v)||!ed_i2c_write((ed_u8)((ed_u16)v>>8))){ed_i2c_stop();return 0;}\n    }\n    i=ed_i2c_write(0xA5);ed_i2c_stop();return i;\n}\n"
+        },
+        {
+          "type": "heading",
+          "text": "demos/motor_driver_demo.c"
+        },
+        {
+          "type": "code",
+          "text": "#include \"motor_driver.h\"\nvolatile ed_u8 demo_ok,demo_done;\nvolatile ed_i16 demo_value;\n/* Read-only demo works without Create. For motion, explicitly arm and keep\n * calling motor_driver_set_all(0x60,rpm) with all six signed channel values.\n */\nvoid main(void){\n    ed_u8 mask;ED_SDA=ED_SCL=1;demo_ok=motor_driver_present(0x60,&mask);\n    demo_value=mask;demo_done=0xA5;while(1){}\n}\n"
+        },
+        {
+          "type": "text",
+          "text": "demo_ok=1 indicates success, demo_value stores the example result, and demo_done=A5H marks one completed pass. These are ordinary RAM variables for debugging, not mapped peripheral addresses. Extend the example with OLED or redstone output as needed."
+        },
+        {
+          "type": "link",
+          "target": "driver_sources",
+          "text": "Back to driver index >"
+        }
+      ],
+      "keywords": "source_motor_driver"
+    },
+    {
+      "id": "source_pcf8591",
+      "category": "appendix",
+      "icon": "embeddeddev:pcf8591",
+      "title": "Source: pcf8591",
+      "subtitle": "Previous-conversion discard, four-channel reads and DAC",
+      "blocks": [
+        {
+          "type": "text",
+          "text": "Purpose: Previous-conversion discard, four-channel reads and DAC. Add pcf8591.c, i2c_bus.c and demos/pcf8591_demo.c as the only main. Copy required shared headers from the common source entry."
+        },
+        {
+          "type": "link",
+          "target": "source_common",
+          "text": "Shared dependencies and pin map >"
+        },
+        {
+          "type": "heading",
+          "text": "pcf8591.h"
+        },
+        {
+          "type": "code",
+          "text": "#ifndef ED_PCF8591_H\n#define ED_PCF8591_H\n#include \"i2c_bus.h\"\n/* Address 48H..4FH. mode=0 single-ended, 1/2/3 differential/mixed.\n * Control: bit6 DAC enable, bits5:4 mode, bit2 auto-increment, bits1:0 channel.\n */\ned_u8 pcf8591_read(ed_u8 address,ed_u8 control,ed_u8 *sample);\ned_u8 pcf8591_read_channels(ed_u8 address,ed_u8 *four_samples);\ned_u8 pcf8591_dac(ed_u8 address,ed_u8 control,ed_u8 value);\n#endif\n"
+        },
+        {
+          "type": "heading",
+          "text": "pcf8591.c"
+        },
+        {
+          "type": "code",
+          "text": "#include \"pcf8591.h\"\nstatic ed_u8 begin_read(ed_u8 a,ed_u8 control){\n    ed_i2c_start();if(!ed_i2c_write(a<<1)||!ed_i2c_write(control)){ed_i2c_stop();return 0;}\n    ed_i2c_start();if(!ed_i2c_write((a<<1)|1)){ed_i2c_stop();return 0;}return 1;\n}\ned_u8 pcf8591_read(ed_u8 a,ed_u8 control,ed_u8 *sample){\n    if(!begin_read(a,control))return 0;ed_i2c_read(1); /* discard previous conversion */\n    *sample=ed_i2c_read(0);ed_i2c_stop();return 1;\n}\ned_u8 pcf8591_read_channels(ed_u8 a,ed_u8 *p){\n    ed_u8 i;if(!begin_read(a,0x04))return 0;ed_i2c_read(1);\n    for(i=0;i<4;i++)p[i]=ed_i2c_read(i<3);ed_i2c_stop();return 1;\n}\ned_u8 pcf8591_dac(ed_u8 a,ed_u8 control,ed_u8 value){\n    ed_u8 ok;ed_i2c_start();ok=ed_i2c_write(a<<1)&&ed_i2c_write(control|0x40)&&ed_i2c_write(value);ed_i2c_stop();return ok;\n}\n"
+        },
+        {
+          "type": "heading",
+          "text": "demos/pcf8591_demo.c"
+        },
+        {
+          "type": "code",
+          "text": "#include \"pcf8591.h\"\nvolatile ed_u8 demo_ok,demo_done;\nvolatile ed_i16 demo_value;\nvoid main(void){\n    ed_u8 value;ED_SDA=ED_SCL=1;\n    while(1){demo_ok=pcf8591_read(0x48,0x40,&value);if(demo_ok){demo_value=value;demo_ok=pcf8591_dac(0x48,0x40,value);}demo_done=0xA5;}\n}\n"
+        },
+        {
+          "type": "text",
+          "text": "demo_ok=1 indicates success, demo_value stores the example result, and demo_done=A5H marks one completed pass. These are ordinary RAM variables for debugging, not mapped peripheral addresses. Extend the example with OLED or redstone output as needed."
+        },
+        {
+          "type": "link",
+          "target": "driver_sources",
+          "text": "Back to driver index >"
+        }
+      ],
+      "keywords": "source_pcf8591"
+    },
+    {
+      "id": "source_environment",
+      "category": "appendix",
+      "icon": "embeddeddev:i2c_sensor",
+      "title": "Source: environment",
+      "subtitle": "Redstone, sky/block light and day percentage",
+      "blocks": [
+        {
+          "type": "text",
+          "text": "Purpose: Redstone, sky/block light and day percentage. Add environment.c, i2c_bus.c and demos/environment_demo.c as the only main. Copy required shared headers from the common source entry."
+        },
+        {
+          "type": "link",
+          "target": "source_common",
+          "text": "Shared dependencies and pin map >"
+        },
+        {
+          "type": "heading",
+          "text": "environment.h"
+        },
+        {
+          "type": "code",
+          "text": "#ifndef ED_ENVIRONMENT_H\n#define ED_ENVIRONMENT_H\n#include \"i2c_bus.h\"\n/* Address 48H conflicts with a default-address PCF8591 on the same bus. */\ntypedef struct { ed_u8 redstone,sky_light,block_light,day_percent; } environment_sample;\ned_u8 environment_read(environment_sample *sample);\n#endif\n"
+        },
+        {
+          "type": "heading",
+          "text": "environment.c"
+        },
+        {
+          "type": "code",
+          "text": "#include \"environment.h\"\ned_u8 environment_read(environment_sample *s){\n    ed_u8 p[4];if(!ed_i2c_read_regs(0x48,0,p,4))return 0;\n    s->redstone=p[0];s->sky_light=p[1];s->block_light=p[2];s->day_percent=p[3];return 1;\n}\n"
+        },
+        {
+          "type": "heading",
+          "text": "demos/environment_demo.c"
+        },
+        {
+          "type": "code",
+          "text": "#include \"environment.h\"\nvolatile ed_u8 demo_ok,demo_done;\nvolatile ed_i16 demo_value;\nenvironment_sample sample;\nvoid main(void){ED_SDA=ED_SCL=1;while(1){demo_ok=environment_read(&sample);if(demo_ok)demo_value=sample.redstone;demo_done=0xA5;}}\n"
+        },
+        {
+          "type": "text",
+          "text": "demo_ok=1 indicates success, demo_value stores the example result, and demo_done=A5H marks one completed pass. These are ordinary RAM variables for debugging, not mapped peripheral addresses. Extend the example with OLED or redstone output as needed."
+        },
+        {
+          "type": "link",
+          "target": "driver_sources",
+          "text": "Back to driver index >"
+        }
+      ],
+      "keywords": "source_environment"
+    },
+    {
+      "id": "source_gpio_panel",
+      "category": "appendix",
+      "icon": "embeddeddev:button_module",
+      "title": "Source: gpio_panel",
+      "subtitle": "Nine active-low keys, press edges and LED output",
+      "blocks": [
+        {
+          "type": "text",
+          "text": "Purpose: Nine active-low keys, press edges and LED output. Add gpio_panel.c and demos/gpio_panel_demo.c as the only main. Copy required shared headers from the common source entry."
+        },
+        {
+          "type": "link",
+          "target": "source_common",
+          "text": "Shared dependencies and pin map >"
+        },
+        {
+          "type": "heading",
+          "text": "gpio_panel.h"
+        },
+        {
+          "type": "code",
+          "text": "#ifndef ED_GPIO_PANEL_H\n#define ED_GPIO_PANEL_H\n#include \"ed_platform.h\"\n/* Keys 1..8=P0.0..7, key9=P2.0. Named GPIO wires are required per key. */\nvoid gpio_panel_init(void);\ned_u16 gpio_panel_pressed(void);\ned_u16 gpio_panel_edges(ed_u16 *previous);\nvoid gpio_led(ed_u8 on); /* LED=P1.0, high active */\n#endif\n"
+        },
+        {
+          "type": "heading",
+          "text": "gpio_panel.c"
+        },
+        {
+          "type": "code",
+          "text": "#include \"gpio_panel.h\"\nvoid gpio_panel_init(void){P0=0xFF;ED_KEY9=1;ED_LED=0;}\ned_u16 gpio_panel_pressed(void){return (ed_u8)~P0|(ED_KEY9?0:256);}\ned_u16 gpio_panel_edges(ed_u16 *previous){ed_u16 now=gpio_panel_pressed(),edge=now&~*previous;*previous=now;return edge;}\nvoid gpio_led(ed_u8 on){ED_LED=on!=0;}\n"
+        },
+        {
+          "type": "heading",
+          "text": "demos/gpio_panel_demo.c"
+        },
+        {
+          "type": "code",
+          "text": "#include \"gpio_panel.h\"\nvolatile ed_u8 demo_ok,demo_done;\nvolatile ed_i16 demo_value;\nvoid main(void){gpio_panel_init();while(1){demo_value=gpio_panel_pressed();gpio_led(demo_value!=0);demo_ok=1;demo_done=0xA5;}}\n"
+        },
+        {
+          "type": "text",
+          "text": "demo_ok=1 indicates success, demo_value stores the example result, and demo_done=A5H marks one completed pass. These are ordinary RAM variables for debugging, not mapped peripheral addresses. Extend the example with OLED or redstone output as needed."
+        },
+        {
+          "type": "link",
+          "target": "driver_sources",
+          "text": "Back to driver index >"
+        }
+      ],
+      "keywords": "source_gpio_panel"
+    },
+    {
+      "id": "source_gpio_redstone",
+      "category": "appendix",
+      "icon": "embeddeddev:redstone_port",
+      "title": "Source: gpio_redstone",
+      "subtitle": "Digital I/O; use PCF8591 for analog strength",
+      "blocks": [
+        {
+          "type": "text",
+          "text": "Purpose: Digital I/O; use PCF8591 for analog strength. Add gpio_redstone.c and demos/gpio_redstone_demo.c as the only main. Copy required shared headers from the common source entry."
+        },
+        {
+          "type": "link",
+          "target": "source_common",
+          "text": "Shared dependencies and pin map >"
+        },
+        {
+          "type": "heading",
+          "text": "gpio_redstone.h"
+        },
+        {
+          "type": "code",
+          "text": "#ifndef ED_GPIO_REDSTONE_H\n#define ED_GPIO_REDSTONE_H\n#include \"ed_platform.h\"\n/* SIGNAL=P1.2. Configure the redstone connector's read/write mode in game.\n * GPIO reads only 0/1; output on=15, off=0. Use PCF8591 for analog strengths.\n */\nvoid gpio_redstone_write(ed_u8 on);\ned_u8 gpio_redstone_read(void);\n#endif\n"
+        },
+        {
+          "type": "heading",
+          "text": "gpio_redstone.c"
+        },
+        {
+          "type": "code",
+          "text": "#include \"gpio_redstone.h\"\nvoid gpio_redstone_write(ed_u8 on){ED_REDSTONE=on!=0;}\ned_u8 gpio_redstone_read(void){ED_REDSTONE=1;return ED_REDSTONE;}\n"
+        },
+        {
+          "type": "heading",
+          "text": "demos/gpio_redstone_demo.c"
+        },
+        {
+          "type": "code",
+          "text": "#include \"gpio_redstone.h\"\nvolatile ed_u8 demo_ok,demo_done;\nvolatile ed_i16 demo_value;\nvoid main(void){gpio_redstone_write(0);gpio_redstone_write(1);demo_value=gpio_redstone_read();demo_ok=1;demo_done=0xA5;while(1){}}\n"
+        },
+        {
+          "type": "text",
+          "text": "demo_ok=1 indicates success, demo_value stores the example result, and demo_done=A5H marks one completed pass. These are ordinary RAM variables for debugging, not mapped peripheral addresses. Extend the example with OLED or redstone output as needed."
+        },
+        {
+          "type": "link",
+          "target": "driver_sources",
+          "text": "Back to driver index >"
+        }
+      ],
+      "keywords": "source_gpio_redstone"
+    },
+    {
+      "id": "source_seven_segment",
+      "category": "appendix",
+      "icon": "embeddeddev:seven_segment",
+      "title": "Source: seven_segment",
+      "subtitle": "A–G/DP, hexadecimal font and common-anode inversion",
+      "blocks": [
+        {
+          "type": "text",
+          "text": "Purpose: A–G/DP, hexadecimal font and common-anode inversion. Add seven_segment.c and demos/seven_segment_demo.c as the only main. Copy required shared headers from the common source entry."
+        },
+        {
+          "type": "link",
+          "target": "source_common",
+          "text": "Shared dependencies and pin map >"
+        },
+        {
+          "type": "heading",
+          "text": "seven_segment.h"
+        },
+        {
+          "type": "code",
+          "text": "#ifndef ED_SEVEN_SEGMENT_H\n#define ED_SEVEN_SEGMENT_H\n#include \"ed_platform.h\"\n/* A..G,DP map to P2.0..P2.7. This owns the full port, including P2.0. */\nvoid seven_segment_raw(ed_u8 segments,ed_u8 common_anode);\nvoid seven_segment_hex(ed_u8 digit,ed_u8 decimal_point,ed_u8 common_anode);\n#endif\n"
+        },
+        {
+          "type": "heading",
+          "text": "seven_segment.c"
+        },
+        {
+          "type": "code",
+          "text": "#include \"seven_segment.h\"\nstatic const ed_u8 ED_CODE glyph[16]={0x3F,0x06,0x5B,0x4F,0x66,0x6D,0x7D,0x07,0x7F,0x6F,0x77,0x7C,0x39,0x5E,0x79,0x71};\nvoid seven_segment_raw(ed_u8 mask,ed_u8 anode){P2=anode?~mask:mask;}\nvoid seven_segment_hex(ed_u8 value,ed_u8 dot,ed_u8 anode){seven_segment_raw(glyph[value&15]|(dot?128:0),anode);}\n"
+        },
+        {
+          "type": "heading",
+          "text": "demos/seven_segment_demo.c"
+        },
+        {
+          "type": "code",
+          "text": "#include \"seven_segment.h\"\nvolatile ed_u8 demo_ok,demo_done;\nvolatile ed_i16 demo_value;\nvoid main(void){seven_segment_hex(8,1,0);demo_value=P2;demo_ok=1;demo_done=0xA5;while(1){}}\n"
+        },
+        {
+          "type": "text",
+          "text": "demo_ok=1 indicates success, demo_value stores the example result, and demo_done=A5H marks one completed pass. These are ordinary RAM variables for debugging, not mapped peripheral addresses. Extend the example with OLED or redstone output as needed."
+        },
+        {
+          "type": "link",
+          "target": "driver_sources",
+          "text": "Back to driver index >"
+        }
+      ],
+      "keywords": "source_seven_segment"
+    },
+    {
+      "id": "source_ds1302",
+      "category": "appendix",
+      "icon": "embeddeddev:ds1302",
+      "title": "Source: ds1302",
+      "subtitle": "LSB-first 3-wire, BCD, leap-year validation, 12/24h reads and RAM",
+      "blocks": [
+        {
+          "type": "text",
+          "text": "Purpose: LSB-first 3-wire, BCD, leap-year validation, 12/24h reads and RAM. Add ds1302.c and demos/ds1302_demo.c as the only main. Copy required shared headers from the common source entry."
+        },
+        {
+          "type": "link",
+          "target": "source_common",
+          "text": "Shared dependencies and pin map >"
+        },
+        {
+          "type": "heading",
+          "text": "ds1302.h"
+        },
+        {
+          "type": "code",
+          "text": "#ifndef ED_DS1302_H\n#define ED_DS1302_H\n#include \"ed_platform.h\"\ntypedef struct { ed_u8 year,month,date,weekday,hour,minute,second,halted; } ds1302_time;\nvoid ds1302_init(void);\nvoid ds1302_write_protect(ed_u8 enabled);\ned_u8 ds1302_get_time(ds1302_time *time);\ned_u8 ds1302_set_time(const ds1302_time *time);\ned_u8 ds1302_ram_read(ed_u8 address,ed_u8 *value);\ned_u8 ds1302_ram_write(ed_u8 address,ed_u8 value);\n/* Year 0..99 means 2000..2099. RAM addresses 0..30. IO is LSB-first, not I2C.\n * RAM writes require write protection off; get_time supports both 12h and 24h.\n */\n#endif\n"
+        },
+        {
+          "type": "heading",
+          "text": "ds1302.c"
+        },
+        {
+          "type": "code",
+          "text": "#include \"ds1302.h\"\nstatic ed_u8 bcd(ed_u8 v){return (v/10)*16+v%10;}\nstatic ed_u8 binary(ed_u8 v){return (v>>4)*10+(v&15);}\nstatic void select(void){ED_RTC_CE=0;ED_RTC_CLK=0;ED_RTC_IO=1;ED_RTC_CE=1;}\nstatic void put(ed_u8 v){ed_u8 i;for(i=0;i<8;i++){ED_RTC_IO=v&1;ED_RTC_CLK=1;ED_RTC_CLK=0;v>>=1;}}\nstatic ed_u8 get(void){ed_u8 i,v=0;ED_RTC_IO=1;for(i=0;i<8;i++){if(ED_RTC_IO)v|=1<<i;ED_RTC_CLK=1;ED_RTC_CLK=0;}return v;}\nstatic void reg_write(ed_u8 command,ed_u8 v){select();put(command&0xFE);put(v);ED_RTC_CE=0;ED_RTC_IO=1;}\nvoid ds1302_init(void){ED_RTC_CE=ED_RTC_CLK=0;ED_RTC_IO=1;}\nvoid ds1302_write_protect(ed_u8 on){reg_write(0x8E,on?128:0);}\ned_u8 ds1302_get_time(ds1302_time *t){\n    ed_u8 p[8],i;select();put(0xBF);for(i=0;i<8;i++)p[i]=get();ED_RTC_CE=0;\n    t->halted=(p[0]&128)!=0;t->second=binary(p[0]&127);t->minute=binary(p[1]&127);\n    if(p[2]&128){t->hour=binary(p[2]&31)%12;if(p[2]&32)t->hour+=12;}\n    else t->hour=binary(p[2]&63);\n    t->date=binary(p[3]&63);t->month=binary(p[4]&31);t->weekday=binary(p[5]&7);t->year=binary(p[6]);\n    return t->second<60&&t->minute<60&&t->hour<24&&t->month>=1&&t->month<=12&&t->date>=1&&t->date<=31;\n}\ned_u8 ds1302_set_time(const ds1302_time *t){\n    ed_u8 days;static const ed_u8 ED_CODE lengths[]={31,28,31,30,31,30,31,31,30,31,30,31};\n    if(t->year>99||t->month<1||t->month>12||t->weekday<1||t->weekday>7||t->hour>23||t->minute>59||t->second>59)return 0;\n    days=lengths[t->month-1];if(t->month==2&&t->year%4==0)days=29;if(t->date<1||t->date>days)return 0;\n    ds1302_write_protect(0);select();put(0xBE);\n    put(bcd(t->second)|(t->halted?128:0));put(bcd(t->minute));put(bcd(t->hour));put(bcd(t->date));\n    put(bcd(t->month));put(bcd(t->weekday));put(bcd(t->year));put(0);ED_RTC_CE=0;ED_RTC_IO=1;return 1;\n}\ned_u8 ds1302_ram_read(ed_u8 a,ed_u8 *v){if(a>30)return 0;select();put(0xC1+a*2);*v=get();ED_RTC_CE=0;return 1;}\ned_u8 ds1302_ram_write(ed_u8 a,ed_u8 v){if(a>30)return 0;reg_write(0xC0+a*2,v);return 1;}\n"
+        },
+        {
+          "type": "heading",
+          "text": "demos/ds1302_demo.c"
+        },
+        {
+          "type": "code",
+          "text": "#include \"ds1302.h\"\nvolatile ed_u8 demo_ok,demo_done,demo_aux;\nvolatile ed_i16 demo_value;\nds1302_time time={26,11,13,6,12,34,56,0};\nvoid main(void){\n    ed_u8 value;ds1302_init();demo_ok=ds1302_set_time(&time);\n    if(demo_ok)demo_ok=ds1302_get_time(&time);\n    demo_value=(ed_i16)time.hour*100+time.minute;\n    ds1302_ram_write(0,0xA7);ds1302_ram_read(0,&value);demo_aux=value;demo_done=0xA5;while(1){}\n}\n"
+        },
+        {
+          "type": "text",
+          "text": "demo_ok=1 indicates success, demo_value stores the example result, and demo_done=A5H marks one completed pass. These are ordinary RAM variables for debugging, not mapped peripheral addresses. Extend the example with OLED or redstone output as needed."
+        },
+        {
+          "type": "link",
+          "target": "driver_sources",
+          "text": "Back to driver index >"
+        }
+      ],
+      "keywords": "source_ds1302"
+    },
+    {
+      "id": "source_ds18b20",
+      "category": "appendix",
+      "icon": "embeddeddev:ds18b20",
+      "title": "Source: ds18b20",
+      "subtitle": "1-Wire, ROM search, CRC, resolution and signed temperature",
+      "blocks": [
+        {
+          "type": "text",
+          "text": "Purpose: 1-Wire, ROM search, CRC, resolution and signed temperature. Add ds18b20.c, ed_delay.c and demos/ds18b20_demo.c as the only main. Copy required shared headers from the common source entry."
+        },
+        {
+          "type": "link",
+          "target": "source_common",
+          "text": "Shared dependencies and pin map >"
+        },
+        {
+          "type": "heading",
+          "text": "ds18b20.h"
+        },
+        {
+          "type": "code",
+          "text": "#ifndef ED_DS18B20_H\n#define ED_DS18B20_H\n#include \"ed_delay.h\"\ntypedef struct { ed_u8 rom[8],last_discrepancy,last_device; } ds18b20_search;\ned_u8 ds18b20_reset(void);\ned_u8 ds18b20_crc8(const ed_u8 *data,ed_u8 length);\ned_u8 ds18b20_read_rom(ed_u8 rom[8]);\nvoid ds18b20_search_init(ds18b20_search *state);\ned_u8 ds18b20_search_next(ds18b20_search *state);\ned_u8 ds18b20_start(const ed_u8 *rom);\ned_u8 ds18b20_read_q4(const ed_u8 *rom,ed_i16 *temperature_q4);\ned_u8 ds18b20_resolution(const ed_u8 *rom,ed_u8 bits);\n/* rom=0 selects SKIP ROM (single sensor only). Otherwise supply all 8 ROM bytes.\n * Start conversion, wait >=750ms at 12-bit resolution, then read_q4.\n * Signed Celsius = q4 / 16. Preserve the sign when displaying fractional values.\n */\n#endif\n"
+        },
+        {
+          "type": "heading",
+          "text": "ds18b20.c"
+        },
+        {
+          "type": "code",
+          "text": "#include \"ds18b20.h\"\nstatic void write_bit(ed_u8 v){\n    ED_DQ=0;\n    if(v){ED_NOP();ED_NOP();ED_DQ=1;ed_delay_us(65);}\n    else{ed_delay_us(55);ED_DQ=1;ed_delay_us(10);}\n}\nstatic ed_u8 read_bit(void){\n    ed_u8 v;ED_DQ=0;ED_NOP();ED_NOP();ED_NOP();ED_DQ=1;\n    ED_NOP();ED_NOP();ED_NOP();ED_NOP();\n#if ED_FOSC_HZ >= 22000000UL\n    ED_NOP();ED_NOP();ED_NOP();ED_NOP();ED_NOP();ED_NOP();\n#endif\n    v=ED_DQ;ed_delay_us(60);return v;\n}\nstatic void put(ed_u8 v){ed_u8 i;for(i=0;i<8;i++){write_bit(v&1);v>>=1;}}\nstatic ed_u8 get(void){ed_u8 i,v=0;for(i=0;i<8;i++){v>>=1;if(read_bit())v|=128;}return v;}\ned_u8 ds18b20_reset(void){ed_u8 present;ED_DQ=0;ed_delay_us(500);ED_DQ=1;ed_delay_us(60);present=!ED_DQ;ed_delay_us(430);return present;}\ned_u8 ds18b20_crc8(const ed_u8 *p,ed_u8 n){ed_u8 c=0,i,v;while(n--){v=*p++;for(i=0;i<8;i++){ed_u8 mix=(c^v)&1;c>>=1;if(mix)c^=0x8C;v>>=1;}}return c;}\nstatic ed_u8 select_rom(const ed_u8 *rom){ed_u8 i;if(!ds18b20_reset())return 0;if(!rom)put(0xCC);else{put(0x55);for(i=0;i<8;i++)put(rom[i]);}return 1;}\ned_u8 ds18b20_read_rom(ed_u8 *rom){ed_u8 i;if(!ds18b20_reset())return 0;put(0x33);for(i=0;i<8;i++)rom[i]=get();return ds18b20_crc8(rom,8)==0;}\nvoid ds18b20_search_init(ds18b20_search *s){ed_u8 i;for(i=0;i<8;i++)s->rom[i]=0;s->last_discrepancy=s->last_device=0;}\ned_u8 ds18b20_search_next(ds18b20_search *s){\n    ed_u8 bit_number=1,last_zero=0,byte=0,mask=1,a,b,choice;\n    if(s->last_device||!ds18b20_reset())return 0;put(0xF0);\n    while(byte<8){\n        a=read_bit();b=read_bit();if(a&&b){ds18b20_search_init(s);return 0;}\n        if(a!=b)choice=a;\n        else{choice=bit_number<s->last_discrepancy?(s->rom[byte]&mask)!=0:bit_number==s->last_discrepancy;if(!choice)last_zero=bit_number;}\n        if(choice)s->rom[byte]|=mask;else s->rom[byte]&=~mask;write_bit(choice);\n        bit_number++;mask<<=1;if(!mask){byte++;mask=1;}\n    }\n    s->last_discrepancy=last_zero;s->last_device=last_zero==0;return ds18b20_crc8(s->rom,8)==0;\n}\ned_u8 ds18b20_start(const ed_u8 *rom){if(!select_rom(rom))return 0;put(0x44);return 1;}\nstatic ed_u8 scratch(const ed_u8 *rom,ed_u8 p[9]){ed_u8 i;if(!select_rom(rom))return 0;put(0xBE);for(i=0;i<9;i++)p[i]=get();return ds18b20_crc8(p,9)==0;}\ned_u8 ds18b20_read_q4(const ed_u8 *rom,ed_i16 *q4){ed_u8 p[9];if(!scratch(rom,p))return 0;*q4=(ed_i16)((ed_u16)p[0]|((ed_u16)p[1]<<8));return 1;}\ned_u8 ds18b20_resolution(const ed_u8 *rom,ed_u8 bits){ed_u8 p[9];if(bits<9||bits>12||!scratch(rom,p)||!select_rom(rom))return 0;put(0x4E);put(p[2]);put(p[3]);put(0x1F|((bits-9)<<5));return 1;}\n"
+        },
+        {
+          "type": "heading",
+          "text": "demos/ds18b20_demo.c"
+        },
+        {
+          "type": "code",
+          "text": "#include \"ds18b20.h\"\nvolatile ed_u8 demo_ok,demo_done;\nvolatile ed_u8 demo_aux;\nvolatile ed_i16 demo_value;\ned_u8 rom[8];ds18b20_search search;\nvoid main(void){\n    ed_i16 q4=0;ED_DQ=1;\n    if(ds18b20_read_rom(rom))demo_aux|=1;\n    ds18b20_search_init(&search);if(ds18b20_search_next(&search))demo_aux|=2;\n    if(ds18b20_resolution(0,12))demo_aux|=4;\n    while(1){demo_ok=ds18b20_start(0);ed_delay_ms(800);if(demo_ok)demo_ok=ds18b20_read_q4(0,&q4);if(demo_ok)demo_value=q4;demo_done=0xA5;}\n}\n"
+        },
+        {
+          "type": "text",
+          "text": "demo_ok=1 indicates success, demo_value stores the example result, and demo_done=A5H marks one completed pass. These are ordinary RAM variables for debugging, not mapped peripheral addresses. Extend the example with OLED or redstone output as needed."
+        },
+        {
+          "type": "link",
+          "target": "driver_sources",
+          "text": "Back to driver index >"
+        }
+      ],
+      "keywords": "source_ds18b20"
+    },
+    {
+      "id": "source_ssd1306",
+      "category": "appendix",
+      "icon": "embeddeddev:oled",
+      "title": "Source: ssd1306",
+      "subtitle": "Initialization, pages, clear, column data and ASCII text",
+      "blocks": [
+        {
+          "type": "text",
+          "text": "Purpose: Initialization, pages, clear, column data and ASCII text. Add ssd1306.c, ed_font5x7.c, i2c_bus.c and demos/ssd1306_demo.c as the only main. Copy required shared headers from the common source entry."
+        },
+        {
+          "type": "link",
+          "target": "source_common",
+          "text": "Shared dependencies and pin map >"
+        },
+        {
+          "type": "heading",
+          "text": "ssd1306.h"
+        },
+        {
+          "type": "code",
+          "text": "#ifndef ED_SSD1306_H\n#define ED_SSD1306_H\n#include \"i2c_bus.h\"\n#define SSD1306_ADDRESS 0x3C\ned_u8 ssd1306_init(void);\ned_u8 ssd1306_command(ed_u8 command);\ned_u8 ssd1306_position(ed_u8 page,ed_u8 column);\ned_u8 ssd1306_columns(const ed_u8 *data,ed_u8 count);\ned_u8 ssd1306_clear(void);\ned_u8 ssd1306_text(ed_u8 page,ed_u8 column,const char *text);\n/* 128x64, 8 pages. Bit0 is top pixel. Text uses 5x7 uppercase ASCII glyphs.\n * Include ed_font5x7.c; writes go to OLED-owned RAM, with no MCU framebuffer.\n */\n#endif\n"
+        },
+        {
+          "type": "heading",
+          "text": "ssd1306.c"
+        },
+        {
+          "type": "code",
+          "text": "#include \"ssd1306.h\"\n#include \"ed_font5x7.h\"\ned_u8 ssd1306_command(ed_u8 v){return ed_i2c_write_reg(0x3C,0,v);}\ned_u8 ssd1306_init(void){\n    static const ed_u8 ED_CODE commands[]={0xAE,0xD5,0x80,0xA8,0x3F,0xD3,0,0x40,0x8D,0x14,0x20,2,0xA1,0xC8,0xDA,0x12,0x81,0x7F,0xA4,0xA6,0xAF};\n    ed_u8 i;ed_i2c_start();if(!ed_i2c_write(0x78)||!ed_i2c_write(0)){ed_i2c_stop();return 0;}\n    for(i=0;i<sizeof(commands);i++)if(!ed_i2c_write(commands[i])){ed_i2c_stop();return 0;}ed_i2c_stop();return 1;\n}\ned_u8 ssd1306_position(ed_u8 page,ed_u8 column){if(page>7||column>127)return 0;return ssd1306_command(0xB0|page)&&ssd1306_command(column&15)&&ssd1306_command(0x10|(column>>4));}\ned_u8 ssd1306_columns(const ed_u8 *p,ed_u8 count){\n    ed_u8 i;ed_i2c_start();if(!ed_i2c_write(0x78)||!ed_i2c_write(0x40)){ed_i2c_stop();return 0;}\n    for(i=0;i<count;i++)if(!ed_i2c_write(p[i])){ed_i2c_stop();return 0;}ed_i2c_stop();return 1;\n}\ned_u8 ssd1306_clear(void){\n    ed_u8 page,i;for(page=0;page<8;page++){\n        if(!ssd1306_position(page,0))return 0;ed_i2c_start();if(!ed_i2c_write(0x78)||!ed_i2c_write(0x40)){ed_i2c_stop();return 0;}\n        for(i=0;i<128;i++)if(!ed_i2c_write(0)){ed_i2c_stop();return 0;}ed_i2c_stop();\n    }return 1;\n}\ned_u8 ssd1306_text(ed_u8 page,ed_u8 column,const char *text){\n    ed_u8 c,i;if(!ssd1306_position(page,column))return 0;ed_i2c_start();\n    if(!ed_i2c_write(0x78)||!ed_i2c_write(0x40)){ed_i2c_stop();return 0;}\n    while(*text&&column<=122){c=*text++;if(c>='a'&&c<='z')c-=32;if(c<32||c>95)c=32;\n        for(i=0;i<5;i++)if(!ed_i2c_write(ed_font5x7[c-32][i])){ed_i2c_stop();return 0;}\n        if(!ed_i2c_write(0)){ed_i2c_stop();return 0;}column+=6;\n    }ed_i2c_stop();return 1;\n}\n"
+        },
+        {
+          "type": "heading",
+          "text": "ed_font5x7.h"
+        },
+        {
+          "type": "code",
+          "text": "#ifndef ED_FONT5X7_H\n#define ED_FONT5X7_H\n#include \"ed_platform.h\"\nextern const ed_u8 ED_CODE ed_font5x7[64][5];\n#endif\n"
+        },
+        {
+          "type": "heading",
+          "text": "ed_font5x7.c"
+        },
+        {
+          "type": "code",
+          "text": "#include \"ed_font5x7.h\"\nconst ed_u8 ED_CODE ed_font5x7[64][5] = {\n {0,0,0,0,0},\n {0,0,95,0,0},\n {0,0,0,0,0},\n {0,0,0,0,0},\n {0,0,0,0,0},\n {0,0,0,0,0},\n {0,0,0,0,0},\n {0,0,0,0,0},\n {0,0,0,0,0},\n {0,0,0,0,0},\n {0,0,0,0,0},\n {8,8,62,8,8},\n {0,0,0,0,0},\n {8,8,8,8,8},\n {0,96,96,0,0},\n {32,16,8,4,2},\n {62,81,73,69,62},\n {0,66,127,64,0},\n {66,97,81,73,70},\n {33,65,69,75,49},\n {24,20,18,127,16},\n {39,69,69,69,57},\n {60,74,73,73,48},\n {1,113,9,5,3},\n {54,73,73,73,54},\n {6,73,73,41,30},\n {0,54,54,0,0},\n {0,0,0,0,0},\n {0,0,0,0,0},\n {20,20,20,20,20},\n {0,65,34,20,8},\n {0,0,0,0,0},\n {0,0,0,0,0},\n {126,17,17,17,126},\n {127,73,73,73,54},\n {62,65,65,65,34},\n {127,65,65,34,28},\n {127,73,73,73,65},\n {127,9,9,9,1},\n {62,65,73,73,122},\n {127,8,8,8,127},\n {0,65,127,65,0},\n {32,64,65,63,1},\n {127,8,20,34,65},\n {127,64,64,64,64},\n {127,2,12,2,127},\n {127,4,8,16,127},\n {62,65,65,65,62},\n {127,9,9,9,6},\n {62,65,81,33,94},\n {127,9,25,41,70},\n {70,73,73,73,49},\n {1,1,127,1,1},\n {63,64,64,64,63},\n {31,32,64,32,31},\n {63,64,56,64,63},\n {99,20,8,20,99},\n {7,8,112,8,7},\n {97,81,73,69,67},\n {0,0,0,0,0},\n {0,0,0,0,0},\n {0,0,0,0,0},\n {0,0,0,0,0},\n {0,0,0,0,0},\n};\n"
+        },
+        {
+          "type": "heading",
+          "text": "demos/ssd1306_demo.c"
+        },
+        {
+          "type": "code",
+          "text": "#include \"ssd1306.h\"\nvolatile ed_u8 demo_ok,demo_done;\nvolatile ed_i16 demo_value;\nvoid main(void){\n    ED_SDA=ED_SCL=1;demo_ok=ssd1306_init();\n    if(demo_ok)demo_ok=ssd1306_clear();if(demo_ok)demo_ok=ssd1306_text(0,0,\"HELLO 51\");\n    demo_value=demo_ok;demo_done=0xA5;while(1){}\n}\n"
+        },
+        {
+          "type": "text",
+          "text": "demo_ok=1 indicates success, demo_value stores the example result, and demo_done=A5H marks one completed pass. These are ordinary RAM variables for debugging, not mapped peripheral addresses. Extend the example with OLED or redstone output as needed."
+        },
+        {
+          "type": "link",
+          "target": "driver_sources",
+          "text": "Back to driver index >"
+        }
+      ],
+      "keywords": "source_ssd1306"
     }
   ]
 }

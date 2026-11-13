@@ -254,5 +254,9 @@
   "firmware.embeddeddev.seven_segment_counter": "数码管：0–9 计数",
   "firmware.embeddeddev.seven_segment_counter.help": "共阴数码管：A–DP 按顺序绑定 P1.0–P1.7；使用默认晶振。",
   "firmware.embeddeddev.oled_pattern": "OLED：条纹测试",
-  "firmware.embeddeddev.oled_pattern.help": "OLED：SDA=P1.6，SCL=P1.7；诊断条纹图案，不是文字。"
+  "firmware.embeddeddev.oled_pattern.help": "OLED：SDA=P1.6，SCL=P1.7；诊断条纹图案，不是文字。",
+  "block.embeddeddev.mpu6050": "MPU6050 惯性传感器",
+  "block.embeddeddev.altimeter": "ALT-01 高度传感器",
+  "block.embeddeddev.motor_interface": "多通道电机接口",
+  "message.embeddeddev.bus_module": "%s · %s · %s"
 }

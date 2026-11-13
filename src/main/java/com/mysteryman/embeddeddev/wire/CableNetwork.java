@@ -222,7 +222,8 @@ public final class CableNetwork extends SavedData {
         if (!loaded(level, a) || !loaded(level, b)) throw error("invalid_endpoint");
         if (a.pos().equals(b.pos())) throw error("same_endpoint");
         if (!a.board() && !a.relay() && !b.board() && !b.relay()) throw error("needs_controller");
-        if (a.anchor().distanceTo(b.anchor()) > MAX_LENGTH) throw error("too_far");
+        if (com.mysteryman.embeddeddev.compat.SableCompat.worldPosition(level,a.anchor()).distanceTo(
+                com.mysteryman.embeddeddev.compat.SableCompat.worldPosition(level,b.anchor())) > MAX_LENGTH) throw error("too_far");
         if (at(a).size() >= capacity(a) || at(b).size() >= capacity(b)) throw error("occupied");
         Set<End> first = component(a), second = component(b);
         if (first.contains(b)) throw error("loop");
@@ -270,7 +271,7 @@ public final class CableNetwork extends SavedData {
         }
         if (pairs.isEmpty() || a.module() && pairs.size() != draft.aLanes().size()
                 || b.module() && pairs.size() != draft.bLanes().size()) throw error("invalid_mapping");
-        Wire wire = new Wire(nextId++, a, b, pairs, units(a, b));
+        Wire wire = new Wire(nextId++, a, b, pairs, units(level,a,b));
         index(wire);
         revision++;
         setDirty();
@@ -294,6 +295,10 @@ public final class CableNetwork extends SavedData {
     }
 
     public static int units(End a, End b) { return Math.max(1, (int) Math.ceil(a.anchor().distanceTo(b.anchor()))); }
+    public static int units(Level level,End a,End b) {
+        return Math.max(1,(int)Math.ceil(com.mysteryman.embeddeddev.compat.SableCompat.worldPosition(level,a.anchor()).distanceTo(
+                com.mysteryman.embeddeddev.compat.SableCompat.worldPosition(level,b.anchor()))));
+    }
 
     public List<Route> trace(Level level, End start, Map<Integer, Integer> initial, boolean live) {
         if (!has(start)) return List.of();
@@ -375,11 +380,8 @@ public final class CableNetwork extends SavedData {
 
     private static List<Long> chunkKeys(Wire wire) {
         ChunkPos a = new ChunkPos(wire.a().pos()), b = new ChunkPos(wire.b().pos());
-        var keys = new ArrayList<Long>();
-        for (int x = Math.min(a.x, b.x); x <= Math.max(a.x, b.x); x++) {
-            for (int z = Math.min(a.z, b.z); z <= Math.max(a.z, b.z); z++) keys.add(ChunkPos.asLong(x, z));
-        }
-        return keys;
+        // Plot coordinates can be millions of blocks from world coordinates. Never enumerate that rectangle.
+        return a.equals(b)?List.of(a.toLong()):List.of(a.toLong(),b.toLong());
     }
 
     public List<Wire> near(ChunkPos center, int radius, int limit) {
@@ -392,6 +394,16 @@ public final class CableNetwork extends SavedData {
                 center.getChessboardDistance(new ChunkPos(wire.b().pos())))).thenComparingLong(Wire::id)).limit(limit).toList();
     }
 
+    /** Native moving-plot coordinates must be compared in world space for scene delivery and picking. */
+    public List<Wire> nearWorld(Level level,ChunkPos center,int radius,int limit) {
+        return wires.values().stream().filter(wire -> {
+            Vec3 a=com.mysteryman.embeddeddev.compat.SableCompat.worldPosition(level,wire.a().anchor());
+            Vec3 b=com.mysteryman.embeddeddev.compat.SableCompat.worldPosition(level,wire.b().anchor());
+            return Math.min(center.getChessboardDistance(new ChunkPos(BlockPos.containing(a))),
+                    center.getChessboardDistance(new ChunkPos(BlockPos.containing(b))))<=radius;
+        }).sorted(Comparator.comparingLong(Wire::id)).limit(limit).toList();
+    }
+
     public static Vec3 point(Vec3 a, Vec3 b, double t) {
         double clearance = Math.min(a.y - Math.floor(a.y), b.y - Math.floor(b.y));
         double sag = Math.min(clearance * .7, Math.min(.45, a.distanceTo(b) * .035));
@@ -399,6 +411,21 @@ public final class CableNetwork extends SavedData {
     }
 
     private static boolean blocked(ServerLevel level, End a, End b) {
+        Object first=com.mysteryman.embeddeddev.compat.SableCompat.containing(level,a.pos());
+        Object second=com.mysteryman.embeddeddev.compat.SableCompat.containing(level,b.pos());
+        if(first!=second) {
+            Vec3 from=com.mysteryman.embeddeddev.compat.SableCompat.worldPosition(level,a.anchor());
+            Vec3 to=com.mysteryman.embeddeddev.compat.SableCompat.worldPosition(level,b.anchor());
+            int steps=units(level,a,b)*8;Vec3 previous=from;
+            for(int i=1;i<=steps;i++) {
+                Vec3 point=point(from,to,(double)i/steps);
+                var hit=level.clip(new net.minecraft.world.level.ClipContext(previous,point,
+                        net.minecraft.world.level.ClipContext.Block.COLLIDER,net.minecraft.world.level.ClipContext.Fluid.NONE,(net.minecraft.world.entity.Entity)null));
+                if(hit.getType()==net.minecraft.world.phys.HitResult.Type.BLOCK&&!hit.getBlockPos().equals(a.pos())&&!hit.getBlockPos().equals(b.pos()))return true;
+                previous=point;
+            }
+            return false;
+        }
         int steps = units(a, b) * 8;
         Vec3 previous = a.anchor();
         for (int i = 1; i <= steps; i++) {

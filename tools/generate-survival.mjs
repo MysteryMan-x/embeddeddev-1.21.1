@@ -62,6 +62,9 @@ export async function generateSurvivalData(json) {
   await recipe('i2c_sensor', shaped([' G ', 'RWC', ' P '], {
     G: 'glass', R: 'redstone_torch', W: wafer, C: 'copper_ingot', P: pcb
   }), pcb);
+  await recipe('mpu6050', shaped([' Q ', 'RWR', ' P '], {Q:'quartz',R:'redstone',W:wafer,P:pcb}),pcb);
+  await recipe('altimeter', shaped([' G ', 'CWC', ' P '], {G:'glass',C:'copper_ingot',W:wafer,P:pcb}),pcb);
+  await recipe('motor_interface', shaped(['CCC', 'RWR', ' P '], {C:'copper_ingot',R:'redstone',W:wafer,P:pcb}),pcb);
   await recipe('redstone_port', {
     ...shaped(['CRC', ' P '], {C: 'copper_ingot', R: 'repeater', P: pcb}),
     result: {id: mod('redstone_port'), count: 2}

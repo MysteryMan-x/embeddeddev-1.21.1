@@ -16,6 +16,8 @@ public final class ModBlockEntities {
             BlockEntityType.Builder.of(OledEntity::new, ModBlocks.OLED.get()).build(null));
     public static final Supplier<BlockEntityType<SensorEntity>> SENSOR = TYPES.register("i2c_sensor", () ->
             BlockEntityType.Builder.of(SensorEntity::new, ModBlocks.SENSOR.get()).build(null));
+    public static final Supplier<BlockEntityType<BusModuleEntity>> BUS_MODULE = TYPES.register("bus_module", () ->
+            BlockEntityType.Builder.of(BusModuleEntity::new,ModBlocks.MPU6050.get(),ModBlocks.ALTIMETER.get(),ModBlocks.MOTOR_INTERFACE.get()).build(null));
     public static final Supplier<BlockEntityType<PeripheralEntity>> PERIPHERAL = TYPES.register("peripheral", () ->
             BlockEntityType.Builder.of(PeripheralEntity::new, ModBlocks.BUTTON.get(), ModBlocks.LED.get(),
                     ModBlocks.DS1302.get(), ModBlocks.PCF8591.get()).build(null));

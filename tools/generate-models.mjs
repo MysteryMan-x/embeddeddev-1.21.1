@@ -80,7 +80,14 @@ export async function generate() {
     button_module: [model(button)],
     led_module: [model([...led,cube([5.7,2.2,5.7],[10.3,4.6,10.3],'pcb')]), model([...led,cube([5.7,2.2,5.7],[10.3,4.6,10.3],'led')])],
     ds1302: [model(rtc)],
-    pcf8591: [model(adc)]
+    pcf8591: [model(adc)],
+    mpu6050: [model([...base('blue'),cube([5,1.3,4.5],[11,3.2,10.5],'metal'),
+      cube([5.5,3.2,5],[10.5,3.4,10],'black'),cube([6,3.4,5.5],[7,3.6,6.5],'gold'),terminal(4,13),terminal(8,13),terminal(12,13)])],
+    altimeter: [model([...base('pcb'),cube([4,1.3,4],[12,4,11],'metal'),
+      cube([7,4,6.5],[9,4.15,8.5],'black'),terminal(5,13),terminal(8,13),terminal(11,13)])],
+    motor_interface: [model([...base('red'),cube([5,1.3,5],[11,3.5,11],'black'),
+      terminal(2.5,5),terminal(2.5,8),terminal(2.5,11),terminal(13.5,5),terminal(13.5,8),terminal(13.5,11),
+      cube([6,3.5,7.5],[10,3.7,8.5],'gold')])],
   };
   for (const [id,[idle,active]] of Object.entries(modules)) {
     await json('assets/embeddeddev/models/block/'+id+'.json',idle);

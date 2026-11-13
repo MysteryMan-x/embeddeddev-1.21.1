@@ -254,5 +254,9 @@
   "firmware.embeddeddev.seven_segment_counter": "Seven-segment: count 0–9",
   "firmware.embeddeddev.seven_segment_counter.help": "Common-cathode display: A–DP map to P1.0–P1.7; use the default crystal.",
   "firmware.embeddeddev.oled_pattern": "OLED: stripe test",
-  "firmware.embeddeddev.oled_pattern.help": "OLED: SDA=P1.6, SCL=P1.7; diagnostic stripes, not text."
+  "firmware.embeddeddev.oled_pattern.help": "OLED: SDA=P1.6, SCL=P1.7; diagnostic stripes, not text.",
+  "block.embeddeddev.mpu6050": "MPU6050 Inertial Sensor",
+  "block.embeddeddev.altimeter": "ALT-01 Height Sensor",
+  "block.embeddeddev.motor_interface": "Multi-channel Motor Interface",
+  "message.embeddeddev.bus_module": "%s · %s · %s"
 }

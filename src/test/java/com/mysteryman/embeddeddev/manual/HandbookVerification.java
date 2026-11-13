@@ -30,11 +30,12 @@ public final class HandbookVerification {
         try (var reader = Files.newBufferedReader(manual.resolve("en_us.json"), StandardCharsets.UTF_8)) { english = Handbook.read(reader); }
         require(chinese.entries().size() >= 25, "A detailed catalog covers the electronics workflow");
         require(chinese.entries().stream().map(Handbook.Entry::id).toList().equals(english.entries().stream().map(Handbook.Entry::id).toList()), "Both languages have the same entries");
-        var modulePins = Map.of("embeddeddev:ds1302", new Ds1302().terminals(), "embeddeddev:ds18b20", new Ds18b20().terminals(),
+        var modulePins = new java.util.HashMap<>(Map.of("embeddeddev:ds1302", new Ds1302().terminals(), "embeddeddev:ds18b20", new Ds18b20().terminals(),
                 "embeddeddev:seven_segment", new SevenSegment().terminals(), "embeddeddev:oled", List.of("SDA", "SCL"),
                 "embeddeddev:pcf8591", List.of("SDA", "SCL"), "embeddeddev:i2c_sensor", List.of("SDA", "SCL"),
                 "embeddeddev:led_module", List.of("LED"), "embeddeddev:button_module", List.of("KEY"),
-                "embeddeddev:redstone_port", List.of("SIGNAL"));
+                "embeddeddev:redstone_port", List.of("SIGNAL")));
+        for (String id : List.of("mpu6050", "altimeter", "motor_interface")) modulePins.put("embeddeddev:" + id, List.of("SDA", "SCL"));
         for (var book : List.of(chinese, english)) {
             var documentedItems = new HashSet<String>(); var illustratedRecipes = new HashSet<String>();
             for (var entry : book.entries()) {
@@ -77,6 +78,12 @@ public final class HandbookVerification {
             require(book.entry("xdata").matches("64 KiB") && book.entry("xdata").matches("3CH"), "Handbook distinguishes full XRAM from I2C addresses");
             require(java.util.stream.IntStream.range(0, 65536).allMatch(address -> hardware.readExternal(address) == -1),
                     "Documented 64 KiB XDATA has no peripheral overlay");
+            var copiedSources=book.entries().stream().filter(e->e.id().startsWith("source_")).flatMap(e->e.blocks().stream())
+                    .filter(b->b.type().equals("code")).map(Handbook.Block::text).toList();
+            try(var sources=Files.walk(Path.of("examples/drivers"))){
+                for(Path source:sources.filter(p->p.toString().endsWith(".c")||p.toString().endsWith(".h")).toList())
+                    require(copiedSources.contains(Files.readString(source).replace("\r\n","\n").replace("\r","\n")),"Appendix copies the complete authoritative C/H file with canonical newlines: "+source);
+            }
         }
         for (String language : List.of("zh_cn", "en_us")) {
             var captions = JsonParser.parseString(Files.readString(resources.resolve("assets/embeddeddev/lang/" + language + ".json"))).getAsJsonObject();

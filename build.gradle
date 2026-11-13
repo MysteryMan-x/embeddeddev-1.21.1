@@ -211,6 +211,15 @@ tasks.register('verifyHandbook', JavaExec) {
     workingDir = projectDir
 }
 tasks.named('check') { dependsOn 'verifyMcu', 'verifyHandbook' }
+
+tasks.register('verifyDriverExamples', JavaExec) {
+    group = 'verification'
+    description = 'Runs C driver examples compiled by tools/build-driver-examples.ps1 on the actual 8051 interpreter.'
+    dependsOn testClasses
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'com.mysteryman.embeddeddev.mcu.DriverSourceVerification'
+    workingDir = projectDir
+}
 tasks.named('test') {
     // Verification is an executable oracle suite, not a JUnit class.
     failOnNoDiscoveredTests = false

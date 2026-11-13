@@ -197,7 +197,7 @@ public final class BoardScreen extends Screen implements DeviceStateScreen {
     }
     @Override public void tick() {
         if (++polls >= 5) { polls = 0; send(BoardNetwork.POLL, "", ""); }
-        if (minecraft.player == null || minecraft.player.distanceToSqr(pos.getCenter()) > 64) onClose();
+        if (minecraft.player == null || com.mysteryman.embeddeddev.compat.SableCompat.distanceSquared(minecraft.level, minecraft.player.position(), pos) > 64) onClose();
     }
     @Override public boolean isPauseScreen() { return false; }
     @Override public void renderBackground(GuiGraphics g, int mouseX, int mouseY, float partialTick) {
