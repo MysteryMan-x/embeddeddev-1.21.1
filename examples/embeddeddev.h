@@ -2,10 +2,7 @@
 #define EMBEDDEDDEV_H
 
 /* Keil C51 / SMALL memory model. The board supplies external expansion devices. */
-/* ADC0..ADC7 and DAC0..DAC7 are selectable channels, independent of direction. */
-#define ED_ANALOG_CHANNELS 8
-#define ED_ADC  ((volatile unsigned char xdata *)0xF000)
-#define ED_DAC  ((volatile unsigned char xdata *)0xF010)
+/* Analog input/output uses an external PCF8591; no board ADC/DAC window exists. */
 #define ED_OLED_CONTROL (*((volatile unsigned char xdata *)0xF020))
 #define ED_OLED ((volatile unsigned char xdata *)0xF100)
 

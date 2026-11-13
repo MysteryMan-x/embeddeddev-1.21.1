@@ -332,7 +332,7 @@
         },
         {
           "type": "text",
-          "text": "CPU state, RAM, firmware, DAC and wiring persist with the board. Unloaded chunks pause the CPU without offline catch-up. Breaking a board refunds its cables, but the dropped board loses firmware and RAM; its crystal is retained."
+          "text": "CPU state, RAM, firmware and wiring persist with the board. Unloaded chunks pause the CPU without offline catch-up. Breaking a board refunds its cables, but the dropped board loses firmware and RAM; its crystal is retained."
         },
         {
           "type": "tip",
@@ -374,16 +374,6 @@
               "GPIO",
               "P0.0–P3.7",
               "Buttons, LEDs, buses and displays"
-            ],
-            [
-              "ADC",
-              "ADC0–ADC7",
-              "Read redstone strength 0–15"
-            ],
-            [
-              "DAC",
-              "DAC0–DAC7",
-              "Write redstone strength 0–15"
             ]
           ]
         },
@@ -409,12 +399,12 @@
         },
         {
           "type": "tip",
-          "text": "GPIO handles both input and output without a direction selector. Before reading an external input, set its latch bit to 1 to release it. Clearing a group removes and refunds that group cables."
+          "text": "GPIO handles both input and output without a direction selector. Before reading an external input, set its latch bit to 1 to release it. Clearing a group refunds its cables. Use an external PCF8591 for analog input and output."
         },
         {
           "type": "link",
-          "target": "analog_extension",
-          "text": "ADC/DAC addresses, configuration and complete experiment >"
+          "target": "analog_io",
+          "text": "Analog conversion and complete experiment >"
         },
         {
           "type": "link",
@@ -425,265 +415,127 @@
       "keywords": "pins"
     },
     {
-      "id": "analog_extension",
+      "id": "analog_io",
       "category": "develop",
-      "icon": "embeddeddev:redstone_port",
-      "title": "Board ADC/DAC expansion",
-      "subtitle": "8 redstone inputs and 8 outputs",
+      "icon": "embeddeddev:pcf8591",
+      "title": "Analog signals and external chips",
+      "subtitle": "Digital GPIO; external PCF8591 ADC / DAC",
       "blocks": [
         {
           "type": "heading",
-          "text": "The MCU and its board expansion"
+          "text": "The STC89C52RC has no ADC / DAC"
         },
         {
           "type": "tip",
-          "text": "The STC89C52RC has no built-in ADC or DAC. This mod provides virtual redstone sampling/output devices accessed through MOVX in XDATA. They are not STC internal registers or the PCF8591 chip."
-        },
-        {
-          "type": "text",
-          "text": "Each board owns ADC0–ADC7 and DAC0–DAC7. Choose a face, G1–G4 group and channel in the terminal editor; no channel has a fixed world direction. ADC0 is not P1.0 and DAC1 is not P1.1. These devices do not consume the 32 GPIO pins."
-        },
-        {
-          "type": "heading",
-          "text": "Every channel address"
+          "text": "Since 1.10.0, board virtual ADC and DAC are removed. Board terminals bind P0.0–P3.7 GPIO for both input and output, without a digital direction selector. Use an external PCF8591 to read redstone strength or emit analog redstone 0–15."
         },
         {
           "type": "table",
           "rows": [
             [
-              "Channel",
-              "ADC read address",
-              "DAC read/write"
+              "Interface",
+              "Input / output"
             ],
             [
-              "0",
-              "F000H",
-              "F010H"
+              "GPIO to redstone connector",
+              "Input: zero low, nonzero high; output: 0 or 15"
             ],
             [
-              "1",
-              "F001H",
-              "F011H"
+              "PCF8591 AIN0–3",
+              "North, east, south, west; redstone strength times 17 gives 0–255"
             ],
             [
-              "2",
-              "F002H",
-              "F012H"
-            ],
-            [
-              "3",
-              "F003H",
-              "F013H"
-            ],
-            [
-              "4",
-              "F004H",
-              "F014H"
-            ],
-            [
-              "5",
-              "F005H",
-              "F015H"
-            ],
-            [
-              "6",
-              "F006H",
-              "F016H"
-            ],
-            [
-              "7",
-              "F007H",
-              "F017H"
-            ]
-          ],
-          "id": "analog_map"
-        },
-        {
-          "type": "text",
-          "text": "ADCn is at F000H+n and DACn at F010H+n, for n=0–7. These are 16-bit XDATA addresses. Use MOVX, a C51 xdata pointer or XBYTE. Ordinary direct MOV or a data pointer does not reach these devices."
-        },
-        {
-          "type": "heading",
-          "text": "Values and sampling"
-        },
-        {
-          "type": "table",
-          "rows": [
-            [
-              "Item",
-              "Actual behavior"
-            ],
-            [
-              "ADC range",
-              "0–15; upper four bits read zero"
-            ],
-            [
-              "DAC range",
-              "0–15; byte writes 16–255 clamp to 15"
-            ],
-            [
-              "Examples",
-              "Redstone 7 reads 07H; writing 0AH outputs 10"
-            ],
-            [
-              "Resolution",
-              "16 redstone levels, not 0–5 V or 0–255 voltage"
-            ],
-            [
-              "Sampling",
-              "Once per game tick; about 50 ms at 20 TPS"
-            ],
-            [
-              "Control registers",
-              "None: no start, busy, done flag or ADC interrupt"
+              "PCF8591 AOUT",
+              "Upward output 0–15; enable with control bit 6"
             ]
           ]
         },
         {
-          "type": "text",
-          "text": "Once analog input is configured, sampling is automatic and firmware reads the address directly. ADC writes do not change its sampled value. A DAC holds its value until rewritten, reset or flashing. Input pulses shorter than a tick may be missed."
-        },
-        {
           "type": "heading",
-          "text": "Experiment: remote ADC0 to DAC1"
+          "text": "Experiment: PCF8591 input to output"
         },
         {
           "type": "text",
-          "text": "Bring a board, two redstone connectors, a coil, a variable redstone source and an output device. East G2 input and west G3 output below are examples; other faces and groups work too."
-        },
-        {
-          "type": "table",
-          "rows": [
-            [
-              "Location",
-              "Label / kind / channel"
-            ],
-            [
-              "Board east G2",
-              "VIN / Analog input ADC / ADC0"
-            ],
-            [
-              "Board west G3",
-              "VOUT / Analog output DAC / DAC1"
-            ],
-            [
-              "Input connector",
-              "Input mode; redstone side faces the source"
-            ],
-            [
-              "Output connector",
-              "Output mode; redstone side faces the target"
-            ]
-          ]
-        },
-        {
-          "type": "text",
-          "text": "1. Open the board, Six-face terminals, east, Manage pins, G2, Add pin. Name it VIN, select Analog input ADC and ADC0, save and Apply. On west G3 add VOUT with Analog output DAC and DAC1."
-        },
-        {
-          "type": "text",
-          "text": "2. Place a connector beside the source, set Input and face its redstone side toward the source. Place another beside the target, set Output and face it toward the device. Direction is relative to the board. Apply each setting."
+          "text": "Bring a board, PCF8591, coil, variable redstone source and output device. On any board face and G1–G4 group add GPIO SDA=P1.6 and SCL=P1.7, Apply, then wire to PCF8591. Default seven-bit address is 48H: write byte 90H and read byte 91H."
         },
         {
           "type": "wiring",
-          "id": "embeddeddev:redstone_port",
+          "id": "embeddeddev:pcf8591",
           "labels": [
-            "ADC0|SIGNAL"
-          ]
-        },
-        {
-          "type": "wiring",
-          "id": "embeddeddev:redstone_port",
-          "labels": [
-            "DAC1|SIGNAL"
+            "P1.6|SDA",
+            "P1.7|SCL"
           ]
         },
         {
           "type": "text",
-          "text": "3. Wire east G2 to the input connector and west G3 to the output connector. A connector has one SIGNAL terminal, so a single channel pairs automatically. VIN/VOUT are descriptive labels. Apply pins before wiring and confirm both routes are connected."
+          "text": "Put the redstone source north of PCF8591 for AIN0 and the target above it for AOUT. Flash examples/pcf8591_mirror.hex and Run. Inputs 0, 7 and 15 should produce the same outputs. The default crystal works; firmware uses GPIO software I²C."
         },
         {
           "type": "heading",
-          "text": "4 · Complete Keil C51 program"
+          "text": "Keil C51 transaction sequence"
+        },
+        {
+          "type": "text",
+          "text": "The following matches examples/pcf8591_mirror.c and requires examples/i2c_soft.h. Discard and ACK the previous conversion, then read and NACK the fresh value. Control 40H selects single-ended AIN0 and enables AOUT."
         },
         {
           "type": "code",
-          "text": "#include <REG52.H>\n#include <absacc.h>\n\n#define ADC0 XBYTE[0xF000]\n#define DAC1 XBYTE[0xF011]\n\nvoid main(void) {\n    DAC1 = 0;\n    while (1) {\n        DAC1 = ADC0;\n    }\n}"
+          "text": "#include \"i2c_soft.h\"\nunsigned char data sample _at_ 0x30;\nvoid main(void) {\n    P1 = 0xC0;\n    while (1) {\n        i2c_start(); i2c_write(0x90); i2c_write(0x40);\n        i2c_start(); i2c_write(0x91);\n        i2c_read(1); /* stale byte, ACK */\n        sample = i2c_read(0); /* fresh byte, NACK */\n        i2c_stop();\n        i2c_start(); i2c_write(0x90);\n        i2c_write(0x40); i2c_write(sample);\n        i2c_stop();\n    }\n}"
         },
         {
           "type": "text",
-          "text": "Alternatively run adc_mirror.hex with the default crystal. It reads ADC0 and writes DAC1. Inputs 0, 7 and 15 should produce outputs 0, 7 and 15. If output is absent, check Run, connector modes, redstone sides and groups."
-        },
-        {
-          "type": "heading",
-          "text": "Assembly access"
-        },
-        {
-          "type": "code",
-          "text": "LOOP:\nMOV DPTR,#0F000H ; ADC0 address\nMOVX A,@DPTR     ; A = 0..15\nMOV DPTR,#0F011H ; DAC1 address\nMOVX @DPTR,A     ; same output level\nSJMP LOOP"
-        },
-        {
-          "type": "heading",
-          "text": "Adjacent and multi-channel rules"
-        },
-        {
-          "type": "text",
-          "text": "Without cables, G1 ADC samples adjacent redstone on its face and G1 DAC drives that face. G2–G4 require cabled connectors; they do not directly sample or emit local redstone on that face."
-        },
-        {
-          "type": "text",
-          "text": "Inputs sharing an ADC combine by maximum, not sum or average. Outputs sharing a DAC mirror its value. A local G1 face with multiple DACs emits their maximum. Channels still have independent addresses."
-        },
-        {
-          "type": "heading",
-          "text": "Stop, reset and saving"
-        },
-        {
-          "type": "table",
-          "rows": [
-            [
-              "Action / state",
-              "Result"
-            ],
-            [
-              "Stopped or stepping",
-              "DAC can retain its value; redstone is 0 until Run"
-            ],
-            [
-              "Reset or successful flash",
-              "DAC clears; wiring remains"
-            ],
-            [
-              "Save and reload",
-              "DAC values and wiring persist"
-            ],
-            [
-              "Unassigned ADC",
-              "Reads 0 after sampling refresh"
-            ],
-            [
-              "Unloaded or offline",
-              "No signal through unloaded chunks"
-            ]
-          ]
+          "text": "PCF8591 DAC bytes range 0–255 and map to redstone using rounded (value*15+127)/255. Send 170 instead of sample for strength 10. Clear control bit 6 to disable output. Converter state belongs to the module, not the board. Stopping the MCU sends no further commands, so AOUT holds its last value; write zero or disable it before stopping if needed."
         },
         {
           "type": "tip",
-          "text": "These windows override ordinary XDATA. Keep normal variables, arrays and startup clearing away from F000H–F017H. Do not use other STC models ADCCON/ADCDATA initialization. No fixed ADC pin or SFR enable is required."
+          "text": "PCF8591 and the environment sensor both default to 48H. On one SDA/SCL bus, sneak-use PCF8591 to select 49H and change firmware address bytes to 92H/93H, or use a separate GPIO bus. OLED defaults to 3CH and may share the bus."
+        },
+        {
+          "type": "heading",
+          "text": "Memory addresses and old saves"
+        },
+        {
+          "type": "table",
+          "rows": [
+            [
+              "Address",
+              "Meaning since 1.10.0"
+            ],
+            [
+              "F000H–F007H",
+              "Ordinary XDATA RAM; former ADC window released"
+            ],
+            [
+              "F010H–F017H",
+              "Ordinary XDATA RAM; former DAC window released"
+            ],
+            [
+              "48H–4FH",
+              "PCF8591 I²C bus addresses, not memory addresses"
+            ]
+          ]
+        },
+        {
+          "type": "text",
+          "text": "Removing both analog windows restores 16 XDATA bytes without changing Flash, IDATA or SFR. PCF8591 reserves no MCU memory window; it needs GPIO and firmware I²C. The existing OLED MOVX bridge still reserves F020H and F100H–F4FFH. Keep ordinary xdata arrays and startup clearing outside those OLED addresses."
+        },
+        {
+          "type": "text",
+          "text": "Old saves discard ADC/DAC terminals but preserve GPIO names, channels, groups and wire IDs. Boards with retired analog pins pause while retaining firmware and CPU/RAM. Cut and reconnect invalid analog pairs; ADC/DAC is never silently mapped to GPIO. Update adc_mirror.hex or firmware accessing the retired windows before running again."
         },
         {
           "type": "link",
           "target": "adc",
-          "text": "Need a separate I²C chip? See PCF8591 >"
+          "text": "PCF8591 controls and channel modes >"
         },
         {
           "type": "link",
-          "target": "redstone",
-          "text": "Connector modes and directions >"
+          "target": "xdata",
+          "text": "Remaining OLED memory windows >"
         }
       ],
       "items": [],
-      "keywords": "analog_extension"
+      "keywords": "analog_io"
     },
     {
       "id": "cables",
@@ -865,15 +717,16 @@
         },
         {
           "type": "heading",
-          "text": "Access virtual analog channels"
+          "text": "Analog signals use external chips"
         },
         {
-          "type": "code",
-          "text": "#include <absacc.h>\nunsigned char level;\nlevel = XBYTE[0xF000];\nXBYTE[0xF010] = level;"
+          "type": "link",
+          "target": "analog_io",
+          "text": "PCF8591 experiment and complete C51 program >"
         },
         {
           "type": "text",
-          "text": "F000H is virtual ADC0 and F010H is virtual DAC0, both ranging from 0 to 15. These are mod-specific XDATA extensions, not ADC/DAC peripherals built into the STC89C52. Use MOVX or Keil XBYTE."
+          "text": "The board provides no ADC/DAC. Former windows F000H–F007H and F010H–F017H are ordinary XDATA RAM. Use external PCF8591 software I²C for conversions, control words and DAC bytes. Verify pcf8591_mirror.hex first, then edit its C source."
         },
         {
           "type": "tip",
@@ -1288,12 +1141,12 @@
       "blocks": [
         {
           "type": "tip",
-          "text": "PCF8591 uses SDA/SCL, four 8-bit ADCs and one DAC at 7-bit addresses 48H–4FH. Board expansion uses MOVX, eight ADCs and eight DACs at XDATA F000H/F010H with values 0–15. Their drivers are not interchangeable."
+          "text": "PCF8591 uses SDA/SCL, four 8-bit ADCs and one DAC at 7-bit addresses 48H–4FH, reserving no MCU XDATA or SFR. STC89C52 has no internal ADC/DAC, and board virtual converters were removed in 1.10.0. Use external chips for analog signals."
         },
         {
           "type": "link",
-          "target": "analog_extension",
-          "text": "Using ADC0–7 in the board editor? >"
+          "target": "analog_io",
+          "text": "Complete ADC to DAC experiment and C51 program >"
         },
         {
           "type": "recipe",
@@ -1313,7 +1166,7 @@
         },
         {
           "type": "text",
-          "text": "Redstone input 0–15 maps to 0–255 by multiplying by 17. The DAC maps 0–255 back to 0–15 redstone. Unlike the virtual MCU ADC/DAC channels, this chip is controlled through GPIO I²C transactions."
+          "text": "Redstone input 0–15 maps to 0–255 by multiplying by 17. The DAC maps 0–255 back to 0–15 redstone. Control this chip through GPIO software I²C transactions, rather than board MOVX addresses."
         },
         {
           "type": "table",
@@ -1498,7 +1351,7 @@
         },
         {
           "type": "text",
-          "text": "i2c_sensor.hex uses P1.6/P1.7 to read register 00H and write virtual DAC0. Bind DAC0 in another group and connect a redstone output to relay that strength to a remote location."
+          "text": "i2c_sensor.hex reads register 00H over P1.6/P1.7 into IDATA 30H. It sets P1.2 high for nonzero input and low for zero. Add LED=P1.2 in another group and wire an LED module for a digital indicator. Use PCF8591 for analog output."
         },
         {
           "type": "tip",
@@ -1539,30 +1392,21 @@
               "Digital output",
               "GPIO",
               "Redstone 0 or 15"
-            ],
-            [
-              "Analog input",
-              "ADC0–7",
-              "Redstone 0–15"
-            ],
-            [
-              "Analog output",
-              "DAC0–7",
-              "Redstone 0–15"
             ]
           ]
         },
         {
           "type": "heading",
-          "text": "Analog relay experiment"
+          "text": "Read analog strength"
         },
         {
           "type": "text",
-          "text": "Configure one input connector and wire it to ADC0. Configure an output connector and wire it to DAC1. Run adc_mirror.hex to copy F000H input strength into F011H, relaying ADC0 to DAC1."
+          "text": "The redstone connector input provides digital low/high only; there is no board ADC. To distinguish strengths 0–15, use PCF8591: SDA=P1.6, SCL=P1.7, default address 48H. Apply redstone to north AIN0 and run pcf8591_mirror.hex; upward AOUT mirrors its strength."
         },
         {
-          "type": "code",
-          "text": "#include <REG52.H>\n#include <absacc.h>\nvoid main(void) {\n    while (1)\n        XBYTE[0xF011] = XBYTE[0xF000];\n}"
+          "type": "link",
+          "target": "adc",
+          "text": "PCF8591 addresses, control word and transactions >"
         },
         {
           "type": "text",
@@ -1713,7 +1557,7 @@
         {
           "type": "link",
           "target": "xdata",
-          "text": "Virtual ADC/DAC and OLED address map >"
+          "text": "Reserved XDATA addresses for OLED >"
         }
       ],
       "keywords": "memory"
@@ -1814,8 +1658,8 @@
       "blocks": [
         {
           "type": "link",
-          "target": "analog_extension",
-          "text": "All ADC/DAC addresses, setup and complete programs >"
+          "target": "analog_io",
+          "text": "ADC/DAC now use an external chip >"
         },
         {
           "type": "table",
@@ -1824,16 +1668,6 @@
               "XDATA address",
               "Access",
               "Contents"
-            ],
-            [
-              "F000H–F007H",
-              "Read",
-              "ADC0–7, 0–15"
-            ],
-            [
-              "F010H–F017H",
-              "Read/write",
-              "DAC0–7, clamped to 0–15"
             ],
             [
               "F020H",
@@ -1849,11 +1683,15 @@
         },
         {
           "type": "text",
+          "text": "Since 1.10.0, F000H–F007H and F010H–F017H are ordinary XDATA RAM, no longer ADC/DAC windows. PCF8591 addresses 48H–4FH are I²C bus addresses rather than MCU memory addresses; they reserve no Flash, IDATA or SFR. Devices on one bus should have distinct addresses."
+        },
+        {
+          "type": "text",
           "text": "These mod-defined windows replace ordinary XDATA bytes at those addresses. At F020H, bit 0 controls display enable and writing bit 1 requests a clear. The OLED bridge requires an actual module connected through SDA/SCL."
         },
         {
           "type": "code",
-          "text": "#include <absacc.h>\nXBYTE[0xF010] = 15; /* DAC0 */\nXBYTE[0xF020] = 3;  /* on + clear */\nXBYTE[0xF100] = 0xFF;"
+          "text": "#include <absacc.h>\nXBYTE[0xF020] = 3;  /* on + clear */\nXBYTE[0xF100] = 0xFF;"
         },
         {
           "type": "tip",
@@ -2040,8 +1878,8 @@
               "GPIO P1.2 to digital redstone output"
             ],
             [
-              "adc_mirror.hex",
-              "ADC0 input to DAC1 output"
+              "pcf8591_mirror.hex",
+              "PCF8591 48H, SDA=P1.6 / SCL=P1.7; AIN0 to AOUT"
             ],
             [
               "i2c_oled_hello.hex",
@@ -2053,7 +1891,7 @@
             ],
             [
               "i2c_sensor.hex",
-              "SDA=P1.6 / SCL=P1.7, result to DAC0"
+              "SDA=P1.6 / SCL=P1.7; LED=P1.2"
             ],
             [
               "ds18b20_read.hex",
@@ -2214,7 +2052,7 @@
         },
         {
           "type": "text",
-          "text": "Redstone connectors work with technology components accepting vanilla redstone, such as Create clutches and links. Check the target component behavior before selecting GPIO or DAC output. The board does not directly rewrite Create rotational speed."
+          "text": "Redstone connectors work with technology components accepting vanilla redstone, such as Create clutches and links. Check the target component behavior before using GPIO for digital control or PCF8591 AOUT for analog output. The board does not directly rewrite Create rotational speed."
         },
         {
           "type": "heading",

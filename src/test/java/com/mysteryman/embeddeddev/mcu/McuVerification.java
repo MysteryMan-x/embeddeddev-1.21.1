@@ -115,12 +115,9 @@ public final class McuVerification {
         Ssd1306 oled = new Ssd1306();
         h.bind(5, modulePins(14, 15)); h.attach(5, oled);
         h.bind(0, pins(FaceBinding.Kind.DIGITAL_OUTPUT, 1, 2));
-        h.bind(3, pins(FaceBinding.Kind.ANALOG_OUTPUT, 3));
-        h.adc[2] = 9;
-        c.install(image(0x90, 0xF0, 2, 0xE0, 0x90, 0xF0, 0x13, 0xF0, 0x90, 0xF1, 0, 0x74, 0x81, 0xF0));
-        steps(c, 7); eq(9, h.dac[3], "ADC to DAC MOVX"); eq(0x81, oled.ram[0] & 255, "independent OLED framebuffer");
-        eq(15, h.output(0, true), "selected GPIOs"); eq(9, h.output(3, true), "selected DAC"); eq(0, h.output(3, false), "stopped outputs off");
-        h.writeExternal(0xF010, 99); eq(15, h.dac[0], "DAC clamp");
+        c.install(image(0x90, 0xF0, 2, 0x74, 9, 0xF0, 0xE0, 0x90, 0xF0, 0x13, 0xF0, 0x90, 0xF1, 0, 0x74, 0x81, 0xF0));
+        steps(c, 9); eq(0x81, oled.ram[0] & 255, "independent OLED framebuffer");
+        eq(15, h.output(0, true), "selected GPIOs"); eq(0, h.output(0, false), "stopped outputs off");
         h.writeExternal(0xF020, 2); eq(0, oled.ram[0], "OLED clear"); ok(!oled.enabled, "OLED off");
         c.install(image(0x75, 0x99, 65, 0x75, 0x98, 16, 0xE5, 0x99)); steps(c, 2); c.receive(66); c.step();
         eq(66, c.accumulator(), "UART receive"); eq('A', h.serial().charAt(0), "UART transmit");
@@ -136,21 +133,28 @@ public final class McuVerification {
         try { b.restore(new byte[10]); throw new AssertionError("accepted bad state"); } catch (IllegalArgumentException expected) { checks++; }
     }
     private static void examples() throws Exception {
-        for (String name : List.of("redstone_blink", "adc_mirror", "oled_pattern", "oled_hello", "i2c_oled_hello", "i2c_sensor")) {
+        for (String name : List.of("redstone_blink", "pcf8591_mirror", "oled_pattern", "oled_hello", "i2c_oled_hello", "i2c_sensor")) {
             BoardHardware h = new BoardHardware(); Mcs51 c = new Mcs51(h);
             Ssd1306 oled = new Ssd1306(); I2cSensor sensor = new I2cSensor();
             h.bind(5, modulePins(14, 15));
             sensor.values[0] = 11;
-            h.attach(5, name.equals("i2c_sensor") ? sensor : oled);
+            Pcf8591 converter = new Pcf8591(); converter.sampleRedstone(0, 7);
+            h.attach(5, name.equals("i2c_sensor") ? sensor : name.equals("pcf8591_mirror") ? converter : oled);
             c.install(IntelHex.parse(Files.readString(Path.of("examples", name + ".hex"))).code());
-            h.adc[0] = 7; c.runCycles(46080 * 8);
-            if (name.equals("adc_mirror")) eq(7, h.dac[1], "example ADC mirror");
+            c.runCycles(46080 * 8);
+            if (name.equals("pcf8591_mirror")) {
+                eq(119, c.inspectRam(0x30), "PCF8591 firmware reads a fresh ADC sample after dummy byte");
+                eq(7, converter.redstoneOutput(), "external PCF8591 mirrors input through its own DAC");
+            }
             if (name.equals("oled_pattern")) eq(0x55, oled.ram[1023] & 255, "diagnostic bitmap");
             if (name.equals("oled_hello") || name.equals("i2c_oled_hello")) {
                 ok(oled.enabled, name + " turns on display"); eq(127, oled.ram[128 + 7] & 255, name + " readable E glyph");
                 eq(0xA5, c.inspectRam(0x30), name + " completes framebuffer upload");
             }
-            if (name.equals("i2c_sensor")) eq(11, h.dac[0], "sensor firmware reads I2C byte into DAC");
+            if (name.equals("i2c_sensor")) {
+                eq(11, c.inspectRam(0x30), "sensor firmware stores raw I2C sample in IDATA");
+                ok((c.portLatch(1) & 4) != 0, "sensor firmware drives GPIO indicator for nonzero input");
+            }
             if (name.equals("redstone_blink")) {
                 int p = c.portLatch(1); c.runCycles(46080 * 11); ok(p != c.portLatch(1), "example blink toggles");
             }
@@ -182,21 +186,25 @@ public final class McuVerification {
         BoardHardware h = new BoardHardware();
         for(int f=0;f<6;f++) eq(0,h.output(f,true),"new connectors are unbound");
         h.bind(0, pins(FaceBinding.Kind.DIGITAL_INPUT, 0, 9, 31));
-        h.bind(4, pins(FaceBinding.Kind.ANALOG_INPUT, 0, 7));
         h.sample(new int[]{0,0,0,0,12,0});
         eq(254,h.readPort(0,255),"input arbitrary P0.0");eq(253,h.readPort(1,255),"input arbitrary P1.1");eq(127,h.readPort(3,255),"input arbitrary P3.7");
-        eq(12,h.adc[0],"west -> ADC0");eq(12,h.adc[7],"one face -> multiple ADC channels");
-        h.bind(4, pins(FaceBinding.Kind.ANALOG_OUTPUT, 0, 7));h.dac[0]=3;h.dac[7]=11;
-        eq(11,h.output(4,true),"multiple DAC channels use maximum");h.reset();eq(2,h.binding(4).pins().size(),"CPU reset preserves wiring");
+        h.bind(4, pins(FaceBinding.Kind.GPIO, 0, 7));h.reset();eq(2,h.binding(4).pins().size(),"CPU reset preserves wiring");
         FaceBinding b = modulePins(2, 27);
         eq(2, b.gpio("sda"), "name matches independent of casing and list order");
-        FaceBinding unicode = new FaceBinding(List.of(new FaceBinding.Pin("电压,输入", FaceBinding.Kind.ANALOG_INPUT, 3)));
+        FaceBinding unicode = new FaceBinding(List.of(new FaceBinding.Pin("数字,输出", FaceBinding.Kind.GPIO, 3)));
         ok(unicode.equals(FaceBinding.parse(unicode.wireText())), "Unicode and punctuation in pin names survive serialization");
         ok(b.equals(FaceBinding.parse(b.wireText())), "binding serialization");
         for(int[] invalid:new int[][]{{5,1,1},{99},{3,8},{1},{0,1}}) {
             try{FaceBinding.fromLegacy(invalid);throw new AssertionError("Accepted invalid binding");}catch(IllegalArgumentException expected){checks++;}
         }
-        for (String invalid : List.of("GPIO,2,SDA\nGPIO,27,sda", "GPIO,2,SDA\nDIGITAL_OUTPUT,2,LED", "GPIO,32,SCL")) {
+        FaceBinding migrated = FaceBinding.restore("ANALOG_INPUT,0,VIN\nGPIO,8,LED\nANALOG_OUTPUT,1,OUT\nGPIO,15,SCL");
+        eq(2, migrated.pins().size(), "Only obsolete ADC/DAC pins are removed from saves");
+        eq(8, migrated.pins().get(0).wireId(), "GPIO wire IDs survive migration");
+        eq(15, migrated.pins().get(1).wireId(), "Remaining GPIO wire IDs survive migration");
+        ok(FaceBinding.hasRemovedAnalog("ANALOG_OUTPUT,1,OUT"), "A DAC-only save requests migration");
+        ok(FaceBinding.fromLegacy(new int[]{4, 0, 7}).pins().isEmpty(), "Original numeric DAC configuration is retired");
+        ok(FaceBinding.fromLegacy(new int[]{3, 0, 7}).pins().isEmpty(), "Original numeric ADC configuration is retired");
+        for (String invalid : List.of("ANALOG_INPUT,0,VIN", "ANALOG_OUTPUT,1,OUT", "GPIO,2,SDA\nGPIO,27,sda", "GPIO,2,SDA\nDIGITAL_OUTPUT,2,LED", "GPIO,32,SCL")) {
             try { FaceBinding.parse(invalid); throw new AssertionError("Accepted ambiguous or invalid pin"); }
             catch (IllegalArgumentException expected) { checks++; }
         }
@@ -330,10 +338,25 @@ public final class McuVerification {
         eq(0x34, restoredBus.read(0xc3, 1)[0], "DS1302 RAM survives a save");
     }
 
+    private static void formerAnalogIsRam() {
+        // Exercise real MOVX instructions and saved XRAM, rather than only checking the bus fallback.
+        var program = new java.util.ArrayList<Integer>();
+        for (int i = 0; i < 16; i++) program.addAll(List.of(0x90, 0xF0, i < 8 ? i : i + 8, 0x74, 0xA0 + i, 0xF0));
+        for (int i = 0; i < 16; i++) program.addAll(List.of(0x90, 0xF0, i < 8 ? i : i + 8, 0xE0, 0xF5, 0x30 + i));
+        byte[] code = image(program.stream().mapToInt(Integer::intValue).toArray());
+        Mcs51 cpu = new Mcs51(new BoardHardware()); cpu.install(code); steps(cpu, 48);
+        Mcs51 restored = new Mcs51(new BoardHardware()); restored.install(code); restored.restore(cpu.save());
+        steps(cpu, 48); steps(restored, 48);
+        for (int i = 0; i < 16; i++) {
+            eq(0xA0 + i, cpu.inspectRam(0x30 + i), "Former ADC/DAC bytes read their own XRAM writes");
+            eq(0xA0 + i, restored.inspectRam(0x30 + i), "Former ADC/DAC bytes persist as ordinary XDATA");
+        }
+    }
+
     public static void main(String[] args) throws Exception {
         Ds18b20Verification.run();
         hex(); opcodes(); arithmetic(); timers(); peripherals(); persistence(); connectorsAndI2c(); examples(); disassembly();
-        pcf8591Bus();
+        formerAnalogIsRam(); pcf8591Bus();
         ds1302Bus();
         System.out.println("MCU verification passed: " + checks + " checks");
     }

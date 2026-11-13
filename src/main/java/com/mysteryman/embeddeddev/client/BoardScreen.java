@@ -232,7 +232,6 @@ public final class BoardScreen extends Screen implements DeviceStateScreen {
         int cw = (w - 28) / 3;
         for (int i = 0; i < 6; i++) {
             int face = FACE_ORDER[i], cx = x + 10 + (i % 3) * (cw + 4), cy = y + 52 + (i / 3) * 74;
-            FaceBinding binding = bindings[face];
             g.drawString(font, faceName(face), cx + 5, cy + 3, 0xFF43D9BC, false);
             int count = groups.get(face).stream().mapToInt(group -> group.binding().pins().size()).sum();
             long connectedGroups = groups.get(face).stream().filter(group -> !group.binding().pins().isEmpty()).count();
@@ -242,14 +241,6 @@ public final class BoardScreen extends Screen implements DeviceStateScreen {
             String pins = count == 0 ? "—" : labels.toString();
             g.drawString(font, font.plainSubstrByWidth(pins, cw - 10), cx + 5, cy + 27, 0xFFA4B8C6, false);
             String info = state.getString("Device" + face);
-            if (info.isEmpty()) {
-                for (FaceBinding.Pin pin : binding.pins()) {
-                    if (pin.kind() != FaceBinding.Kind.ANALOG_INPUT) continue;
-                    int[] adc = state.getIntArray("ADC");
-                    if (pin.channel() < adc.length) info = pin.channelName() + " = " + adc[pin.channel()];
-                    break;
-                }
-            }
             if (info.isEmpty() && count > 0) {
                 int[] output = state.getIntArray("Output");
                 if (output.length == 6) info = Component.translatable("gui.embeddeddev.signal", output[face]).getString();

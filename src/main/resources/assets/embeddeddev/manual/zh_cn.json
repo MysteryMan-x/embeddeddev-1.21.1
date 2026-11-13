@@ -332,7 +332,7 @@
         },
         {
           "type": "text",
-          "text": "CPU 状态、RAM、固件、DAC 和接线随主板存档。区块卸载时 CPU 暂停，不补跑离线时间。破坏主板会回收相关线缆，但掉落的主板不保留程序和 RAM；晶振随主板物品保存。"
+          "text": "CPU 状态、RAM、固件和接线随主板存档。区块卸载时 CPU 暂停，不补跑离线时间。破坏主板会回收相关线缆，但掉落的主板不保留程序和 RAM；晶振随主板物品保存。"
         },
         {
           "type": "tip",
@@ -374,16 +374,6 @@
               "GPIO",
               "P0.0–P3.7",
               "按钮、LED、I²C、1-Wire、数码管"
-            ],
-            [
-              "ADC",
-              "ADC0–ADC7",
-              "输入红石强度 0–15"
-            ],
-            [
-              "DAC",
-              "DAC0–DAC7",
-              "输出红石强度 0–15"
             ]
           ]
         },
@@ -409,12 +399,12 @@
         },
         {
           "type": "tip",
-          "text": "GPIO 同时负责输入与输出，不需要切换数字输入/输出模式。读取外部输入前，先把对应端口锁存位置 1，释放引脚。清空线组会拆除并回收该组的线。"
+          "text": "GPIO 同时负责输入与输出，不需要切换数字输入/输出模式。读取外部输入前，先把对应端口锁存位置 1，释放引脚。清空线组会拆除并回收该组的线。模拟输入和输出请接独立 PCF8591。"
         },
         {
           "type": "link",
-          "target": "analog_extension",
-          "text": "ADC/DAC 扩展的地址、配置与完整实验 >"
+          "target": "analog_io",
+          "text": "模拟量芯片与完整实验 >"
         },
         {
           "type": "link",
@@ -425,265 +415,127 @@
       "keywords": "pins"
     },
     {
-      "id": "analog_extension",
+      "id": "analog_io",
       "category": "develop",
-      "icon": "embeddeddev:redstone_port",
-      "title": "主板 ADC/DAC 扩展",
-      "subtitle": "8 路红石输入 + 8 路红石输出",
+      "icon": "embeddeddev:pcf8591",
+      "title": "模拟量与外部芯片",
+      "subtitle": "GPIO 负责数字电平，PCF8591 负责 ADC / DAC",
       "blocks": [
         {
           "type": "heading",
-          "text": "先分清芯片和开发板扩展"
+          "text": "STC89C52RC 不带 ADC / DAC"
         },
         {
           "type": "tip",
-          "text": "STC89C52RC 本身没有 ADC，也没有 DAC。本模组在开发板外部提供虚拟红石采样/输出设备，通过 MOVX 访问 XDATA 窗口。它们不是 STC 的片内寄存器，也不是 PCF8591 芯片。"
-        },
-        {
-          "type": "text",
-          "text": "每块主板独立拥有 ADC0–ADC7 与 DAC0–DAC7。通道和世界方向没有固定关系：在六面端子中选择方向、G1–G4 线组及通道，决定它接到哪里。ADC0 不是 P1.0，DAC1 也不是 P1.1；它们不占用 MCU 的 32 根 GPIO。"
-        },
-        {
-          "type": "heading",
-          "text": "全部通道地址"
+          "text": "1.10.0 起删除主板虚拟 ADC 和 DAC。主板端子只绑定 P0.0–P3.7 GPIO，既能输入也能输出，不需要切换数字方向。读取红石强度或输出 0–15 模拟红石，请接独立 PCF8591 芯片。"
         },
         {
           "type": "table",
           "rows": [
             [
-              "通道",
-              "ADC 只读地址",
-              "DAC 读写地址"
+              "接口",
+              "读入 / 输出约定"
             ],
             [
-              "0",
-              "F000H",
-              "F010H"
+              "GPIO → 红石接口",
+              "输入：0 为低、非零为高；输出：0 或 15"
             ],
             [
-              "1",
-              "F001H",
-              "F011H"
+              "PCF8591 AIN0–3",
+              "北、东、南、西；红石强度乘 17 得到 0–255"
             ],
             [
-              "2",
-              "F002H",
-              "F012H"
-            ],
-            [
-              "3",
-              "F003H",
-              "F013H"
-            ],
-            [
-              "4",
-              "F004H",
-              "F014H"
-            ],
-            [
-              "5",
-              "F005H",
-              "F015H"
-            ],
-            [
-              "6",
-              "F006H",
-              "F016H"
-            ],
-            [
-              "7",
-              "F007H",
-              "F017H"
-            ]
-          ],
-          "id": "analog_map"
-        },
-        {
-          "type": "text",
-          "text": "公式：ADCn 地址为 F000H+n，DACn 地址为 F010H+n，n=0–7。它们是 16 位 XDATA 地址，必须用 MOVX，或 Keil C51 的 xdata 指针 / XBYTE。普通直接寻址 MOV 和普通 data 指针不会访问到这些设备。"
-        },
-        {
-          "type": "heading",
-          "text": "数值与转换时机"
-        },
-        {
-          "type": "table",
-          "rows": [
-            [
-              "项目",
-              "实际行为"
-            ],
-            [
-              "ADC 范围",
-              "0–15，读取结果的高四位为 0"
-            ],
-            [
-              "DAC 范围",
-              "0–15，写 16–255 均限制为 15"
-            ],
-            [
-              "换算示例",
-              "红石 7 → ADC 读 07H；DAC 写 0AH → 红石 10"
-            ],
-            [
-              "分辨率",
-              "16 级红石强度，不是 0–5 V 或 0–255 电压"
-            ],
-            [
-              "采样",
-              "每游戏 tick 更新，20 TPS 时约每 50 ms"
-            ],
-            [
-              "控制寄存器",
-              "无：不需要启动位、忙位、完成位或 ADC 中断"
+              "PCF8591 AOUT",
+              "芯片上面输出 0–15；控制字 bit6 使能"
             ]
           ]
         },
         {
-          "type": "text",
-          "text": "选好模拟输入后，开发板自动采样，程序直接读取地址即可。向 ADC 地址写入不能改变采样结果。DAC 写入后保持该值，直到程序改写、复位或烧录。短于一个 tick 的输入脉冲可能漏采。"
-        },
-        {
           "type": "heading",
-          "text": "实验：远程 ADC0 → DAC1"
+          "text": "实验：PCF8591 输入转发到输出"
         },
         {
           "type": "text",
-          "text": "材料：主板、两个红石接口模块、线卷、一个可调红石源和一个输出设备。下列东面 G2 输入、西面 G3 输出只是示例，可替换成其他方向和线组。"
-        },
-        {
-          "type": "table",
-          "rows": [
-            [
-              "位置",
-              "标号 / 用途 / 通道"
-            ],
-            [
-              "主板东面 G2",
-              "VIN / 模拟输入 ADC / ADC0"
-            ],
-            [
-              "主板西面 G3",
-              "VOUT / 模拟输出 DAC / DAC1"
-            ],
-            [
-              "输入红石接口",
-              "输入模式，红石侧朝向信号源"
-            ],
-            [
-              "输出红石接口",
-              "输出模式，红石侧朝向目标设备"
-            ]
-          ]
-        },
-        {
-          "type": "text",
-          "text": "1. 主板右键 → 六面端子 → 东面 → 管理引脚 → 选 G2 → 添加引脚。名字填 VIN，用途选模拟输入 ADC，选 ADC0，保存并应用。西面 G3 同样添加 VOUT，选模拟输出 DAC 和 DAC1。"
-        },
-        {
-          "type": "text",
-          "text": "2. 信号源旁放一个红石接口，设置输入，红石侧朝向信号源。目标设备旁再放一个接口，设置输出，红石侧朝向设备。这里输入/输出都相对主板而言，最后点应用。"
+          "text": "材料：开发板、PCF8591、线卷、可调红石源和输出设备。主板任选一个方向和 G1–G4 线组，添加 SDA=P1.6、SCL=P1.7 两根 GPIO，应用后用线卷连接 PCF8591。模块默认七位地址 48H，写地址字节 90H、读地址字节 91H。"
         },
         {
           "type": "wiring",
-          "id": "embeddeddev:redstone_port",
+          "id": "embeddeddev:pcf8591",
           "labels": [
-            "ADC0|SIGNAL"
-          ]
-        },
-        {
-          "type": "wiring",
-          "id": "embeddeddev:redstone_port",
-          "labels": [
-            "DAC1|SIGNAL"
+            "P1.6|SDA",
+            "P1.7|SCL"
           ]
         },
         {
           "type": "text",
-          "text": "3. 用线卷把东面 G2 接到输入接口，西面 G3 接到输出接口。接口只有一个 SIGNAL 端子，单通道会自动配对，VIN/VOUT 是便于识别的名字。先应用主板引脚再接线，确认接线一览中两个接口均已连接。"
+          "text": "把红石源放在 PCF8591 北面，接 AIN0；目标设备放在芯片上面，接 AOUT。烧录 examples/pcf8591_mirror.hex 并运行。输入 0、7、15 时，AOUT 应分别输出 0、7、15。默认晶振即可，示例通过 GPIO 位操作执行软件 I²C。"
         },
         {
           "type": "heading",
-          "text": "4 · 完整 Keil C51 程序"
+          "text": "Keil C51 驱动顺序"
+        },
+        {
+          "type": "text",
+          "text": "下列程序与 examples/pcf8591_mirror.c 相同，项目还需包含 examples/i2c_soft.h。首个读数是上次转换值，必须先丢弃并 ACK，再读当前值并 NACK。40H 控制字选择单端 AIN0，并使能 AOUT。"
         },
         {
           "type": "code",
-          "text": "#include <REG52.H>\n#include <absacc.h>\n\n#define ADC0 XBYTE[0xF000]\n#define DAC1 XBYTE[0xF011]\n\nvoid main(void) {\n    DAC1 = 0;\n    while (1) {\n        DAC1 = ADC0;\n    }\n}"
+          "text": "#include \"i2c_soft.h\"\nunsigned char data sample _at_ 0x30;\nvoid main(void) {\n    P1 = 0xC0;\n    while (1) {\n        i2c_start(); i2c_write(0x90); i2c_write(0x40);\n        i2c_start(); i2c_write(0x91);\n        i2c_read(1); /* stale byte, ACK */\n        sample = i2c_read(0); /* fresh byte, NACK */\n        i2c_stop();\n        i2c_start(); i2c_write(0x90);\n        i2c_write(0x40); i2c_write(sample);\n        i2c_stop();\n    }\n}"
         },
         {
           "type": "text",
-          "text": "也可以烧录 adc_mirror.hex，使用默认晶振即可。它读取 ADC0 并写入 DAC1。输入调为 0、7、15，输出也应分别为 0、7、15。没有输出时先点运行，再检查接口模式、红石侧和线组。"
-        },
-        {
-          "type": "heading",
-          "text": "汇编访问方法"
-        },
-        {
-          "type": "code",
-          "text": "LOOP:\nMOV DPTR,#0F000H ; ADC0 address\nMOVX A,@DPTR     ; A = 0..15\nMOV DPTR,#0F011H ; DAC1 address\nMOVX @DPTR,A     ; same output level\nSJMP LOOP"
-        },
-        {
-          "type": "heading",
-          "text": "相邻连接与多路规则"
-        },
-        {
-          "type": "text",
-          "text": "不拉线时，可在主板某方向 G1 绑定 ADC，从该面相邻红石取样；G1 绑定 DAC 时向该面输出。G2–G4 需要用线缆接到接口，不能直接当作该面的本地红石。"
-        },
-        {
-          "type": "text",
-          "text": "多个输入绑同一 ADC 通道时取最大强度，不是求和或平均。同一 DAC 通道可驱动多个输出，数值相同。若一个本地 G1 面绑定多个 DAC，该面取这些通道的最大值。各通道仍有独立地址。"
-        },
-        {
-          "type": "heading",
-          "text": "停止、复位与保存"
-        },
-        {
-          "type": "table",
-          "rows": [
-            [
-              "操作 / 状态",
-              "结果"
-            ],
-            [
-              "停止或单步暂停",
-              "DAC 值可保留，但红石输出为 0；运行后重新驱动"
-            ],
-            [
-              "复位或成功烧录",
-              "DAC 清零；接线配置保留"
-            ],
-            [
-              "保存与加载",
-              "DAC 数值及接线随主板保存"
-            ],
-            [
-              "未绑定 ADC",
-              "采样刷新后读 0"
-            ],
-            [
-              "区块卸载或线路离线",
-              "不跨未加载区块传输"
-            ]
-          ]
+          "text": "PCF8591 的 DAC 字节范围为 0–255，按 (值×15+127)/255 四舍五入为红石强度。把 sample 改为 170 即输出强度 10。若无需输出，把控制字 bit6 清零。芯片的转换器状态随模块存档，不保存在主板里；主板停止后不再发指令，AOUT 会保持芯片最后收到的值，需在程序停止前写 0 或禁用输出。"
         },
         {
           "type": "tip",
-          "text": "这些设备窗口覆盖普通 XDATA。不要把普通 xdata 变量、数组或启动清零区放到 F000H–F017H，也不要套用其他 STC 型号的 ADCCON/ADCDATA 初始化。没有固定 ADC 引脚，也无需 SFR 使能。"
+          "text": "PCF8591 与环境传感器都默认使用 48H。若共用 SDA/SCL，把 PCF8591 潜行空手右键改为 49H，并把程序地址字节改为 92H / 93H；也可以改用另一组独立 GPIO 总线。OLED 默认 3CH，可以共用总线。"
+        },
+        {
+          "type": "heading",
+          "text": "内存地址与旧存档"
+        },
+        {
+          "type": "table",
+          "rows": [
+            [
+              "地址",
+              "1.10.0 起的含义"
+            ],
+            [
+              "F000H–F007H",
+              "普通 XDATA RAM，旧 ADC 窗口已释放"
+            ],
+            [
+              "F010H–F017H",
+              "普通 XDATA RAM，旧 DAC 窗口已释放"
+            ],
+            [
+              "48H–4FH",
+              "PCF8591 的 I²C 总线地址，不是内存地址"
+            ]
+          ]
+        },
+        {
+          "type": "text",
+          "text": "两个虚拟模拟量窗口共释放 16 字节，不占 Flash、IDATA 或 SFR。独立 PCF8591 也不保留 MCU 内存窗口，但需用 GPIO 和固件执行 I²C。现有 OLED MOVX 桥接仍保留 F020H 与 F100H–F4FFH；普通 xdata 数组及启动清零区仍应避开这些 OLED 地址。"
+        },
+        {
+          "type": "text",
+          "text": "旧存档仅删除 ADC/DAC 引脚，保留其他 GPIO 的名字、通道、线组及连线编号。检测到旧模拟引脚的主板会暂停，保留固件和 CPU/RAM。旧模拟线对会失效，可剪线回收后重接；不会自动把 ADC/DAC 改接到 GPIO。使用旧 adc_mirror.hex 或直接访问两个旧窗口的固件必须修改后再运行。"
         },
         {
           "type": "link",
           "target": "adc",
-          "text": "需要独立 I²C 芯片？看 PCF8591 >"
+          "text": "PCF8591 全部控制字与通道模式 >"
         },
         {
           "type": "link",
-          "target": "redstone",
-          "text": "红石接口模式和方向 >"
+          "target": "xdata",
+          "text": "仍保留的 OLED 内存窗口 >"
         }
       ],
       "items": [],
-      "keywords": "analog_extension"
+      "keywords": "analog_io"
     },
     {
       "id": "cables",
@@ -865,15 +717,16 @@
         },
         {
           "type": "heading",
-          "text": "访问扩展模拟量"
+          "text": "模拟量使用独立芯片"
         },
         {
-          "type": "code",
-          "text": "#include <absacc.h>\nunsigned char level;\nlevel = XBYTE[0xF000];\nXBYTE[0xF010] = level;"
+          "type": "link",
+          "target": "analog_io",
+          "text": "PCF8591 模拟量实验与完整 C51 程序 >"
         },
         {
           "type": "text",
-          "text": "F000H 是虚拟 ADC0，F010H 是虚拟 DAC0，范围都是 0–15。它们属于本模组的 XDATA 扩展，并非 STC89C52 内置 ADC/DAC。可以使用 MOVX 或 Keil 的 XBYTE 访问。"
+          "text": "主板不提供 ADC/DAC，旧 F000H–F007H 与 F010H–F017H 都已恢复为普通 XDATA RAM。使用独立 PCF8591，通过 SDA/SCL 软件 I²C 读取转换值、发送控制字和 DAC 数据。先运行 pcf8591_mirror.hex 验证，再修改 C 源码。"
         },
         {
           "type": "tip",
@@ -1288,12 +1141,12 @@
       "blocks": [
         {
           "type": "tip",
-          "text": "PCF8591 使用 SDA/SCL，有 4 路 8 位 ADC 和 1 路 DAC，七位 I²C 地址为 48H–4FH。主板虚拟扩展使用 MOVX，有 8 路 ADC 和 8 路 DAC，XDATA 地址从 F000H/F010H 起，直接用 0–15。两种驱动不能混用。"
+          "text": "PCF8591 使用 SDA/SCL，有 4 路 8 位 ADC 和 1 路 DAC，七位 I²C 地址为 48H–4FH，不占 MCU 的 XDATA 或 SFR。STC89C52 本身没有 ADC/DAC，1.10.0 起主板虚拟转换器也已移除，模拟量统一使用独立芯片。"
         },
         {
           "type": "link",
-          "target": "analog_extension",
-          "text": "主板引脚界面的 ADC0–7 怎么用？ >"
+          "target": "analog_io",
+          "text": "完整 ADC → DAC 实验与 C51 程序 >"
         },
         {
           "type": "recipe",
@@ -1313,7 +1166,7 @@
         },
         {
           "type": "text",
-          "text": "红石输入强度 0–15 映射为 0–255，即每级乘 17。DAC 把 0–255 换算为 0–15 红石输出。与主板自带的虚拟 ADC/DAC 通道不同，这个芯片通过真实的 GPIO I²C 事务控制。"
+          "text": "红石输入强度 0–15 映射为 0–255，即每级乘 17。DAC 把 0–255 换算为 0–15 红石输出。这个芯片通过 GPIO 软件 I²C 事务控制，不是读写主板的 MOVX 地址。"
         },
         {
           "type": "table",
@@ -1498,7 +1351,7 @@
         },
         {
           "type": "text",
-          "text": "i2c_sensor.hex 按图中 P1.6/P1.7 读取寄存器 00H，再写入主板虚拟 DAC0。另选一组绑定 DAC0 并连接红石输出接口，就能把模块周围的红石强度转发到远处。"
+          "text": "i2c_sensor.hex 用 P1.6/P1.7 读取寄存器 00H，保存到 IDATA 30H；非零时拉高 P1.2，为零时拉低。另一线组添加 LED=P1.2 并连接 LED 模块，即可查看数字指示。需要模拟输出时另接 PCF8591。"
         },
         {
           "type": "tip",
@@ -1539,30 +1392,21 @@
               "数字输出",
               "GPIO",
               "0 或 15 红石"
-            ],
-            [
-              "模拟输入",
-              "ADC0–7",
-              "红石 0–15"
-            ],
-            [
-              "模拟输出",
-              "DAC0–7",
-              "红石 0–15"
             ]
           ]
         },
         {
           "type": "heading",
-          "text": "一个模拟量转发实验"
+          "text": "读取模拟强度"
         },
         {
           "type": "text",
-          "text": "输入接口选择输入与取样侧，接主板 ADC0；输出接口选择输出与驱动侧，接主板 DAC1。烧录 adc_mirror.hex。它把 F000H 读到的强度写到 F011H，实现从 ADC0 到 DAC1 的转发。"
+          "text": "红石接口的输入只提供数字低 / 高电平；它不再连接主板 ADC。需要区分 0–15 强度时，改用 PCF8591：SDA=P1.6、SCL=P1.7，默认地址 48H。在芯片北面给 AIN0 输入红石，烧录 pcf8591_mirror.hex，可从芯片上面 AOUT 输出相同强度。"
         },
         {
-          "type": "code",
-          "text": "#include <REG52.H>\n#include <absacc.h>\nvoid main(void) {\n    while (1)\n        XBYTE[0xF011] = XBYTE[0xF000];\n}"
+          "type": "link",
+          "target": "adc",
+          "text": "PCF8591 的地址、控制字和读写顺序 >"
         },
         {
           "type": "text",
@@ -1713,7 +1557,7 @@
         {
           "type": "link",
           "target": "xdata",
-          "text": "虚拟 ADC/DAC 与 OLED 地址表 >"
+          "text": "OLED 的 XDATA 保留地址表 >"
         }
       ],
       "keywords": "memory"
@@ -1814,8 +1658,8 @@
       "blocks": [
         {
           "type": "link",
-          "target": "analog_extension",
-          "text": "ADC/DAC 全部地址、配置步骤与完整程序 >"
+          "target": "analog_io",
+          "text": "ADC/DAC 已改用独立芯片 >"
         },
         {
           "type": "table",
@@ -1824,16 +1668,6 @@
               "XDATA 地址",
               "读写",
               "内容"
-            ],
-            [
-              "F000H–F007H",
-              "只读",
-              "ADC0–7，0–15"
-            ],
-            [
-              "F010H–F017H",
-              "读写",
-              "DAC0–7，写入限制为 0–15"
             ],
             [
               "F020H",
@@ -1849,11 +1683,15 @@
         },
         {
           "type": "text",
+          "text": "F000H–F007H 和 F010H–F017H 从 1.10.0 起恢复为普通 XDATA RAM，不再保留 ADC/DAC 窗口。PCF8591 的 48H–4FH 是独立 I²C 总线地址，不是 MCU 内存地址，不占 Flash、IDATA 或 SFR；同一总线上多个模块应选不同地址。"
+        },
+        {
+          "type": "text",
           "text": "这些地址是本模组定义的设备窗口，会覆盖对应的普通 XDATA 字节。F020H 写 bit0 控制显示开关，写 bit1 为 1 请求清屏。OLED 桥接需要先通过 SDA/SCL 连接到实际模块。"
         },
         {
           "type": "code",
-          "text": "#include <absacc.h>\nXBYTE[0xF010] = 15; /* DAC0 */\nXBYTE[0xF020] = 3;  /* on + clear */\nXBYTE[0xF100] = 0xFF;"
+          "text": "#include <absacc.h>\nXBYTE[0xF020] = 3;  /* on + clear */\nXBYTE[0xF100] = 0xFF;"
         },
         {
           "type": "tip",
@@ -2040,8 +1878,8 @@
               "GPIO P1.2 → 红石数字输出"
             ],
             [
-              "adc_mirror.hex",
-              "ADC0 输入 → DAC1 输出"
+              "pcf8591_mirror.hex",
+              "PCF8591 地址 48H，SDA=P1.6 / SCL=P1.7；AIN0 → AOUT"
             ],
             [
               "i2c_oled_hello.hex",
@@ -2053,7 +1891,7 @@
             ],
             [
               "i2c_sensor.hex",
-              "SDA=P1.6 / SCL=P1.7，结果到 DAC0"
+              "SDA=P1.6 / SCL=P1.7；LED=P1.2"
             ],
             [
               "ds18b20_read.hex",
@@ -2214,7 +2052,7 @@
         },
         {
           "type": "text",
-          "text": "红石接口可以连接接受原版红石的科技模组组件，例如机械动力的离合器和红石链路。先在目标组件中确认红石启停含义，再选择数字 GPIO 或模拟 DAC 输出。主板不直接改写 Create 的内部转速。"
+          "text": "红石接口可以连接接受原版红石的科技模组组件，例如机械动力的离合器和红石链路。先在目标组件中确认红石启停含义，数字控制用 GPIO，模拟输出用 PCF8591 AOUT。主板不直接改写 Create 的内部转速。"
         },
         {
           "type": "heading",

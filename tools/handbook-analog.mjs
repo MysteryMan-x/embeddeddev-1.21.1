@@ -1,39 +1,25 @@
-/** Original board-expansion chapter; keep its addresses distinct from the PCF8591. */
+/** External analog conversion, separate from the MCU memory map. */
 export function addAnalogEntry({entry,h,p,tip,table,wire,code,link}) {
- const addresses=table(
-  [['通道','ADC 只读地址','DAC 读写地址'],...Array.from({length:8},(_,i)=>[String(i),'F00'+i+'H','F01'+i+'H'])],
-  [['Channel','ADC read address','DAC read/write'],...Array.from({length:8},(_,i)=>[String(i),'F00'+i+'H','F01'+i+'H'])]);
- addresses.id='analog_map';
- entry('analog_extension','develop','redstone_port',['主板 ADC/DAC 扩展','Board ADC/DAC expansion'],
-  ['8 路红石输入 + 8 路红石输出','8 redstone inputs and 8 outputs'],[
-  h('先分清芯片和开发板扩展','The MCU and its board expansion'),
-  tip('STC89C52RC 本身没有 ADC，也没有 DAC。本模组在开发板外部提供虚拟红石采样/输出设备，通过 MOVX 访问 XDATA 窗口。它们不是 STC 的片内寄存器，也不是 PCF8591 芯片。','The STC89C52RC has no built-in ADC or DAC. This mod provides virtual redstone sampling/output devices accessed through MOVX in XDATA. They are not STC internal registers or the PCF8591 chip.'),
-  p('每块主板独立拥有 ADC0–ADC7 与 DAC0–DAC7。通道和世界方向没有固定关系：在六面端子中选择方向、G1–G4 线组及通道，决定它接到哪里。ADC0 不是 P1.0，DAC1 也不是 P1.1；它们不占用 MCU 的 32 根 GPIO。','Each board owns ADC0–ADC7 and DAC0–DAC7. Choose a face, G1–G4 group and channel in the terminal editor; no channel has a fixed world direction. ADC0 is not P1.0 and DAC1 is not P1.1. These devices do not consume the 32 GPIO pins.'),
-  h('全部通道地址','Every channel address'),addresses,
-  p('公式：ADCn 地址为 F000H+n，DACn 地址为 F010H+n，n=0–7。它们是 16 位 XDATA 地址，必须用 MOVX，或 Keil C51 的 xdata 指针 / XBYTE。普通直接寻址 MOV 和普通 data 指针不会访问到这些设备。','ADCn is at F000H+n and DACn at F010H+n, for n=0–7. These are 16-bit XDATA addresses. Use MOVX, a C51 xdata pointer or XBYTE. Ordinary direct MOV or a data pointer does not reach these devices.'),
-  h('数值与转换时机','Values and sampling'),
-  table([['项目','实际行为'],['ADC 范围','0–15，读取结果的高四位为 0'],['DAC 范围','0–15，写 16–255 均限制为 15'],['换算示例','红石 7 → ADC 读 07H；DAC 写 0AH → 红石 10'],['分辨率','16 级红石强度，不是 0–5 V 或 0–255 电压'],['采样','每游戏 tick 更新，20 TPS 时约每 50 ms'],['控制寄存器','无：不需要启动位、忙位、完成位或 ADC 中断']],
-   [['Item','Actual behavior'],['ADC range','0–15; upper four bits read zero'],['DAC range','0–15; byte writes 16–255 clamp to 15'],['Examples','Redstone 7 reads 07H; writing 0AH outputs 10'],['Resolution','16 redstone levels, not 0–5 V or 0–255 voltage'],['Sampling','Once per game tick; about 50 ms at 20 TPS'],['Control registers','None: no start, busy, done flag or ADC interrupt']]),
-  p('选好模拟输入后，开发板自动采样，程序直接读取地址即可。向 ADC 地址写入不能改变采样结果。DAC 写入后保持该值，直到程序改写、复位或烧录。短于一个 tick 的输入脉冲可能漏采。','Once analog input is configured, sampling is automatic and firmware reads the address directly. ADC writes do not change its sampled value. A DAC holds its value until rewritten, reset or flashing. Input pulses shorter than a tick may be missed.'),
-  h('实验：远程 ADC0 → DAC1','Experiment: remote ADC0 to DAC1'),
-  p('材料：主板、两个红石接口模块、线卷、一个可调红石源和一个输出设备。下列东面 G2 输入、西面 G3 输出只是示例，可替换成其他方向和线组。','Bring a board, two redstone connectors, a coil, a variable redstone source and an output device. East G2 input and west G3 output below are examples; other faces and groups work too.'),
-  table([['位置','标号 / 用途 / 通道'],['主板东面 G2','VIN / 模拟输入 ADC / ADC0'],['主板西面 G3','VOUT / 模拟输出 DAC / DAC1'],['输入红石接口','输入模式，红石侧朝向信号源'],['输出红石接口','输出模式，红石侧朝向目标设备']],
-   [['Location','Label / kind / channel'],['Board east G2','VIN / Analog input ADC / ADC0'],['Board west G3','VOUT / Analog output DAC / DAC1'],['Input connector','Input mode; redstone side faces the source'],['Output connector','Output mode; redstone side faces the target']]),
-  p('1. 主板右键 → 六面端子 → 东面 → 管理引脚 → 选 G2 → 添加引脚。名字填 VIN，用途选模拟输入 ADC，选 ADC0，保存并应用。西面 G3 同样添加 VOUT，选模拟输出 DAC 和 DAC1。','1. Open the board, Six-face terminals, east, Manage pins, G2, Add pin. Name it VIN, select Analog input ADC and ADC0, save and Apply. On west G3 add VOUT with Analog output DAC and DAC1.'),
-  p('2. 信号源旁放一个红石接口，设置输入，红石侧朝向信号源。目标设备旁再放一个接口，设置输出，红石侧朝向设备。这里输入/输出都相对主板而言，最后点应用。','2. Place a connector beside the source, set Input and face its redstone side toward the source. Place another beside the target, set Output and face it toward the device. Direction is relative to the board. Apply each setting.'),
-  wire('redstone_port','ADC0|SIGNAL'),wire('redstone_port','DAC1|SIGNAL'),
-  p('3. 用线卷把东面 G2 接到输入接口，西面 G3 接到输出接口。接口只有一个 SIGNAL 端子，单通道会自动配对，VIN/VOUT 是便于识别的名字。先应用主板引脚再接线，确认接线一览中两个接口均已连接。','3. Wire east G2 to the input connector and west G3 to the output connector. A connector has one SIGNAL terminal, so a single channel pairs automatically. VIN/VOUT are descriptive labels. Apply pins before wiring and confirm both routes are connected.'),
-  h('4 · 完整 Keil C51 程序','4 · Complete Keil C51 program'),
-  code('#include <REG52.H>\n#include <absacc.h>\n\n#define ADC0 XBYTE[0xF000]\n#define DAC1 XBYTE[0xF011]\n\nvoid main(void) {\n    DAC1 = 0;\n    while (1) {\n        DAC1 = ADC0;\n    }\n}'),
-  p('也可以烧录 adc_mirror.hex，使用默认晶振即可。它读取 ADC0 并写入 DAC1。输入调为 0、7、15，输出也应分别为 0、7、15。没有输出时先点运行，再检查接口模式、红石侧和线组。','Alternatively run adc_mirror.hex with the default crystal. It reads ADC0 and writes DAC1. Inputs 0, 7 and 15 should produce outputs 0, 7 and 15. If output is absent, check Run, connector modes, redstone sides and groups.'),
-  h('汇编访问方法','Assembly access'),
-  code('LOOP:\nMOV DPTR,#0F000H ; ADC0 address\nMOVX A,@DPTR     ; A = 0..15\nMOV DPTR,#0F011H ; DAC1 address\nMOVX @DPTR,A     ; same output level\nSJMP LOOP'),
-  h('相邻连接与多路规则','Adjacent and multi-channel rules'),
-  p('不拉线时，可在主板某方向 G1 绑定 ADC，从该面相邻红石取样；G1 绑定 DAC 时向该面输出。G2–G4 需要用线缆接到接口，不能直接当作该面的本地红石。','Without cables, G1 ADC samples adjacent redstone on its face and G1 DAC drives that face. G2–G4 require cabled connectors; they do not directly sample or emit local redstone on that face.'),
-  p('多个输入绑同一 ADC 通道时取最大强度，不是求和或平均。同一 DAC 通道可驱动多个输出，数值相同。若一个本地 G1 面绑定多个 DAC，该面取这些通道的最大值。各通道仍有独立地址。','Inputs sharing an ADC combine by maximum, not sum or average. Outputs sharing a DAC mirror its value. A local G1 face with multiple DACs emits their maximum. Channels still have independent addresses.'),
-  h('停止、复位与保存','Stop, reset and saving'),
-  table([['操作 / 状态','结果'],['停止或单步暂停','DAC 值可保留，但红石输出为 0；运行后重新驱动'],['复位或成功烧录','DAC 清零；接线配置保留'],['保存与加载','DAC 数值及接线随主板保存'],['未绑定 ADC','采样刷新后读 0'],['区块卸载或线路离线','不跨未加载区块传输']],
-   [['Action / state','Result'],['Stopped or stepping','DAC can retain its value; redstone is 0 until Run'],['Reset or successful flash','DAC clears; wiring remains'],['Save and reload','DAC values and wiring persist'],['Unassigned ADC','Reads 0 after sampling refresh'],['Unloaded or offline','No signal through unloaded chunks']]),
-  tip('这些设备窗口覆盖普通 XDATA。不要把普通 xdata 变量、数组或启动清零区放到 F000H–F017H，也不要套用其他 STC 型号的 ADCCON/ADCDATA 初始化。没有固定 ADC 引脚，也无需 SFR 使能。','These windows override ordinary XDATA. Keep normal variables, arrays and startup clearing away from F000H–F017H. Do not use other STC models ADCCON/ADCDATA initialization. No fixed ADC pin or SFR enable is required.'),
-  link('adc','需要独立 I²C 芯片？看 PCF8591 >','Need a separate I²C chip? See PCF8591 >'),link('redstone','红石接口模式和方向 >','Connector modes and directions >')],[]);
+ entry('analog_io','develop','pcf8591',['模拟量与外部芯片','Analog signals and external chips'],
+  ['GPIO 负责数字电平，PCF8591 负责 ADC / DAC','Digital GPIO; external PCF8591 ADC / DAC'],[
+  h('STC89C52RC 不带 ADC / DAC','The STC89C52RC has no ADC / DAC'),
+  tip('1.10.0 起删除主板虚拟 ADC 和 DAC。主板端子只绑定 P0.0–P3.7 GPIO，既能输入也能输出，不需要切换数字方向。读取红石强度或输出 0–15 模拟红石，请接独立 PCF8591 芯片。','Since 1.10.0, board virtual ADC and DAC are removed. Board terminals bind P0.0–P3.7 GPIO for both input and output, without a digital direction selector. Use an external PCF8591 to read redstone strength or emit analog redstone 0–15.'),
+  table([['接口','读入 / 输出约定'],['GPIO → 红石接口','输入：0 为低、非零为高；输出：0 或 15'],['PCF8591 AIN0–3','北、东、南、西；红石强度乘 17 得到 0–255'],['PCF8591 AOUT','芯片上面输出 0–15；控制字 bit6 使能']],
+   [['Interface','Input / output'],['GPIO to redstone connector','Input: zero low, nonzero high; output: 0 or 15'],['PCF8591 AIN0–3','North, east, south, west; redstone strength times 17 gives 0–255'],['PCF8591 AOUT','Upward output 0–15; enable with control bit 6']]),
+  h('实验：PCF8591 输入转发到输出','Experiment: PCF8591 input to output'),
+  p('材料：开发板、PCF8591、线卷、可调红石源和输出设备。主板任选一个方向和 G1–G4 线组，添加 SDA=P1.6、SCL=P1.7 两根 GPIO，应用后用线卷连接 PCF8591。模块默认七位地址 48H，写地址字节 90H、读地址字节 91H。','Bring a board, PCF8591, coil, variable redstone source and output device. On any board face and G1–G4 group add GPIO SDA=P1.6 and SCL=P1.7, Apply, then wire to PCF8591. Default seven-bit address is 48H: write byte 90H and read byte 91H.'),
+  wire('pcf8591','P1.6|SDA','P1.7|SCL'),
+  p('把红石源放在 PCF8591 北面，接 AIN0；目标设备放在芯片上面，接 AOUT。烧录 examples/pcf8591_mirror.hex 并运行。输入 0、7、15 时，AOUT 应分别输出 0、7、15。默认晶振即可，示例通过 GPIO 位操作执行软件 I²C。','Put the redstone source north of PCF8591 for AIN0 and the target above it for AOUT. Flash examples/pcf8591_mirror.hex and Run. Inputs 0, 7 and 15 should produce the same outputs. The default crystal works; firmware uses GPIO software I²C.'),
+  h('Keil C51 驱动顺序','Keil C51 transaction sequence'),
+  p('下列程序与 examples/pcf8591_mirror.c 相同，项目还需包含 examples/i2c_soft.h。首个读数是上次转换值，必须先丢弃并 ACK，再读当前值并 NACK。40H 控制字选择单端 AIN0，并使能 AOUT。','The following matches examples/pcf8591_mirror.c and requires examples/i2c_soft.h. Discard and ACK the previous conversion, then read and NACK the fresh value. Control 40H selects single-ended AIN0 and enables AOUT.'),
+  code('#include "i2c_soft.h"\nunsigned char data sample _at_ 0x30;\nvoid main(void) {\n    P1 = 0xC0;\n    while (1) {\n        i2c_start(); i2c_write(0x90); i2c_write(0x40);\n        i2c_start(); i2c_write(0x91);\n        i2c_read(1); /* stale byte, ACK */\n        sample = i2c_read(0); /* fresh byte, NACK */\n        i2c_stop();\n        i2c_start(); i2c_write(0x90);\n        i2c_write(0x40); i2c_write(sample);\n        i2c_stop();\n    }\n}'),
+  p('PCF8591 的 DAC 字节范围为 0–255，按 (值×15+127)/255 四舍五入为红石强度。把 sample 改为 170 即输出强度 10。若无需输出，把控制字 bit6 清零。芯片的转换器状态随模块存档，不保存在主板里；主板停止后不再发指令，AOUT 会保持芯片最后收到的值，需在程序停止前写 0 或禁用输出。','PCF8591 DAC bytes range 0–255 and map to redstone using rounded (value*15+127)/255. Send 170 instead of sample for strength 10. Clear control bit 6 to disable output. Converter state belongs to the module, not the board. Stopping the MCU sends no further commands, so AOUT holds its last value; write zero or disable it before stopping if needed.'),
+  tip('PCF8591 与环境传感器都默认使用 48H。若共用 SDA/SCL，把 PCF8591 潜行空手右键改为 49H，并把程序地址字节改为 92H / 93H；也可以改用另一组独立 GPIO 总线。OLED 默认 3CH，可以共用总线。','PCF8591 and the environment sensor both default to 48H. On one SDA/SCL bus, sneak-use PCF8591 to select 49H and change firmware address bytes to 92H/93H, or use a separate GPIO bus. OLED defaults to 3CH and may share the bus.'),
+  h('内存地址与旧存档','Memory addresses and old saves'),
+  table([['地址','1.10.0 起的含义'],['F000H–F007H','普通 XDATA RAM，旧 ADC 窗口已释放'],['F010H–F017H','普通 XDATA RAM，旧 DAC 窗口已释放'],['48H–4FH','PCF8591 的 I²C 总线地址，不是内存地址']],
+   [['Address','Meaning since 1.10.0'],['F000H–F007H','Ordinary XDATA RAM; former ADC window released'],['F010H–F017H','Ordinary XDATA RAM; former DAC window released'],['48H–4FH','PCF8591 I²C bus addresses, not memory addresses']]),
+  p('两个虚拟模拟量窗口共释放 16 字节，不占 Flash、IDATA 或 SFR。独立 PCF8591 也不保留 MCU 内存窗口，但需用 GPIO 和固件执行 I²C。现有 OLED MOVX 桥接仍保留 F020H 与 F100H–F4FFH；普通 xdata 数组及启动清零区仍应避开这些 OLED 地址。','Removing both analog windows restores 16 XDATA bytes without changing Flash, IDATA or SFR. PCF8591 reserves no MCU memory window; it needs GPIO and firmware I²C. The existing OLED MOVX bridge still reserves F020H and F100H–F4FFH. Keep ordinary xdata arrays and startup clearing outside those OLED addresses.'),
+  p('旧存档仅删除 ADC/DAC 引脚，保留其他 GPIO 的名字、通道、线组及连线编号。检测到旧模拟引脚的主板会暂停，保留固件和 CPU/RAM。旧模拟线对会失效，可剪线回收后重接；不会自动把 ADC/DAC 改接到 GPIO。使用旧 adc_mirror.hex 或直接访问两个旧窗口的固件必须修改后再运行。','Old saves discard ADC/DAC terminals but preserve GPIO names, channels, groups and wire IDs. Boards with retired analog pins pause while retaining firmware and CPU/RAM. Cut and reconnect invalid analog pairs; ADC/DAC is never silently mapped to GPIO. Update adc_mirror.hex or firmware accessing the retired windows before running again.'),
+  link('adc','PCF8591 全部控制字与通道模式 >','PCF8591 controls and channel modes >'),
+  link('xdata','仍保留的 OLED 内存窗口 >','Remaining OLED memory windows >')],[]);
 }

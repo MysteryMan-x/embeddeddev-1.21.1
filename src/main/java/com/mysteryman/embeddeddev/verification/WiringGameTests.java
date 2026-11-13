@@ -103,26 +103,25 @@ public final class WiringGameTests {
         output.wireConfigure(Direction.EAST, false);
         input.wireConfigure(Direction.DOWN, true);
         var board = board(h, LOOP);
-        int analogFace = Direction.EAST.get3DDataValue();
+        int outputFace = Direction.EAST.get3DDataValue();
         int inputFace = Direction.SOUTH.get3DDataValue();
         board.configure(TOP, pins(new FaceBinding.Pin("KEY", GPIO, 0), new FaceBinding.Pin("LED", GPIO, 1)));
-        board.configure(analogFace, pins(new FaceBinding.Pin("SIGNAL", ANALOG_OUTPUT, 1)));
-        board.configure(inputFace, pins(new FaceBinding.Pin("SIGNAL", ANALOG_INPUT, 7)));
+        board.configure(outputFace, pins(new FaceBinding.Pin("SIGNAL", GPIO, 3)));
+        board.configure(inputFace, pins(new FaceBinding.Pin("SIGNAL", GPIO, 2)));
         connect(h, end(h, BOARD, TOP), end(h, button, MODULE));
         connect(h, end(h, BOARD, TOP), end(h, led, MODULE));
-        var outputWire = connect(h, end(h, BOARD, analogFace), end(h, out, REDSTONE));
+        var outputWire = connect(h, end(h, BOARD, outputFace), end(h, out, REDSTONE));
         connect(h, end(h, BOARD, inputFace), end(h, in, REDSTONE));
-        board.hardware.writeExternal(0xF011, 9);
         board.run();
         h.runAfterDelay(4, () -> {
             h.assertTrue(h.getBlockState(led).getValue(PeripheralBlock.ACTIVE), "The remote LED sees P0.1 high");
             h.useBlock(button);
             h.assertTrue((board.cpu.inspect(0x80) & 1) == 0, "The remote button pulls P0.0 low");
-            h.assertTrue(board.hardware.adc[7] == 15, "A distant redstone terminal samples into ADC7");
-            h.assertTrue(output.output() == 9 && h.getLevel().getSignal(h.absolutePos(out), Direction.WEST) == 9,
-                    "DAC1 drives redstone on the selected side");
+            h.assertTrue((board.cpu.inspect(0x80) & 4) != 0, "A distant redstone terminal drives GPIO P0.2 high");
+            h.assertTrue(output.output() == 15 && h.getLevel().getSignal(h.absolutePos(out), Direction.WEST) == 15,
+                    "GPIO P0.3 drives digital redstone on the selected side");
             h.assertTrue(h.getLevel().getSignal(h.absolutePos(out), Direction.NORTH) == 0, "Other sides do not emit the signal");
-            h.assertTrue(board.output(analogFace) == 0, "A cabled channel does not also emit local redstone");
+            h.assertTrue(board.output(outputFace) == 0, "A cabled channel does not also emit local redstone");
             CableNetwork.get(h.getLevel()).remove(outputWire.id());
             h.runAfterDelay(3, () -> {
                 h.assertTrue(output.output() == 0, "A disconnected remote output returns to zero");

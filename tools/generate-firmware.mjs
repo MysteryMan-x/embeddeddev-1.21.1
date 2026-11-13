@@ -50,7 +50,22 @@ function oledProgram(pixels,i2c){
 }
 function sensorProgram(){
  const a=new Asm();a.emit(0x75,0x90,0xC0).label('poll').call('start');for(const v of [0x90,0])a.emit(0x74,v).call('write');
- a.call('start').emit(0x74,0x91).call('write').call('read').emit(0xF5,0x20).call('stop').emit(0xE5,0x20,0x90,0xF0,0x10,0xF0).rel(0x80,'poll');i2cSubroutines(a);return a.resolve();
+ a.call('start').emit(0x74,0x91).call('write').call('read').emit(0xF5,0x30).call('stop').emit(0xE5,0x30)
+  .rel(0x60,'sensor_low').emit(0xD2,0x92).rel(0x80,'poll').label('sensor_low').emit(0xC2,0x92).rel(0x80,'poll');
+ i2cSubroutines(a);return a.resolve();
+}
+function pcf8591Program(){
+ const a=new Asm();a.emit(0x75,0x90,0xC0).label('poll').call('start');
+ for(const v of [0x90,0x40])a.emit(0x74,v).call('write');
+ a.call('start').emit(0x74,0x91).call('write').call('read_ack').call('read').emit(0xF5,0x30).call('stop');
+ a.call('start');for(const v of [0x90,0x40])a.emit(0x74,v).call('write');
+ a.emit(0xE5,0x30).call('write').call('stop').rel(0x80,'poll');
+ i2cSubroutines(a);
+ // ACK the stale conversion, then use the existing NACK reader for the fresh sample.
+ a.label('read_ack').emit(0xD2,0x96,0x7F,8,0xE4).label('ack_bit')
+  .emit(0xD2,0x97,0xA2,0x96,0x33,0xC2,0x97).rel(0xDF,'ack_bit')
+  .emit(0xC2,0x96,0xD2,0x97,0xC2,0x97,0xD2,0x96,0x22);
+ return a.resolve();
 }
 function thermometerProgram() {
  const a = new Asm();
@@ -87,7 +102,7 @@ function hex(bytes){const rows=[];for(let at=0;at<bytes.length;at+=16){const dat
 export async function generate(){
  const directory=fileURLToPath(new URL('../examples/',import.meta.url));const pixels=frame();
  for(const [name,bytes] of [['oled_hello',oledProgram(pixels,false)],['i2c_oled_hello',oledProgram(pixels,true)],['i2c_sensor',sensorProgram()],['ds18b20_read',thermometerProgram()],['seven_segment_counter',sevenSegmentProgram()],
-  ['adc_mirror',Uint8Array.from([0x75,0x90,0,0x90,0xF0,0,0xE0,0x90,0xF0,0x11,0xF0,0x80,0xF6])]])await fs.writeFile(directory+name+'.hex',hex(bytes));
+  ['pcf8591_mirror',pcf8591Program()]])await fs.writeFile(directory+name+'.hex',hex(bytes));
  await fs.writeFile(directory+'oled_hello_bitmap.h','/* Original 128x64 page bitmap: EMBEDDED DEV / STC89C52 / HELLO MINECRAFT / I2C 0X3C */\nconst unsigned char code hello_bitmap[1024] = {\n'+Array.from(pixels).map((v,i)=>(i%16===0?'    ':'')+'0x'+v.toString(16).padStart(2,'0')+(i===1023?'':',')+(i%16===15?'\n':' ')).join('')+'};\n');
  return {readablePixels:pixels.reduce((n,v)=>n+v.toString(2).replaceAll('0','').length,0),legacy:oledProgram(pixels,false).length,i2c:oledProgram(pixels,true).length,sensor:sensorProgram().length};
 }

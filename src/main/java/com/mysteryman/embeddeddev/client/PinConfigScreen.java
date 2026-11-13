@@ -4,7 +4,6 @@ import com.mysteryman.embeddeddev.mcu.FaceBinding;
 import com.mysteryman.embeddeddev.mcu.FaceBinding.Kind;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
-import net.minecraft.client.gui.components.CycleButton;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.core.BlockPos;
@@ -16,7 +15,6 @@ final class PinConfigScreen extends Screen implements DeviceStateScreen {
     private final int index;
     private final Kind storedKind;
     private String label;
-    private Kind kind;
     private int channel, x, y, w;
     private EditBox name;
     private Component error = Component.empty();
@@ -27,7 +25,6 @@ final class PinConfigScreen extends Screen implements DeviceStateScreen {
         this.index = index;
         label = original == null ? "" : original.name();
         storedKind = original == null ? Kind.GPIO : original.kind();
-        kind = storedKind.panelKind();
         channel = original == null ? 0 : original.channel();
     }
 
@@ -47,17 +44,10 @@ final class PinConfigScreen extends Screen implements DeviceStateScreen {
         name.setValue(label);
         name.setResponder(value -> label = value);
         addRenderableWidget(name);
-        addRenderableWidget(CycleButton.<Kind>builder(BoardScreen::kindName)
-                .withValues(Kind.GPIO, Kind.ANALOG_INPUT, Kind.ANALOG_OUTPUT).withInitialValue(kind)
-                .create(x + 10, y + 66, w - 20, 20, Component.translatable("gui.embeddeddev.pin_kind"), (b, value) -> {
-                    kind = value;
-                    if (channel >= kind.channels()) channel = 0;
-                    rebuildWidgets();
-                }));
         int buttonWidth = (w - 27) / 8;
-        for (int i = 0; i < kind.channels(); i++) {
+        for (int i = 0; i < Kind.GPIO.channels(); i++) {
             int selectedChannel = i;
-            String text = (channel == i ? "✓ " : "") + kind.channelName(i);
+            String text = (channel == i ? "✓ " : "") + Kind.GPIO.channelName(i);
             addRenderableWidget(Button.builder(Component.literal(text), b -> {
                 channel = selectedChannel;
                 rebuildWidgets();
@@ -73,8 +63,7 @@ final class PinConfigScreen extends Screen implements DeviceStateScreen {
 
     private void save() {
         try {
-            Kind savedKind = kind == storedKind.panelKind() ? storedKind : kind;
-            parent.savePin(index, new FaceBinding.Pin(label, savedKind, channel));
+            parent.savePin(index, new FaceBinding.Pin(label, storedKind, channel));
             onClose();
         } catch (IllegalArgumentException e) {
             error = Component.translatable(e.getMessage());
@@ -91,7 +80,8 @@ final class PinConfigScreen extends Screen implements DeviceStateScreen {
     @Override public void render(GuiGraphics g, int mx, int my, float dt) {
         super.render(g, mx, my, dt);
         g.drawString(font, Component.translatable("gui.embeddeddev.pin_name"), x + 10, y + 29, 0xFFA4B8C6, false);
-        g.drawString(font, Component.translatable("gui.embeddeddev.pin_channel", kind.channelName(channel)),
+        g.drawString(font, BoardScreen.kindName(Kind.GPIO), x + 10, y + 70, 0xFFE0F5F0, false);
+        g.drawString(font, Component.translatable("gui.embeddeddev.pin_channel", Kind.GPIO.channelName(channel)),
                 x + 10, y + 92, 0xFFA4B8C6, false);
         g.drawString(font, font.plainSubstrByWidth(error.getString(), w - 20), x + 10, y + 183, 0xFFFF8888, false);
     }

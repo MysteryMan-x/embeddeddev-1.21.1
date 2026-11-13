@@ -52,7 +52,7 @@ public final class BoardNetwork {
         @Override public Type<State> type() { return TYPE; }
     }
     public static void register(RegisterPayloadHandlersEvent event) {
-        var registrar = event.registrar("8");
+        var registrar = event.registrar("9");
         registrar.playToServer(Action.TYPE, Action.CODEC, BoardNetwork::handle);
         registrar.playToClient(State.TYPE, State.CODEC, (state, context) -> clientReceiver.accept(state));
         WireNetwork.register(registrar);
@@ -161,7 +161,7 @@ public final class BoardNetwork {
         int[] ports = new int[4], output = new int[6];
         for (int i = 0; i < 4; i++) ports[i] = board.cpu.portLatch(i);
         for (int i = 0; i < 6; i++) output[i] = board.output(i);
-        tag.putIntArray("Ports", ports); tag.putIntArray("ADC", board.hardware.adc); tag.putIntArray("Output", output);
+        tag.putIntArray("Ports", ports); tag.putIntArray("Output", output);
         tag.put("Wires", board.wiring.statusTag());
         for (int f = 0; f < 6; f++) {
             tag.putString("Pins" + f, board.hardware.binding(f).wireText());

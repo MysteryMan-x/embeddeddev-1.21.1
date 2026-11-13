@@ -32,11 +32,18 @@ public record PinGroup(String name, FaceBinding binding) {
     }
 
     public static List<PinGroup> load(ListTag entries) {
+        return load(entries, false);
+    }
+
+    public static List<PinGroup> restore(ListTag entries) { return load(entries, true); }
+
+    private static List<PinGroup> load(ListTag entries, boolean restoring) {
         if (entries.size() != COUNT) throw new IllegalArgumentException("gui.embeddeddev.invalid_wiring");
         var groups = new ArrayList<PinGroup>(COUNT);
         for (Tag entry : entries) {
             var tag = (CompoundTag) entry;
-            groups.add(new PinGroup(tag.getString("Name"), FaceBinding.parse(tag.getString("Pins"))));
+            String pins = tag.getString("Pins");
+            groups.add(new PinGroup(tag.getString("Name"), restoring ? FaceBinding.restore(pins) : FaceBinding.parse(pins)));
         }
         return List.copyOf(groups);
     }

@@ -6,9 +6,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-/** Configurable connectors. No direction has an intrinsic ADC, DAC or GPIO assignment. */
+/** Configurable digital connectors; analog conversion belongs to external I2C devices. */
 public final class BoardHardware implements Mcs51.Bus {
-    public final int[] adc = new int[8], dac = new int[8], inputs = new int[4];
+    public final int[] inputs = new int[4];
     private final int[] latches = {255, 255, 255, 255};
     private final FaceBinding[] bindings = new FaceBinding[6];
     private final boolean[][] reserved = new boolean[6][FaceBinding.Kind.values().length * 32];
@@ -80,7 +80,7 @@ public final class BoardHardware implements Mcs51.Bus {
         reset();
     }
     public void reset() {
-        Arrays.fill(dac, 0); Arrays.fill(inputs, 255); Arrays.fill(adc, 0); Arrays.fill(latches, 255);
+        Arrays.fill(inputs, 255); Arrays.fill(latches, 255);
         for (I2cLink link : links) link.reset(true, true);
         for (var link : activeLinks) link.getValue().reset(true, true);
         for (WiredGpio route : wiredGpio) route.device().reset(gpioLevels(route));
@@ -227,19 +227,17 @@ public final class BoardHardware implements Mcs51.Bus {
         return value;
     }
     public void sample(int[] signals) {
-        Arrays.fill(inputs, 255); Arrays.fill(adc, 0);
+        Arrays.fill(inputs, 255);
         for (int f = 0; f < 6; f++) {
             int signal = Math.clamp(signals[f], 0, 15);
             for (FaceBinding.Pin pin : bindings[f].pins()) {
-                if (!reserved[f][pin.wireId()] && (pin.kind() == FaceBinding.Kind.DIGITAL_INPUT
-                        || pin.kind() == FaceBinding.Kind.ANALOG_INPUT)) samplePin(pin, signal);
+                if (!reserved[f][pin.wireId()] && pin.kind() == FaceBinding.Kind.DIGITAL_INPUT) samplePin(pin, signal);
             }
         }
     }
     public void samplePin(FaceBinding.Pin pin, int strength) {
         int channel = pin.channel();
         switch (pin.kind().panelKind()) {
-            case ANALOG_INPUT -> adc[channel] = Math.max(adc[channel], strength);
             case GPIO -> {
                 if (strength == 0) inputs[channel >>> 3] &= ~(1 << (channel & 7));
             }
@@ -252,14 +250,11 @@ public final class BoardHardware implements Mcs51.Bus {
         return null;
     }
     @Override public int readExternal(int a) {
-        if (a >= 0xF000 && a < 0xF008) return adc[a - 0xF000];
-        if (a >= 0xF010 && a < 0xF018) return dac[a - 0xF010];
         if (a == 0xF020) { Ssd1306 d = display(); return d == null ? 255 : d.enabled ? 1 : 0; }
         if (a >= 0xF100 && a < 0xF500) { Ssd1306 d = display(); return d == null ? 255 : d.ram[a - 0xF100] & 255; }
         return -1;
     }
     @Override public void writeExternal(int a, int v) {
-        if (a >= 0xF010 && a < 0xF018) dac[a - 0xF010] = Math.clamp(v, 0, 15);
         if (a == 0xF020) { Ssd1306 d = display(); if (d != null) d.legacyControl(v); }
         if (a >= 0xF100 && a < 0xF500) {
             Ssd1306 d = display(); if (d != null && d.ram[a - 0xF100] != (byte) v) { d.ram[a - 0xF100] = (byte) v; d.changed(); }
@@ -274,18 +269,15 @@ public final class BoardHardware implements Mcs51.Bus {
     public void restoreSerial(String text) { serial.setLength(0); serial.append(text.substring(Math.max(0, text.length() - 512))); }
     public int output(int face, boolean running) {
         if (!running) return 0;
-        int strength = 0;
         for (FaceBinding.Pin pin : bindings[face].pins()) {
             if (reserved[face][pin.wireId()]) continue;
             if (pin.kind() == FaceBinding.Kind.DIGITAL_OUTPUT && high(pin.channel())) return 15;
-            if (pin.kind() == FaceBinding.Kind.ANALOG_OUTPUT) strength = Math.max(strength, dac[pin.channel()]);
         }
-        return strength;
+        return 0;
     }
     public int outputPin(FaceBinding.Pin pin) {
         return switch (pin.kind().panelKind()) {
             case GPIO -> high(pin.channel()) ? 15 : 0;
-            case ANALOG_OUTPUT -> dac[pin.channel()];
             default -> 0;
         };
     }

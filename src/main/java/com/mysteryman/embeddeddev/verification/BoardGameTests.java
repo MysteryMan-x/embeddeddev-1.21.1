@@ -78,31 +78,25 @@ public final class BoardGameTests {
     @GameTest(template = "test_empty", timeoutTicks = 40)
     public static void sixDirectionalOutputs(GameTestHelper h) {
         SystemBoardEntity b = board(h);
-        for (int i = 0; i < 6; i++) {
-            b.configure(i, pins(ANALOG_OUTPUT, i));
-            b.hardware.writeExternal(0xF010 + i, i + 1);
-        }
+        for (int i = 0; i < 6; i++) b.configure(i, pins(DIGITAL_OUTPUT, i));
         b.run();
         for (Direction face : Direction.values()) {
             int power = h.getLevel().getSignal(h.absolutePos(BOARD), face.getOpposite());
-            h.assertTrue(power == face.get3DDataValue() + 1, "Incorrect output on " + face + ": " + power);
+            h.assertTrue(power == 15, "Incorrect digital output on " + face + ": " + power);
         }
         b.stop();
         for (Direction face : Direction.values()) h.assertTrue(h.getLevel().getSignal(h.absolutePos(BOARD), face) == 0, "Stopped output must be off");
         h.succeed();
     }
     @GameTest(template = "test_empty", timeoutTicks = 60)
-    public static void analogInputAndOledSync(GameTestHelper h) {
+    public static void independentOledSync(GameTestHelper h) {
         SystemBoardEntity b = board(h);
-        b.configure(2, pins(ANALOG_INPUT, 7));
-        h.setBlock(BOARD.north(), Blocks.REDSTONE_BLOCK);
         h.setBlock(BOARD.east(), ModBlocks.OLED.get());
         b.configure(5, modulePins());
         b.hardware.writeExternal(0xF020, 1);
         b.hardware.writeExternal(0xF100, 0xA5);
         h.runAfterDelay(8, () -> {
             OledEntity oled = h.getBlockEntity(BOARD.east());
-            h.assertTrue(b.hardware.adc[7] == 15, "North connector must sample into chosen ADC7 while stopped");
             h.assertTrue(oled.enabled && (oled.pixels[0] & 255) == 0xA5, "OLED must mirror adjacent framebuffer");
             h.succeed();
         });
@@ -110,18 +104,18 @@ public final class BoardGameTests {
     @GameTest(template = "test_empty", timeoutTicks = 40)
     public static void persistenceAndAtomicFlash(GameTestHelper h) {
         SystemBoardEntity b = board(h);
-        b.configure(3, pins(ANALOG_OUTPUT, 5));
+        b.configure(3, pins(DIGITAL_OUTPUT, 5));
         FaceBinding north = new FaceBinding(List.of(new Pin("触发输入", DIGITAL_INPUT, 2),
                 new Pin("SDA", GPIO, 14), new Pin("SCL", GPIO, 15)));
         b.configure(2, north);
-        b.hardware.writeExternal(0xF015, 7); b.run(); b.cpu.runCycles(101);
+        b.run(); b.cpu.runCycles(101);
         var tag = b.saveCustomOnly(h.getLevel().registryAccess()); byte[] cpuBefore = b.cpu.save();
         tag.remove("Pins5");
         tag.remove("Groups5");
         tag.putIntArray("Face5", new int[]{5, 2, 27});
         h.setBlock(BOARD, Blocks.AIR); h.setBlock(BOARD, ModBlocks.SystemBoard51.get());
         SystemBoardEntity restored = h.getBlockEntity(BOARD); restored.loadCustomOnly(tag, h.getLevel().registryAccess());
-        h.assertTrue(restored.isRunning() && restored.output(3) == 7, "Restore run state and DAC");
+        h.assertTrue(restored.isRunning() && restored.output(3) == 15, "Restore run state and digital output");
         h.assertTrue(Arrays.equals(cpuBefore, restored.cpu.save()), "Restore exact CPU state");
         h.assertTrue(restored.hardware.binding(2).equals(north), "Restore named pins and mixed roles");
         FaceBinding migrated = restored.hardware.binding(5);
@@ -134,6 +128,35 @@ public final class BoardGameTests {
         h.succeed();
     }
     @GameTest(template = "test_empty", timeoutTicks = 60)
+    public static void obsoleteAnalogMigrationPreservesGpioAndPauses(GameTestHelper h) {
+        SystemBoardEntity b = board(h);
+        b.run(); b.cpu.runCycles(37);
+        var tag = b.saveCustomOnly(h.getLevel().registryAccess());
+        byte[] cpuBefore = b.cpu.save();
+        tag.getList("Groups0", net.minecraft.nbt.Tag.TAG_COMPOUND).getCompound(0)
+                .putString("Pins", "ANALOG_INPUT,0,VIN\nGPIO,8,LED\nANALOG_OUTPUT,1,OUT");
+        var extra = tag.getList("Groups0", net.minecraft.nbt.Tag.TAG_COMPOUND).getCompound(2);
+        extra.putString("Name", "传感器"); extra.putString("Pins", "GPIO,14,SDA\nANALOG_INPUT,7,OLD\nGPIO,15,SCL");
+        tag.remove("Pins5"); tag.remove("Groups5"); tag.putIntArray("Face5", new int[]{3, 7});
+        SystemBoardEntity restored = new SystemBoardEntity(h.absolutePos(BOARD), b.getBlockState());
+        restored.loadCustomOnly(tag, h.getLevel().registryAccess());
+        h.assertTrue(!restored.isRunning(), "Boards with obsolete ADC/DAC wiring pause on migration");
+        h.assertTrue(restored.binding(0, 0).pins().size() == 1 && restored.binding(0, 0).pins().getFirst().wireId() == 8,
+                "Obsolete ADC/DAC is dropped; GPIO keeps its wire ID");
+        h.assertTrue(restored.groups(0).get(2).name().equals("传感器") && restored.binding(0, 2).gpio("SDA") == 14
+                        && restored.binding(0, 2).gpio("SCL") == 15 && restored.binding(5, 0).pins().isEmpty(),
+                "Every group and the original numeric save format migrate without remapping GPIO");
+        h.assertTrue(Arrays.equals(cpuBefore, restored.cpu.save()), "Migration retains exact CPU/RAM state");
+        var dacOnly = b.saveCustomOnly(h.getLevel().registryAccess());
+        dacOnly.getList("Groups1", net.minecraft.nbt.Tag.TAG_COMPOUND).getCompound(3).putString("Pins", "ANALOG_OUTPUT,7,OUT\nGPIO,7,LED");
+        restored.loadCustomOnly(dacOnly, h.getLevel().registryAccess());
+        h.assertTrue(!restored.isRunning() && restored.binding(1, 3).pins().size() == 1
+                        && restored.binding(1, 3).pins().getFirst().wireId() == 7,
+                "A DAC-only group also pauses and preserves GPIO without reassigning its old DAC wire ID");
+        h.succeed();
+    }
+
+    @GameTest(template = "test_empty", timeoutTicks = 40)
     public static void gpioPortOutput(GameTestHelper h) {
         SystemBoardEntity b = board(h); h.setBlock(BOARD.east(), ModBlocks.REDSTONE_PORT.get());
         b.configure(5, pins(DIGITAL_OUTPUT, 0, 17)); b.run();
@@ -147,13 +170,12 @@ public final class BoardGameTests {
     @GameTest(template = "test_empty", timeoutTicks = 80)
     public static void comparatorTracksRunningWithZeroOutputs(GameTestHelper h) {
         SystemBoardEntity b = board(h);
-        for (int i = 0; i < 6; i++) b.hardware.writeExternal(0xF010 + i, 0);
         BlockPos comparator = BOARD.south();
         h.setBlock(comparator.below(), Blocks.STONE);
         h.setBlock(comparator, Blocks.COMPARATOR.defaultBlockState().setValue(BlockStateProperties.HORIZONTAL_FACING, Direction.NORTH));
         b.run();
         h.runAfterDelay(8, () -> {
-            h.assertTrue(h.getBlockState(comparator).getValue(BlockStateProperties.POWERED), "Comparator should see running board even with zero DAC output");
+            h.assertTrue(h.getBlockState(comparator).getValue(BlockStateProperties.POWERED), "Comparator should see running board even with no GPIO output");
             b.stop();
             h.runAfterDelay(8, () -> {
                 h.assertTrue(!h.getBlockState(comparator).getValue(BlockStateProperties.POWERED), "Comparator should turn off after stop"); h.succeed();
@@ -171,7 +193,7 @@ public final class BoardGameTests {
         b.configure(5, new FaceBinding(List.of(new Pin("SDA", GPIO, 14), new Pin("CLOCK", GPIO, 15))));
         h.assertTrue(b.hardware.device(5) == null, "Wrong or missing labels on the touching face must not connect");
         b.configure(5, new FaceBinding(List.of(new Pin("scl", GPIO, 15),
-                new Pin("ADC", ANALOG_INPUT, 0), new Pin("SDA", GPIO, 14))));
+                new Pin("SPARE", GPIO, 0), new Pin("SDA", GPIO, 14))));
         installExample(b, "i2c_oled_hello"); b.run();
         h.runAfterDelay(20, () -> {
             OledEntity oled = h.getBlockEntity(BOARD.east());
@@ -185,15 +207,16 @@ public final class BoardGameTests {
         });
     }
     @GameTest(template = "test_empty", timeoutTicks = 80)
-    public static void i2cSensorFirmwareControlsRemappedDac(GameTestHelper h) {
+    public static void i2cSensorFirmwareControlsGpioLed(GameTestHelper h) {
         SystemBoardEntity b = board(h); h.setBlock(BOARD.east(), ModBlocks.SENSOR.get());
+        h.setBlock(BOARD.west(), ModBlocks.LED.get());
         h.setBlock(BOARD.east(2), Blocks.REDSTONE_BLOCK);
-        b.configure(5, modulePins()); b.configure(4, pins(ANALOG_OUTPUT, 0));
+        b.configure(5, modulePins()); b.configure(4, new FaceBinding(List.of(new Pin("LED", GPIO, 10))));
         installExample(b, "i2c_sensor"); b.run();
         h.runAfterDelay(10, () -> {
-            h.assertTrue(b.output(4) == 15, "I2C sensor reading must reach west DAC0 output");
+            h.assertTrue(h.getBlockState(BOARD.west()).getValue(PeripheralBlock.ACTIVE), "I2C sensor nonzero sample lights the P1.2 LED");
             h.setBlock(BOARD.east(2), Blocks.AIR);
-            h.runAfterDelay(10, () -> { h.assertTrue(b.output(4) == 0, "Sensor must update after redstone source removal"); h.succeed(); });
+            h.runAfterDelay(10, () -> { h.assertTrue(!h.getBlockState(BOARD.west()).getValue(PeripheralBlock.ACTIVE), "LED turns off after redstone source removal"); h.succeed(); });
         });
     }
 

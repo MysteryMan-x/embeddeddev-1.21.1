@@ -130,7 +130,7 @@ public final class BoardWiring {
     private static int busAddress(BoardHardware.WiredI2c link) { return (link.sda() << 12) | (link.scl() << 7) | link.address(); }
 
     public static boolean accepts(RedstonePortEntity port, FaceBinding.Pin pin) {
-        return pin.kind().panelKind() == GPIO || pin.kind() == (port.reads() ? ANALOG_INPUT : ANALOG_OUTPUT);
+        return pin.kind().panelKind() == GPIO;
     }
 
     public void sample() {

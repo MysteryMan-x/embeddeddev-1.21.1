@@ -6,7 +6,6 @@ import com.mysteryman.embeddeddev.mcu.Ds1302;
 import com.mysteryman.embeddeddev.mcu.Ds18b20;
 import com.mysteryman.embeddeddev.mcu.SevenSegment;
 import com.mysteryman.embeddeddev.mcu.BoardHardware;
-import com.mysteryman.embeddeddev.mcu.FaceBinding;
 
 import java.io.StringReader;
 import java.nio.charset.StandardCharsets;
@@ -50,7 +49,7 @@ public final class HandbookVerification {
                         var used = new HashSet<String>();
                         for (var label : block.labels()) {
                             String[] pair = label.split("\\|", -1);
-                            require(pair[0].matches("P[0-3]\\.[0-7]|ADC[0-7]|DAC[0-7]"), "Diagram uses a valid GPIO or analog channel");
+                            require(pair[0].matches("P[0-3]\\.[0-7]"), "Diagram uses a valid GPIO pin");
                             require(terminals.contains(pair[1]) && used.add(pair[1]), "Diagram uses real unique device terminals");
                         }
                         require(used.containsAll(terminals), "A complete wiring diagram covers every required device pin");
@@ -66,28 +65,17 @@ public final class HandbookVerification {
                     require(illustratedRecipes.contains(name), "Every survival recipe has an illustrated card: " + name);
                 }
             }
-            for (String example : List.of("redstone_blink.hex", "adc_mirror.hex", "i2c_oled_hello.hex", "oled_hello.hex",
+            for (String example : List.of("redstone_blink.hex", "pcf8591_mirror.hex", "i2c_oled_hello.hex", "oled_hello.hex",
                     "i2c_sensor.hex", "ds18b20_read.hex", "seven_segment_counter.hex", "oled_pattern.hex")) {
                 require(Files.exists(Path.of("examples", example)) && book.entry("examples").matches(example), "Example index resolves actual file: " + example);
             }
             require(book.entry("adc").matches("PCF8591") && book.entry("temperature").matches("DQ"), "Search includes titles and wiring labels");
-            var analog = book.entry("analog_extension");
-            require(analog.id().equals("analog_extension") && analog.matches("STC89C52RC") && analog.matches("MOVX"), "Board analog expansion has a dedicated explanation");
-            var addressMap = analog.blocks().stream().filter(block -> "analog_map".equals(block.id())).findFirst().orElseThrow();
-            require(addressMap.rows().size() == 9, "All eight ADC/DAC channels are documented");
+            var analog = book.entry("analog_io");
+            require(analog.matches("STC89C52RC") && analog.matches("PCF8591") && analog.matches("pcf8591_mirror.hex"), "Analog conversion is documented as an external chip and tested example");
             var hardware = new BoardHardware();
             for (int channel = 0; channel < 8; channel++) {
-                var row = addressMap.rows().get(channel + 1);
-                int adcAddress = Integer.parseInt(row.get(1).replace("H", ""), 16);
-                int dacAddress = Integer.parseInt(row.get(2).replace("H", ""), 16);
-                hardware.samplePin(new FaceBinding.Pin("VIN", FaceBinding.Kind.ANALOG_INPUT, channel), channel + 1);
-                require(hardware.readExternal(adcAddress) == channel + 1, "Documented ADC address reaches its real channel");
-                hardware.writeExternal(adcAddress, 15);
-                require(hardware.readExternal(adcAddress) == channel + 1, "Documented ADC addresses remain read-only");
-                hardware.writeExternal(dacAddress, channel + 2);
-                require(hardware.dac[channel] == channel + 2 && hardware.readExternal(dacAddress) == channel + 2, "Documented DAC addresses read and write the real channel");
-                hardware.writeExternal(dacAddress, 255);
-                require(hardware.dac[channel] == 15, "Documented DAC range clamps to redstone strength");
+                require(hardware.readExternal(0xF000 + channel) == -1, "Retired ADC addresses fall through to ordinary XRAM");
+                require(hardware.readExternal(0xF010 + channel) == -1, "Retired DAC addresses fall through to ordinary XRAM");
             }
         }
         String original = Files.readString(manual.resolve("zh_cn.json"), StandardCharsets.UTF_8);

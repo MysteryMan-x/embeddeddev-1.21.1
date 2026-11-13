@@ -104,18 +104,22 @@ public final class SystemBoardEntity extends BlockEntity {
         for (int face = 0; face < 6; face++) tag.put("Groups" + face, PinGroup.save(groups(face)));
     }
 
-    private void loadGroups(CompoundTag tag) {
+    private boolean loadGroups(CompoundTag tag) {
+        boolean removedAnalog = false;
         for (int face = 0; face < 6; face++) {
             if (!tag.contains("Groups" + face)) {
                 for (int group = 0; group < PinGroup.COUNT; group++) groups[face][group] = PinGroup.empty(group);
                 continue;
             }
             try {
-                var loaded = PinGroup.load(tag.getList("Groups" + face, net.minecraft.nbt.Tag.TAG_COMPOUND));
+                var saved = tag.getList("Groups" + face, net.minecraft.nbt.Tag.TAG_COMPOUND);
+                for (int i = 0; i < saved.size(); i++) removedAnalog |= FaceBinding.hasRemovedAnalog(saved.getCompound(i).getString("Pins"));
+                var loaded = PinGroup.restore(saved);
                 for (int group = 0; group < PinGroup.COUNT; group++) groups[face][group] = loaded.get(group);
                 hardware.bind(face, loaded.getFirst().binding());
             } catch (IllegalArgumentException ignored) { /* Retain the legacy face when the new data is invalid. */ }
         }
+        return removedAnalog;
     }
     public void singleStep() {
         if (clockHz() == 0) throw new IllegalArgumentException("gui.embeddeddev.no_crystal");
@@ -213,7 +217,7 @@ public final class SystemBoardEntity extends BlockEntity {
         return tag;
     }
     @Override public void handleUpdateTag(CompoundTag tag, HolderLookup.Provider registries) {
-        for (int face = 0; face < 6; face++) hardware.bind(face, FaceBinding.parse(tag.getString("Pins" + face)));
+        for (int face = 0; face < 6; face++) hardware.bind(face, FaceBinding.restore(tag.getString("Pins" + face)));
         loadGroups(tag);
     }
     @Override public ClientboundBlockEntityDataPacket getUpdatePacket() { return ClientboundBlockEntityDataPacket.create(this); }
@@ -226,7 +230,7 @@ public final class SystemBoardEntity extends BlockEntity {
         tag.putByteArray("Firmware", firmware); tag.putString("FirmwareName", firmwareName);
         tag.put("Crystal", crystal().saveOptional(registries));
         tag.putBoolean("Running", running); tag.putString("Fault", fault); tag.putByteArray("Cpu", cpu.save());
-        tag.putIntArray("Dac", hardware.dac); tag.putString("Serial", hardware.serial());
+        tag.putString("Serial", hardware.serial());
         for (int f = 0; f < 6; f++) tag.putString("Pins" + f, hardware.binding(f).wireText());
         saveGroups(tag);
     }
@@ -239,25 +243,31 @@ public final class SystemBoardEntity extends BlockEntity {
         running = tag.getBoolean("Running") && firmware.length == IntelHex.FLASH_SIZE && clockHz() > 0;
         fault = tag.getString("Fault");
         hardware.reset();
+        boolean removedAnalog = false;
         for (int f = 0; f < 6; f++) {
             try {
+                int[] legacy = tag.getIntArray("Face" + f);
+                removedAnalog |= tag.contains("Pins" + f) ? FaceBinding.hasRemovedAnalog(tag.getString("Pins" + f))
+                        : legacy.length > 1 && (legacy[0] == 3 || legacy[0] == 4);
                 FaceBinding binding = tag.contains("Pins" + f)
-                        ? FaceBinding.parse(tag.getString("Pins" + f))
-                        : FaceBinding.fromLegacy(tag.getIntArray("Face" + f));
+                        ? FaceBinding.restore(tag.getString("Pins" + f))
+                        : FaceBinding.fromLegacy(legacy);
                 hardware.bind(f, binding);
             } catch (IllegalArgumentException e) {
                 hardware.bind(f, FaceBinding.EMPTY);
             }
         }
-        loadGroups(tag);
+        removedAnalog |= loadGroups(tag);
         if (firmware.length == IntelHex.FLASH_SIZE) {
             cpu.install(firmware);
             try { cpu.restore(tag.getByteArray("Cpu")); }
             catch (IllegalArgumentException e) { running = false; fault = "Saved CPU state was invalid; reset required"; EmbeddedDev.LOGGER.warn("Invalid CPU at {}", worldPosition, e); }
         } else { firmware = new byte[0]; cpu.reset(); }
-        int[] dac = tag.getIntArray("Dac");
-        for (int i = 0; i < Math.min(dac.length, hardware.dac.length); i++) hardware.dac[i] = Math.clamp(dac[i], 0, 15);
         hardware.restoreSerial(tag.getString("Serial"));
+        if (removedAnalog) {
+            running = false;
+            EmbeddedDev.LOGGER.info("Removed legacy ADC/DAC bindings at {}; paused MCU until its wiring and firmware are updated", worldPosition);
+        }
         synchronizePorts();
         for (int i = 0; i < 6; i++) outputs[i] = hardware.output(i, running);
     }

@@ -13,7 +13,10 @@ public record FaceBinding(List<Pin> pins) {
     public static final FaceBinding EMPTY = new FaceBinding(List.of());
 
     public enum Kind {
+        // Analog kinds are save-format tombstones; never reuse their old wire IDs.
         GPIO, DIGITAL_INPUT, DIGITAL_OUTPUT, ANALOG_INPUT, ANALOG_OUTPUT;
+
+        public boolean removedAnalog() { return this == ANALOG_INPUT || this == ANALOG_OUTPUT; }
 
         /** Keep legacy redstone modes and wire IDs in saves, with one digital choice in the editor. */
         public Kind panelKind() {
@@ -60,6 +63,7 @@ public record FaceBinding(List<Pin> pins) {
         var names = new TreeSet<>(String.CASE_INSENSITIVE_ORDER);
         var channels = new HashSet<String>();
         for (Pin pin : pins) {
+            if (pin.kind().removedAnalog()) throw new IllegalArgumentException("gui.embeddeddev.analog_removed");
             if (!names.add(pin.name())) throw new IllegalArgumentException("gui.embeddeddev.duplicate_pin_name");
             if (!channels.add(pin.channelName())) throw new IllegalArgumentException("gui.embeddeddev.duplicate_pin_channel");
         }
@@ -79,6 +83,17 @@ public record FaceBinding(List<Pin> pins) {
     }
 
     public static FaceBinding parse(String text) {
+        return parse(text, false);
+    }
+
+    /** Remove retired analog terminals while preserving all saved GPIO names and IDs. */
+    public static FaceBinding restore(String text) { return parse(text, true); }
+
+    public static boolean hasRemovedAnalog(String text) {
+        return text.lines().anyMatch(row -> row.startsWith("ANALOG_INPUT,") || row.startsWith("ANALOG_OUTPUT,"));
+    }
+
+    private static FaceBinding parse(String text, boolean restoring) {
         if (text.isEmpty()) return EMPTY;
         if (text.length() > MAX_PINS * (MAX_NAME_LENGTH + 20)) {
             throw new IllegalArgumentException("gui.embeddeddev.too_many_pins");
@@ -97,7 +112,8 @@ public record FaceBinding(List<Pin> pins) {
             } catch (IllegalArgumentException e) {
                 throw new IllegalArgumentException("gui.embeddeddev.invalid_wiring");
             }
-            pins.add(new Pin(fields[2], kind, channel));
+            Pin pin = new Pin(fields[2], kind, channel);
+            if (!restoring || !kind.removedAnalog()) pins.add(pin);
         }
         return new FaceBinding(pins);
     }
@@ -122,7 +138,8 @@ public record FaceBinding(List<Pin> pins) {
         var pins = new ArrayList<Pin>();
         for (int i = 1; i < data.length; i++) {
             int channel = data[i];
-            pins.add(new Pin(kind.channelName(channel), kind, channel));
+            Pin pin = new Pin(kind.channelName(channel), kind, channel);
+            if (!kind.removedAnalog()) pins.add(pin);
         }
         return new FaceBinding(pins);
     }
