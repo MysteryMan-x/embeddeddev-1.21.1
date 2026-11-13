@@ -1,6 +1,7 @@
 package com.mysteryman.embeddeddev.client;
 
 import com.mysteryman.embeddeddev.item.CrystalItem;
+import com.mysteryman.embeddeddev.firmware.BuiltinFirmware;
 import com.mysteryman.embeddeddev.mcu.IntelHex;
 import com.mysteryman.embeddeddev.mcu.FaceBinding;
 import com.mysteryman.embeddeddev.mcu.Mcs51Disassembler;
@@ -24,6 +25,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.StringJoiner;
+import org.lwjgl.system.MemoryStack;
+import org.lwjgl.util.tinyfd.TinyFileDialogs;
 
 public final class BoardScreen extends Screen implements DeviceStateScreen {
     private final BlockPos pos;
@@ -33,6 +36,8 @@ public final class BoardScreen extends Screen implements DeviceStateScreen {
     private List<String> assembly = List.of();
     private ItemStack crystal = ItemStack.EMPTY;
     private EditBox path;
+    private boolean useExamples = true;
+    private BuiltinFirmware selectedExample = BuiltinFirmware.REDSTONE_BLINK;
     private String lastPath = "", message = "";
     private int x, y, w, polls, tab, wirePage;
     private static final int WIRE_ROWS = 5;
@@ -75,6 +80,8 @@ public final class BoardScreen extends Screen implements DeviceStateScreen {
     }
     @Override protected void init() {
         w = Math.min(480, width - 12); x = (width - w) / 2; y = Math.max(4, (height - 226) / 2);
+        path = null;
+        addRenderableWidget(closeButton(x + w - 28, y + 5, this::onClose));
         String[] tabs = {"gui.embeddeddev.program_tab", "gui.embeddeddev.connectors_tab", "wire.embeddeddev.tab"};
         int tw = (w - 24) / 3;
         for (int i = 0; i < tabs.length; i++) {
@@ -101,23 +108,47 @@ public final class BoardScreen extends Screen implements DeviceStateScreen {
         }
         addRenderableWidget(Button.builder(Component.empty(), b -> send(BoardNetwork.CRYSTAL_SOCKET, "", ""))
                 .tooltip(Tooltip.create(Component.translatable("gui.embeddeddev.crystal_socket")))
-                .bounds(x + w - 30, y + 4, 20, 20).build());
-        path = new EditBox(font, x + 10, y + 54, w - 100, 18, Component.translatable("gui.embeddeddev.path"));
-        path.setMaxLength(2048); path.setHint(Component.translatable("gui.embeddeddev.path")); path.setValue(lastPath);
-        path.setResponder(v -> lastPath = v); addRenderableWidget(path);
+                .bounds(x + w - 54, y + 4, 20, 20).build());
+        addRenderableWidget(CycleButton.<Boolean>builder(value -> Component.translatable(value
+                        ? "gui.embeddeddev.builtin_source" : "gui.embeddeddev.local_source"))
+                .withValues(true, false).withInitialValue(useExamples).displayOnlyValue()
+                .withTooltip(value -> Tooltip.create(Component.translatable("gui.embeddeddev.source_hint")))
+                .create(x + 10, y + 53, 72, 20, Component.translatable("gui.embeddeddev.firmware_source"), (button, value) -> {
+                    useExamples = value; rebuildWidgets();
+                }));
+        if (useExamples) {
+            Component tooltip = Component.literal(selectedExample.fileName()).append("\n")
+                    .append(Component.translatable(selectedExample.helpKey()));
+            addRenderableWidget(Button.builder(Component.translatable(selectedExample.titleKey()).append("…"),
+                            button -> minecraft.setScreen(new FirmwareExamplesScreen(this)))
+                    .tooltip(Tooltip.create(tooltip)).bounds(x + 86, y + 53, w - 176, 20).build());
+        } else {
+            path = new EditBox(font, x + 86, y + 54, w - 204, 18, Component.translatable("gui.embeddeddev.path"));
+            path.setMaxLength(2048); path.setHint(Component.translatable("gui.embeddeddev.path")); path.setValue(lastPath);
+            path.setResponder(v -> lastPath = v); addRenderableWidget(path);
+            addRenderableWidget(Button.builder(Component.literal("…"), button -> chooseFile())
+                    .tooltip(Tooltip.create(Component.translatable("gui.embeddeddev.choose_hex")))
+                    .bounds(x + w - 112, y + 53, 22, 20).build());
+        }
         addRenderableWidget(Button.builder(Component.translatable("gui.embeddeddev.flash"), b -> flash())
                 .bounds(x + w - 84, y + 53, 74, 20).build());
-        int bw = (w - 24) / 5;
-        String[] labels = {"run", "stop", "reset", "step", "close"};
+        int bw = (w - 23) / 4;
+        String[] labels = {"run", "stop", "reset", "step"};
         int[] actions = {BoardNetwork.RUN, BoardNetwork.STOP, BoardNetwork.RESET, BoardNetwork.STEP};
         for (int i = 0; i < labels.length; i++) {
             final int index = i;
             addRenderableWidget(Button.builder(Component.translatable("gui.embeddeddev." + labels[i]), b -> {
-                if (index == 4) onClose(); else send(actions[index], "", "");
+                send(actions[index], "", "");
             }).bounds(x + 10 + i * (bw + 1), y + 78, bw, 20).build());
         }
     }
     public static Component faceName(int f) { return Component.translatable("gui.embeddeddev." + FACES[f]); }
+    static Button closeButton(int x, int y, Runnable close) {
+        return Button.builder(Component.literal("×"), button -> close.run())
+                .tooltip(Tooltip.create(Component.translatable("gui.embeddeddev.close")))
+                .bounds(x, y, 18, 18).build();
+    }
+    void selectExample(BuiltinFirmware example) { selectedExample = example; useExamples = true; }
     public static Component kindName(FaceBinding.Kind kind) {
         return Component.translatable("gui.embeddeddev.pin_kind." + kind.panelKind().name().toLowerCase(Locale.ROOT));
     }
@@ -131,6 +162,10 @@ public final class BoardScreen extends Screen implements DeviceStateScreen {
     private void showMessage(String text) { message = text; messageUntil = System.currentTimeMillis() + 8000; }
     private void flash() {
         try {
+            if (useExamples) {
+                send(BoardNetwork.FLASH, selectedExample.fileName(), selectedExample.hex());
+                return;
+            }
             String value = path.getValue().strip();
             if (value.startsWith("\"") && value.endsWith("\"") && value.length() > 1) value = value.substring(1, value.length() - 1);
             Path file = Path.of(value);
@@ -145,8 +180,20 @@ public final class BoardScreen extends Screen implements DeviceStateScreen {
             send(BoardNetwork.FLASH, name.substring(0, Math.min(96, name.length())), hex);
         } catch (IOException | IllegalArgumentException | SecurityException e) { showMessage(e.getMessage() == null ? "Cannot read HEX file" : e.getMessage()); }
     }
+    private void chooseFile() {
+        try (var stack = MemoryStack.stackPush()) {
+            var filter = stack.mallocPointer(1).put(stack.UTF8("*.hex")).flip();
+            String selected = TinyFileDialogs.tinyfd_openFileDialog(
+                    Component.translatable("gui.embeddeddev.choose_hex").getString(),
+                    lastPath.isBlank() ? minecraft.gameDirectory.getAbsolutePath() + java.io.File.separator : lastPath,
+                    filter, "Intel HEX (*.hex)", false);
+            if (selected != null) onFilesDrop(List.of(Path.of(selected)));
+        } catch (RuntimeException | LinkageError error) {
+            showMessage(Component.translatable("gui.embeddeddev.file_dialog_failed").getString());
+        }
+    }
     @Override public void onFilesDrop(List<Path> files) {
-        if (!files.isEmpty()) { lastPath = files.getFirst().toAbsolutePath().toString(); tab = 0; rebuildWidgets(); }
+        if (!files.isEmpty()) { lastPath = files.getFirst().toAbsolutePath().toString(); useExamples = false; tab = 0; rebuildWidgets(); }
     }
     @Override public void tick() {
         if (++polls >= 5) { polls = 0; send(BoardNetwork.POLL, "", ""); }
@@ -157,7 +204,7 @@ public final class BoardScreen extends Screen implements DeviceStateScreen {
         super.renderBackground(g, mouseX, mouseY, partialTick);
         g.fill(x, y, x + w, y + 226, 0xF018232D);
         g.fill(x, y, x + w, y + 2, 0xFF43D9BC);
-        int titleWidth = w - (tab == 0 ? 142 : 120);
+        int titleWidth = w - (tab == 0 ? 166 : 150);
         g.drawString(font, font.plainSubstrByWidth(title.getString(), titleWidth), x + 10, y + 9, 0xFFE0F5F0, false);
         if (tab == 1) {
             int cw = (w - 28) / 3;
@@ -179,7 +226,7 @@ public final class BoardScreen extends Screen implements DeviceStateScreen {
             if (minecraft.player != null) {
                 Component heading = Component.translatable("gui.embeddeddev.heading",
                         faceName(minecraft.player.getDirection().get3DDataValue()));
-                g.drawString(font, heading, x + w - 10 - font.width(heading), y + 9, 0xFF43D9BC, false);
+                g.drawString(font, heading, x + w - 36 - font.width(heading), y + 9, 0xFF43D9BC, false);
             }
             renderFooter(g);
             return;
@@ -187,8 +234,8 @@ public final class BoardScreen extends Screen implements DeviceStateScreen {
         Component frequency = crystal.getItem() instanceof CrystalItem item
                 ? Component.literal(BigDecimal.valueOf(item.frequencyHz(), 6).stripTrailingZeros().toPlainString() + " MHz")
                 : Component.translatable("gui.embeddeddev.empty_socket");
-        g.drawString(font, frequency, x + w - 35 - font.width(frequency), y + 10, 0xFFA4B8C6, false);
-        g.renderItem(crystal, x + w - 28, y + 6);
+        g.drawString(font, frequency, x + w - 59 - font.width(frequency), y + 10, 0xFFA4B8C6, false);
+        g.renderItem(crystal, x + w - 52, y + 6);
         String status = Component.translatable(state.getBoolean("Running") ? "gui.embeddeddev.running" : "gui.embeddeddev.stopped").getString();
         line(g, status + "  " + state.getString("Name"), 107, 0xFF43D9BC);
         line(g, String.format("PC %04X   A %02X   Cycles %d", state.getInt("PC"), state.getInt("A"), state.getLong("Cycles")), 121, 0xFFD5E4EB);
@@ -250,7 +297,8 @@ public final class BoardScreen extends Screen implements DeviceStateScreen {
     }
     private void renderFooter(GuiGraphics g) {
         String fault = state.getString("Fault");
-        String footer = !fault.isEmpty() ? fault : System.currentTimeMillis() < messageUntil ? message : Component.translatable("gui.embeddeddev.hint").getString();
+        String hint = Component.translatable(tab == 0 && useExamples ? selectedExample.helpKey() : "gui.embeddeddev.hint").getString();
+        String footer = !fault.isEmpty() ? fault : System.currentTimeMillis() < messageUntil ? message : hint;
         g.drawString(font, font.plainSubstrByWidth(footer, w - 20), x + 10, y + 207, fault.isEmpty() ? 0xFFE4C888 : 0xFFFF7777, false);
     }
     private void line(GuiGraphics g, String text, int offset, int color) {

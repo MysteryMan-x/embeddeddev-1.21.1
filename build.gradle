@@ -164,6 +164,14 @@ var generateModMetadata = tasks.register("generateModMetadata", ProcessResources
 // Include the output of "generateModMetadata" as an input directory for the build
 // this works with both building through Gradle and the IDE.
 sourceSets.main.resources.srcDir generateModMetadata
+
+// Ship the same verified HEX files used by development examples inside the mod JAR.
+tasks.named('processResources', ProcessResources) {
+    from('examples') {
+        include '*.hex'
+        into 'assets/embeddeddev/firmware'
+    }
+}
 // To avoid having to run "generateModMetadata" manually, make it run on every project reload
 neoForge.ideSyncTask generateModMetadata
 

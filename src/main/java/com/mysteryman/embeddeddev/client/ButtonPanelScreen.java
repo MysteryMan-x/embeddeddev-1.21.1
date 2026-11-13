@@ -37,6 +37,7 @@ public final class ButtonPanelScreen extends Screen implements DeviceStateScreen
         w = Math.min(width - 12, 340);
         x = (width - w) / 2;
         y = Math.max(2, (height - 167) / 2);
+        addRenderableWidget(BoardScreen.closeButton(x + w - 28, y + 3, this::onClose));
         addRenderableWidget(CycleButton.<Integer>builder(n -> Component.literal(n.toString()))
                 .withValues(IntStream.rangeClosed(1, ButtonPanel.MAX_KEYS).boxed().toList()).withInitialValue(count)
                 .create(x + 10, y + 23, w - 20, 20, Component.translatable("buttons.embeddeddev.count"), (b, value) -> {

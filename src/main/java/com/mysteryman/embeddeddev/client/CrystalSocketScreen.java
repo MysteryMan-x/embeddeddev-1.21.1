@@ -14,6 +14,11 @@ public final class CrystalSocketScreen extends AbstractContainerScreen<CrystalSo
         this.parent = parent;
     }
 
+    @Override protected void init() {
+        super.init();
+        addRenderableWidget(BoardScreen.closeButton(leftPos + imageWidth - 24, topPos + 4, this::onClose));
+    }
+
     @Override protected void renderBg(GuiGraphics graphics, float partialTick, int mouseX, int mouseY) {
         graphics.fill(leftPos, topPos, leftPos + imageWidth, topPos + imageHeight, 0xFF18232D);
         graphics.fill(leftPos, topPos, leftPos + imageWidth, topPos + 2, 0xFF43D9BC);

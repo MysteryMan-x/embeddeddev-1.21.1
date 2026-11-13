@@ -20,6 +20,7 @@ public final class OledScreen extends Screen implements DeviceStateScreen {
     @Override protected void init() {
         scale = Math.max(1, Math.min(3, Math.min((width - 48) / 128, (height - 100) / 64)));
         w = 128 * scale + 32; x = (width - w) / 2; y = Math.max(8, (height - (64 * scale + 92)) / 2);
+        addRenderableWidget(BoardScreen.closeButton(x + w - 28, y + 5, this::onClose));
         addRenderableWidget(Button.builder(Component.translatable("gui.embeddeddev.close"), b -> onClose()).bounds(x + w / 2 - 40, y + 64 * scale + 62, 80, 20).build());
     }
     @Override public boolean isPauseScreen() { return false; }
@@ -30,7 +31,7 @@ public final class OledScreen extends Screen implements DeviceStateScreen {
     @Override public void renderBackground(GuiGraphics g, int mx, int my, float dt) {
         super.renderBackground(g, mx, my, dt);
         g.fill(x, y, x + w, y + 64 * scale + 88, 0xF018232D); g.fill(x, y, x + w, y + 2, 0xFF72DFF3);
-        g.drawString(font, title, x + 12, y + 10, 0xFFE0F5F0, false);
+        g.drawString(font, font.plainSubstrByWidth(title.getString(), w - 44), x + 12, y + 10, 0xFFE0F5F0, false);
         g.fill(x + 14, y + 28, x + w - 14, y + 32 + 64 * scale, 0xFF02090F);
     }
     @Override public void render(GuiGraphics g, int mx, int my, float dt) {

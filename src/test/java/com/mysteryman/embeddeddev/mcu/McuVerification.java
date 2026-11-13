@@ -1,5 +1,7 @@
 package com.mysteryman.embeddeddev.mcu;
 
+import com.mysteryman.embeddeddev.firmware.BuiltinFirmware;
+
 import java.nio.file.*;
 import java.util.*;
 
@@ -359,11 +361,26 @@ public final class McuVerification {
                 "MOVX never writes or clears the I2C OLED, even at former bridge addresses");
     }
 
+    private static void bundledExamples() throws Exception {
+        Set<String> bundled = new HashSet<>();
+        for (var example : BuiltinFirmware.values()) {
+            bundled.add(example.fileName());
+            byte[] shipped = IntelHex.parse(example.hex()).code();
+            byte[] source = IntelHex.parse(Files.readString(Path.of("examples", example.fileName()))).code();
+            ok(Arrays.equals(shipped, source), "Bundled example exactly matches verified development firmware: " + example.fileName());
+        }
+        try (var examples = Files.list(Path.of("examples"))) {
+            Set<String> actual = examples.map(path -> path.getFileName().toString()).filter(name -> name.endsWith(".hex"))
+                    .collect(java.util.stream.Collectors.toSet());
+            ok(actual.equals(bundled), "Every available HEX can be selected in the built-in catalog");
+        }
+    }
+
     public static void main(String[] args) throws Exception {
         Ds18b20Verification.run();
         hex(); opcodes(); arithmetic(); timers(); peripherals(); persistence(); connectorsAndI2c(); examples(); disassembly();
         xdataIsIndependentRam(); pcf8591Bus();
-        ds1302Bus();
+        ds1302Bus(); bundledExamples();
         System.out.println("MCU verification passed: " + checks + " checks");
     }
 }

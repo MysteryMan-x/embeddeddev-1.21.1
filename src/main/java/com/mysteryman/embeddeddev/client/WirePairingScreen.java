@@ -54,6 +54,7 @@ final class WirePairingScreen extends Screen {
         w = Math.min(360, width - 16);
         x = (width - w) / 2;
         y = Math.max(4, (height - 201) / 2);
+        addRenderableWidget(BoardScreen.closeButton(x + w - 28, y + 5, this::onClose));
         var ids = new ArrayList<Integer>();
         ids.add(-1);
         for (var choice : choices) ids.add(choice.id());

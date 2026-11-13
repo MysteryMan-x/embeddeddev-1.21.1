@@ -27,6 +27,7 @@ public final class RedstonePortScreen extends Screen {
         w = Math.min(300, width - 16);
         x = (width - w) / 2;
         y = Math.max(4, (height - 122) / 2);
+        addRenderableWidget(BoardScreen.closeButton(x + w - 28, y + 5, this::onClose));
         addRenderableWidget(CycleButton.<Boolean>builder(in -> Component.translatable(in ? "gui.embeddeddev.input" : "gui.embeddeddev.output"))
                 .withValues(false, true).withInitialValue(reads)
                 .create(x + 10, y + 29, w - 20, 20, Component.translatable("wire.embeddeddev.port_mode"), (b, value) -> reads = value));

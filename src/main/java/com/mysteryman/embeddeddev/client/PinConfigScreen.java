@@ -38,6 +38,7 @@ final class PinConfigScreen extends Screen implements DeviceStateScreen {
         w = Math.min(480, width - 12);
         x = (width - w) / 2;
         y = Math.max(4, (height - 226) / 2);
+        addRenderableWidget(BoardScreen.closeButton(x + w - 28, y + 5, this::onClose));
         name = new EditBox(font, x + 10, y + 42, w - 20, 18, Component.translatable("gui.embeddeddev.pin_name"));
         name.setMaxLength(FaceBinding.MAX_NAME_LENGTH);
         name.setHint(Component.translatable("gui.embeddeddev.pin_example"));

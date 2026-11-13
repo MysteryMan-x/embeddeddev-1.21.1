@@ -42,6 +42,7 @@ public final class FaceConfigScreen extends Screen implements DeviceStateScreen 
         w = Math.min(480, width - 12);
         x = (width - w) / 2;
         y = Math.max(4, (height - 226) / 2);
+        addRenderableWidget(BoardScreen.closeButton(x + w - 28, y + 5, this::onClose));
         int count = drafts[group].pins().size();
         int lastPage = Math.max(0, (count - 1) / ROWS);
         page = Math.min(page, lastPage);

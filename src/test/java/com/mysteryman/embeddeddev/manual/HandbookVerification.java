@@ -6,6 +6,7 @@ import com.mysteryman.embeddeddev.mcu.Ds1302;
 import com.mysteryman.embeddeddev.mcu.Ds18b20;
 import com.mysteryman.embeddeddev.mcu.SevenSegment;
 import com.mysteryman.embeddeddev.mcu.BoardHardware;
+import com.mysteryman.embeddeddev.firmware.BuiltinFirmware;
 
 import java.io.StringReader;
 import java.nio.charset.StandardCharsets;
@@ -76,6 +77,12 @@ public final class HandbookVerification {
             require(book.entry("xdata").matches("64 KiB") && book.entry("xdata").matches("3CH"), "Handbook distinguishes full XRAM from I2C addresses");
             require(java.util.stream.IntStream.range(0, 65536).allMatch(address -> hardware.readExternal(address) == -1),
                     "Documented 64 KiB XDATA has no peripheral overlay");
+        }
+        for (String language : List.of("zh_cn", "en_us")) {
+            var captions = JsonParser.parseString(Files.readString(resources.resolve("assets/embeddeddev/lang/" + language + ".json"))).getAsJsonObject();
+            for (var example : BuiltinFirmware.values()) {
+                require(captions.has(example.titleKey()) && captions.has(example.helpKey()), "Every selectable example has a localized name and wiring hint");
+            }
         }
         String original = Files.readString(manual.resolve("zh_cn.json"), StandardCharsets.UTF_8);
         var broken = JsonParser.parseString(original).getAsJsonObject();

@@ -230,6 +230,10 @@
           "text": "Panel workflow"
         },
         {
+          "type": "text",
+          "text": "Bundled examples are selected by default. Open the example list, choose a program, check wiring and clock, then Flash HEX and Run. All eight ship inside the mod; no download or path is needed. Switch to Local HEX for your Keil program, use the file-picker button or drop a file. The top-right X closes the board screen."
+        },
+        {
           "type": "table",
           "rows": [
             [
@@ -1895,7 +1899,7 @@
       "blocks": [
         {
           "type": "text",
-          "text": "Examples are in the source repository examples folder and the same directory in your local project. Installing the JAR does not copy these files into the game instance. Obtain the desired HEX, then select it on the board."
+          "text": "The programmer defaults to bundled examples. Click the example name for all eight HEX files. Selection changes the pending program; still click Flash HEX and Run. Tooltips show wiring and clock requirements. No downloads or paths are needed. Editable C sources and HEX are also available in the repository examples directory."
         },
         {
           "type": "table",
