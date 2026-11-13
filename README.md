@@ -1,10 +1,10 @@
-# Embedded Development 1.10.0 · Minecraft 1.21.1
+# Embedded Development 1.10.1 · Minecraft 1.21.1
 
-NeoForge **21.1.233** / Java **21**。1.10.0 版删除主板虚拟 ADC 和 DAC，释放 F000H–F007H、F010H–F017H 为普通 XDATA RAM。主板端子只使用 GPIO，模拟输入和输出统一使用独立 PCF8591。保留 OLED 桥接、图文手册和现有独立电子模块。
+NeoForge **21.1.233** / Java **21**。1.10.1 版移除 OLED MOVX 桥接。ADC、DAC、OLED 均通过独立模块和 GPIO 协议访问，不再占用 MCU 内存窗口；整个 64 KiB XDATA 为普通 XRAM。主板端子只使用 GPIO，模拟量使用 PCF8591，OLED 使用软件 I²C。
 
 ## 安装与烧录
 
-执行 `gradlew.bat build`，将 `build/libs/embeddeddev-1.10.0.jar` 放进实例 `mods`，替换旧版本。客户端与服务端均须更新。
+执行 `gradlew.bat build`，将 `build/libs/embeddeddev-1.10.1.jar` 放进实例 `mods`，替换旧版本。客户端与服务端均须更新。
 
 1. 放置 **51 单片机最小系统板**，空手右键打开。
 2. 切换到 **六面端子**。东、南、西、北、上、下各有一张卡。点击「管理引脚 → 添加引脚」，在弹出的窗口中填写标号，选择用途和物理引脚，保存后在该面点击「应用」。
@@ -29,7 +29,7 @@ NeoForge **21.1.233** / Java **21**。1.10.0 版删除主板虚拟 ADC 和 DAC�
 
 用书、纸和红石无序合成 **手册**，主手或副手右键打开独立图文界面。旧手册物品也可继续使用。手册分为「入门、开发、模块、速查」四类，共 **30 个双语条目**，覆盖全部芯片、模块和生存配方。条目以实验步骤、配方卡、接线图、寄存器表、故障排查和可复制的代码组织。
 
-「开发 → 模拟量与外部芯片」说明 STC89C52RC 没有片内 ADC/DAC。两个虚拟窗口共释放 16 字节 XDATA；OLED 桥接仍占 F020H 与 F100H–F4FFH。章节包含 PCF8591 接线、控制字、C51 程序和 ADC→DAC 实验。独立 PCF8591 通过 GPIO 软件 I²C 控制，48H–4FH 是总线地址，不占 MCU 内存窗口。
+「开发 → 模拟量与外部芯片」说明 STC89C52RC 没有片内 ADC/DAC。1.10.0 删除虚拟 ADC/DAC，1.10.1 再删除 OLED 桥接，原设备地址均恢复为普通 XRAM。章节包含 PCF8591 接线、控制字、C51 程序和 ADC→DAC 实验。独立 PCF8591 通过 GPIO 软件 I²C 控制，48H–4FH 是总线地址，不占 MCU 内存窗口。
 
 旧存档移除 ADC/DAC 引脚，保留其他 GPIO 的名字、通道、线组和连线编号。带旧模拟引脚的主板加载时会暂停，保留固件和 CPU/RAM；旧模拟线对会失效，可剪线回收后重接。原 `adc_mirror.hex` 已退役，直接访问旧 ADC/DAC 窗口的固件必须修改后再运行。
 
@@ -103,22 +103,17 @@ OLED 是单独的方块，包含自己的 SSD1306 控制器和 1024 字节显存
 3. 烧录 `examples/i2c_oled_hello.hex` 并运行。
 4. OLED 显示 `EMBEDDED DEV`、`STC89C52`、`HELLO MINECRAFT`、`I2C 0X3C`。右键 OLED 可放大查看。
 
-`oled_pattern.hex` 是早期的原始显存条纹诊断图，里面没有文字；看上去像乱码是因为发送的就是交错位图。新的可读示例是 `i2c_oled_hello.hex` 和 `oled_hello.hex`。
+`oled_pattern.hex` 是早期的原始显存条纹诊断图，里面没有文字；看上去像乱码是因为发送的就是交错位图。新版可读示例均使用软件 I²C，分别是 `i2c_oled_hello.hex` 和 `oled_hello.hex`。
 
 I²C 七位地址 **3Ch**，写地址字节 **78h**。支持 START/STOP、重复 START、地址匹配、ACK/NACK、控制字节的 Co / D-C、页寻址、水平/垂直寻址、列/页范围、显示开关、反显、全亮、扫描方向、起始行和显示偏移。常见初始化中的对比度、充电泵、时钟等设置可以接受，但不会模拟面板电气特性。滚动命令可接收，目前不产生滚动动画。不模拟 SPI、多主仲裁或时钟拉伸。
 
 I²C 是基于虚拟 GPIO 边沿的逻辑仿真，不做模拟电压或严格总线速率校验。通用 SSD1306 驱动需要使用所绑定的两根 GPIO，采用 128×64 / 3Ch 配置；不同屏幕芯片或额外外设的驱动仍需要对应设备实现。
 
-### 可选 MOVX 快捷接口
+### MCU 内存与 OLED 显存
 
-MOVX 桥接访问第一块**通过 SDA 和 SCL 连上的 OLED 模块**。
+1.10.1 起删除 MOVX 桥接。原 F020H 与 F100H–F4FFH 均为普通 XRAM，写入不会控制、清除或改写 OLED。3Ch 是 I²C 总线地址，不是 MCU 内存地址。OLED 的 1024 字节显存属于模块；固件若自行分配帧缓冲，该缓冲区才占 MCU RAM。
 
-| XDATA 地址 | 功能 |
-|---|---|
-| F020h | bit 0：显示开关；写入 bit 1 为 1：清屏 |
-| F100h–F4FFh | 独立 OLED 模块的 1024 字节显存 |
-
-像素 `(x,y)` 对应 `F100h + (y >> 3) * 128 + x` 的 `1 << (y & 7)` 位。`examples/oled_hello.hex` 通过这个桥接显示同一幅可读画面。世界面板最多每 4 tick 同步一次，模块窗口每 5 tick 刷新。
+旧桥接版 `oled_hello.hex` 和 `oled_pattern.hex` 需要重新烧录新版文件。两个新版示例均已使用软件 I²C；已有原生 I²C 程序可继续使用。旧模块的画面和控制器存档保留。世界面板最多每 4 tick 同步一次，模块窗口每 5 tick 刷新。
 
 ## I²C 环境传感器
 
@@ -174,9 +169,9 @@ Keil C51 建议 SMALL 内存模型、11.0592 MHz、勾选 Create HEX File。代�
 | `redstone_blink.hex` | 将 GPIO P1.2 接到设为输出的红石端子，约每 0.5 秒切换 |
 | `pcf8591_mirror.hex` | PCF8591 默认地址 48H，SDA=P1.6、SCL=P1.7；北面 AIN0 → 上面 AOUT |
 | `i2c_oled_hello.hex` | OLED 所在面添加 GPIO，SDA=P1.6、SCL=P1.7 |
-| `oled_hello.hex` | 同上，通过可选 MOVX 桥接显示文字 |
+| `oled_hello.hex` | 同上，软件 I²C 显示文字 |
 | `i2c_sensor.hex` | 传感器所在面添加 GPIO，SDA=P1.6、SCL=P1.7，另一线组 LED=P1.2 |
-| `oled_pattern.hex` | 诊断条纹，不是文字示例 |
+| `oled_pattern.hex` | 软件 I²C 诊断条纹，不是文字示例 |
 
 同名 C 源码、`i2c_soft.h`、`embeddeddev.h` 和原始字模在 `examples` 中。HEX 为功能等价的手写机器码示例，当前环境没有用 Keil 编译这些 C 文件。`tools/generate-firmware.mjs` 可重现新的 HEX 和字模；`tools/generate-models.mjs` 可重现立体模型资源。
 
@@ -184,13 +179,13 @@ Keil C51 建议 SMALL 内存模型、11.0592 MHz、勾选 Create HEX File。代�
 |---|---|
 | F000h–F007h | 普通 XDATA RAM（1.10.0 起释放） |
 | F010h–F017h | 普通 XDATA RAM（1.10.0 起释放） |
-| F020h、F100h–F4FFh | 可选 OLED 桥接，见上表 |
+| F020h、F100h–F4FFh | 普通 XDATA RAM（1.10.1 起释放） |
 
 HEX 从客户端本地读取，只上传固件内容，服务端不读取玩家的路径。解析检查记录长度、校验和、EOF、地址范围和冲突覆盖；全部成功后才替换旧程序。支持 Intel HEX 00–05 记录、8 KiB 程序和最大 128 KiB HEX 文本。
 
 ## CPU 与存档
 
-支持 8051/8052 全部 255 个已定义基础操作码、256 字节 IDATA、独立 SFR、四组寄存器、位操作、MOVC/MOVX、乘除、BCD 调整、双 DPTR、Timer 0/1/2、标准 IE/IP 两级优先级中断、Idle 和 Power-down。提供 64 KiB 虚拟 XDATA（指定设备地址除外）。A5h 保留操作码会停止执行并显示故障。
+支持 8051/8052 全部 255 个已定义基础操作码、256 字节 IDATA、独立 SFR、四组寄存器、位操作、MOVC/MOVX、乘除、BCD 调整、双 DPTR、Timer 0/1/2、标准 IE/IP 两级优先级中断、Idle 和 Power-down。提供完整的 64 KiB 普通 XDATA RAM，无外设保留窗口。A5h 保留操作码会停止执行并显示故障。
 
 UART 是虚拟控制台，写 SBUF 会立即输出并置 TI。STC 特有的四级中断优先级、额外中断源、看门狗、IAP/EEPROM、6T/1T 加速、Timer 2 专用波特率/向下计数模式，以及真实电气/外部总线时序尚未实现。
 
@@ -208,7 +203,7 @@ UART 是虚拟控制台，写 SBUF 会立即输出并置 TI。STC 特有的四�
 .\gradlew.bat runClient
 ```
 
-`build` 会运行 CPU/HEX、接口/I²C 和双语手册回归检查，包括多引脚接线、共享总线、地址 NACK、重复 START、ACK/NACK、SSD1306 寻址及所有示例固件。新增实际 MOVX 读写两组旧 ADC/DAC 窗口和 XRAM 存档验证。GameTest 验证旧 ADC/DAC 配置迁移暂停且保留 GPIO、红石方向、远程接线存档、OLED 独立存档和固件 I²C 控制。测试类及测试结构不打入发布 JAR。
+`build` 会运行 CPU/HEX、接口/I²C 和双语手册回归检查，包括多引脚接线、共享总线、地址 NACK、重复 START、ACK/NACK、SSD1306 寻址及所有示例固件。新增真实 MOVX 遍历整个 64 KiB XDATA 的读写和存档检查，确认 OLED 连接时也不会覆盖 RAM、清屏或改变控制器状态。GameTest 验证旧 ADC/DAC 配置迁移暂停且保留 GPIO、红石方向、远程接线存档、OLED 独立存档和固件 I²C 控制。测试类及测试结构不打入发布 JAR。
 
 Windows/JDK 若因默认 socket 临时目录导致 `Unable to establish loopback connection`，可在当前 PowerShell 临时设置：
 

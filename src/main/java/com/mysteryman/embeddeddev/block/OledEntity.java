@@ -37,7 +37,11 @@ public final class OledEntity extends BlockEntity implements I2cModule {
         byte[] ram = tag.contains("DisplayRam") ? tag.getByteArray("DisplayRam") : saved;
         if (ram.length == 1024) System.arraycopy(ram, 0, display.ram, 0, 1024);
         if (tag.contains("DisplayRegisters")) display.restoreRegisters(tag.getIntArray("DisplayRegisters"));
-        else display.legacyControl(enabled ? 1 : 0);
+        else {
+            // Saves predating controller registers still keep their visible framebuffer.
+            display.enabled = enabled;
+            display.remap = display.scanReverse = true;
+        }
         lastRevision = -1;
     }
     @Override public CompoundTag getUpdateTag(HolderLookup.Provider r) { return saveCustomOnly(r); }

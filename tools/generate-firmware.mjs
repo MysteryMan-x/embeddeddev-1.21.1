@@ -35,17 +35,12 @@ function i2cSubroutines(a){
  a.label('read').emit(0xD2,0x96,0x7F,8,0xE4).label('readbit').emit(0xD2,0x97,0xA2,0x96,0x33,0xC2,0x97).rel(0xDF,'readbit')
   .emit(0xD2,0x96,0xD2,0x97,0xC2,0x97,0x22); // Controller NACKs the single-byte read.
 }
-function oledProgram(pixels,i2c){
+function oledProgram(pixels){
  const a=new Asm();a.emit(0x75,0x90,0xC0);
- if(i2c){
   a.call('start');for(const v of [0x78,0x00,0xAE,0xA1,0xC8,0x20,0,0x21,0,127,0x22,0,7,0xAF])a.emit(0x74,v).call('write');a.call('stop');
   a.call('start');for(const v of [0x78,0x40])a.emit(0x74,v).call('write');
   a.absolute(0x90,'frame').emit(0x7D,4,0x7E,0).label('copy').emit(0xE4,0x93).call('write').emit(0xA3).rel(0xDE,'copy').rel(0xDD,'copy').call('stop');
- }else{
-  a.emit(0x90,0xF0,0x20,0x74,3,0xF0); // Display ON + clear, using the optional MOVX bridge.
-  a.absolute(0x90,'frame').emit(0x7D,4,0x7E,0,0x78,0,0x75,0xA0,0xF1).label('copy').emit(0xE4,0x93,0xF2,0xA3,0x08).rel(0xDE,'copy').emit(0x05,0xA0).rel(0xDD,'copy');
- }
- a.emit(0x75,0x30,0xA5).label('forever').rel(0x80,'forever');if(i2c)i2cSubroutines(a);
+ a.emit(0x75,0x30,0xA5).label('forever').rel(0x80,'forever');i2cSubroutines(a);
  a.label('frame').emit(...pixels);return a.resolve();
 }
 function sensorProgram(){
@@ -101,8 +96,8 @@ function sevenSegmentProgram() {
 function hex(bytes){const rows=[];for(let at=0;at<bytes.length;at+=16){const data=bytes.slice(at,at+16);let sum=data.length+(at>>8)+(at&255);const x=n=>(n&255).toString(16).padStart(2,'0').toUpperCase();let r=':'+x(data.length)+at.toString(16).padStart(4,'0').toUpperCase()+'00';for(const v of data){r+=x(v);sum+=v;}rows.push(r+x(-sum));}return rows.join('\n')+'\n:00000001FF\n';}
 export async function generate(){
  const directory=fileURLToPath(new URL('../examples/',import.meta.url));const pixels=frame();
- for(const [name,bytes] of [['oled_hello',oledProgram(pixels,false)],['i2c_oled_hello',oledProgram(pixels,true)],['i2c_sensor',sensorProgram()],['ds18b20_read',thermometerProgram()],['seven_segment_counter',sevenSegmentProgram()],
+ for(const [name,bytes] of [['oled_hello',oledProgram(pixels)],['i2c_oled_hello',oledProgram(pixels)],['oled_pattern',oledProgram(Uint8Array.from({length:1024},(_,i)=>(i&255)^0xAA))],['i2c_sensor',sensorProgram()],['ds18b20_read',thermometerProgram()],['seven_segment_counter',sevenSegmentProgram()],
   ['pcf8591_mirror',pcf8591Program()]])await fs.writeFile(directory+name+'.hex',hex(bytes));
  await fs.writeFile(directory+'oled_hello_bitmap.h','/* Original 128x64 page bitmap: EMBEDDED DEV / STC89C52 / HELLO MINECRAFT / I2C 0X3C */\nconst unsigned char code hello_bitmap[1024] = {\n'+Array.from(pixels).map((v,i)=>(i%16===0?'    ':'')+'0x'+v.toString(16).padStart(2,'0')+(i===1023?'':',')+(i%16===15?'\n':' ')).join('')+'};\n');
- return {readablePixels:pixels.reduce((n,v)=>n+v.toString(2).replaceAll('0','').length,0),legacy:oledProgram(pixels,false).length,i2c:oledProgram(pixels,true).length,sensor:sensorProgram().length};
+ return {readablePixels:pixels.reduce((n,v)=>n+v.toString(2).replaceAll('0','').length,0),i2c:oledProgram(pixels).length,sensor:sensorProgram().length};
 }

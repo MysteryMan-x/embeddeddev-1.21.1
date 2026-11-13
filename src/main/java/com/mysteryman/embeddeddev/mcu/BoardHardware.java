@@ -244,22 +244,6 @@ public final class BoardHardware implements Mcs51.Bus {
             default -> {}
         }
     }
-    public Ssd1306 display() {
-        for (I2cLink link : links) if (link.device() instanceof Ssd1306 oled) return oled;
-        for (var link : activeLinks) if (link.getKey().device() instanceof Ssd1306 oled) return oled;
-        return null;
-    }
-    @Override public int readExternal(int a) {
-        if (a == 0xF020) { Ssd1306 d = display(); return d == null ? 255 : d.enabled ? 1 : 0; }
-        if (a >= 0xF100 && a < 0xF500) { Ssd1306 d = display(); return d == null ? 255 : d.ram[a - 0xF100] & 255; }
-        return -1;
-    }
-    @Override public void writeExternal(int a, int v) {
-        if (a == 0xF020) { Ssd1306 d = display(); if (d != null) d.legacyControl(v); }
-        if (a >= 0xF100 && a < 0xF500) {
-            Ssd1306 d = display(); if (d != null && d.ram[a - 0xF100] != (byte) v) { d.ram[a - 0xF100] = (byte) v; d.changed(); }
-        }
-    }
     @Override public void transmit(int v) {
         if (v == 10 || v == 13 || v >= 32 && v < 127) serial.append((char) v);
         else serial.append('.');

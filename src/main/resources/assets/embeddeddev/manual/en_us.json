@@ -517,7 +517,7 @@
         },
         {
           "type": "text",
-          "text": "Removing both analog windows restores 16 XDATA bytes without changing Flash, IDATA or SFR. PCF8591 reserves no MCU memory window; it needs GPIO and firmware I²C. The existing OLED MOVX bridge still reserves F020H and F100H–F4FFH. Keep ordinary xdata arrays and startup clearing outside those OLED addresses."
+          "text": "Virtual ADC/DAC were removed in 1.10.0 and the OLED MOVX bridge in 1.10.1. All 64 KiB XDATA is now ordinary XRAM with no peripheral windows. External PCF8591 and OLED use GPIO software I²C and reserve no MCU memory addresses. Variables or framebuffers allocated by firmware still consume their chosen MCU memory."
         },
         {
           "type": "text",
@@ -531,7 +531,7 @@
         {
           "type": "link",
           "target": "xdata",
-          "text": "Remaining OLED memory windows >"
+          "text": "XDATA versus I²C addresses >"
         }
       ],
       "items": [],
@@ -1042,7 +1042,7 @@
         },
         {
           "type": "text",
-          "text": "An optional MOVX bridge reaches the first OLED connected via SDA/SCL: F020H controls display and F100H–F4FFH is RAM. oled_hello.hex uses it. This bridge is a mod extension rather than an SSD1306 physical interface."
+          "text": "Since 1.10.1 the OLED MOVX bridge is removed. Send commands and pixels over SDA/SCL. 3CH is an I²C bus address, not MCU memory; the 1024-byte framebuffer belongs to OLED. Replace old bridge versions of oled_hello.hex and oled_pattern.hex with the updated software-I²C examples. Existing i2c_oled_hello.hex remains compatible."
         },
         {
           "type": "link",
@@ -1137,7 +1137,7 @@
       "category": "modules",
       "icon": "embeddeddev:pcf8591",
       "title": "PCF8591 ADC / DAC",
-      "subtitle": "Separate I²C chip, not the board MOVX expansion",
+      "subtitle": "External I²C converter, with no MCU memory window",
       "blocks": [
         {
           "type": "tip",
@@ -1513,7 +1513,7 @@
             [
               "XDATA",
               "0000H–FFFFH / 64 KiB",
-              "External data and virtual devices"
+              "Ordinary XRAM; no peripheral windows"
             ]
           ]
         },
@@ -1557,7 +1557,7 @@
         {
           "type": "link",
           "target": "xdata",
-          "text": "Reserved XDATA addresses for OLED >"
+          "text": "XDATA versus I²C addresses >"
         }
       ],
       "keywords": "memory"
@@ -1652,50 +1652,81 @@
     {
       "id": "xdata",
       "category": "reference",
-      "icon": "embeddeddev:redstone_port",
-      "title": "Virtual device address map",
-      "subtitle": "MOVX and XBYTE conventions",
+      "icon": "embeddeddev:51systemboard",
+      "title": "XDATA and bus addresses",
+      "subtitle": "Memory addresses and peripheral addresses",
       "blocks": [
         {
-          "type": "link",
-          "target": "analog_io",
-          "text": "ADC/DAC now use an external chip >"
+          "type": "text",
+          "text": "Since 1.10.1 no ADC, DAC or OLED is mapped into board memory. All 0000H–FFFFH, 64 KiB of XDATA, is ordinary emulator XRAM, separate from Flash, IDATA and SFR. It persists with CPU state. MOVX still reads and writes this RAM, which clears on reset or flashing."
         },
         {
           "type": "table",
           "rows": [
             [
-              "XDATA address",
-              "Access",
-              "Contents"
+              "Former window",
+              "Current meaning"
             ],
             [
-              "F020H",
-              "Read/write",
-              "OLED bridge control"
+              "F000H–F007H",
+              "Ordinary XRAM, no ADC"
             ],
             [
-              "F100H–F4FFH",
-              "Read/write",
-              "1024-byte connected OLED RAM"
+              "F010H–F017H",
+              "Ordinary XRAM, no DAC"
+            ],
+            [
+              "F020H / F100H–F4FFH",
+              "Ordinary XRAM, no OLED access"
             ]
           ]
         },
         {
-          "type": "text",
-          "text": "Since 1.10.0, F000H–F007H and F010H–F017H are ordinary XDATA RAM, no longer ADC/DAC windows. PCF8591 addresses 48H–4FH are I²C bus addresses rather than MCU memory addresses; they reserve no Flash, IDATA or SFR. Devices on one bus should have distinct addresses."
-        },
-        {
-          "type": "text",
-          "text": "These mod-defined windows replace ordinary XDATA bytes at those addresses. At F020H, bit 0 controls display enable and writing bit 1 requests a clear. The OLED bridge requires an actual module connected through SDA/SCL."
-        },
-        {
           "type": "code",
-          "text": "#include <absacc.h>\nXBYTE[0xF020] = 3;  /* on + clear */\nXBYTE[0xF100] = 0xFF;"
+          "text": "MOV DPTR,#01234H\nMOV A,#5AH\nMOVX @DPTR,A ; store in XRAM\nMOVX A,@DPTR ; read back 5AH"
+        },
+        {
+          "type": "heading",
+          "text": "I²C addresses are not XDATA addresses"
+        },
+        {
+          "type": "table",
+          "rows": [
+            [
+              "Device",
+              "7-bit I²C address",
+              "Access"
+            ],
+            [
+              "SSD1306 OLED",
+              "3CH",
+              "GPIO SDA/SCL commands and pixels"
+            ],
+            [
+              "PCF8591",
+              "48H–4FH",
+              "GPIO SDA/SCL ADC/DAC control"
+            ],
+            [
+              "Environment sensor",
+              "48H",
+              "GPIO SDA/SCL register reads"
+            ]
+          ]
         },
         {
           "type": "tip",
-          "text": "Do not bulk-clear device windows in startup code. Software I²C and bridge access are separate options. A normal SSD1306 driver should use the GPIO bus, not assume these addresses exist on physical hardware."
+          "text": "Writing XDATA 003CH does not reach OLED. I²C address 3CH is encoded as write byte 78H, followed by control 00H or 40H. OLED owns its 1024-byte RAM and consumes no MCU RAM window. A framebuffer allocated by firmware does consume MCU storage."
+        },
+        {
+          "type": "link",
+          "target": "oled",
+          "text": "OLED I²C commands and pixel format >"
+        },
+        {
+          "type": "link",
+          "target": "analog_io",
+          "text": "External analog chip experiment >"
         }
       ],
       "keywords": "xdata"
@@ -1887,7 +1918,7 @@
             ],
             [
               "oled_hello.hex",
-              "Same OLED wiring; MOVX bridge"
+              "Same OLED wiring; software I²C text"
             ],
             [
               "i2c_sensor.hex",
@@ -1903,7 +1934,7 @@
             ],
             [
               "oled_pattern.hex",
-              "Diagnostic stripes, not text"
+              "I²C diagnostic stripes, not text"
             ]
           ]
         },

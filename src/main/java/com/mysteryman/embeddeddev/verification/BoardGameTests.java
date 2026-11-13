@@ -93,11 +93,24 @@ public final class BoardGameTests {
         SystemBoardEntity b = board(h);
         h.setBlock(BOARD.east(), ModBlocks.OLED.get());
         b.configure(5, modulePins());
-        b.hardware.writeExternal(0xF020, 1);
-        b.hardware.writeExternal(0xF100, 0xA5);
+        OledEntity attached = h.getBlockEntity(BOARD.east());
+        attached.display.begin(false); attached.display.write(0); attached.display.write(0xAF);
+        attached.display.begin(false); attached.display.write(0x40); attached.display.write(0xA5);
+        // Old bridge writes now affect XRAM only; they must not clear or disable the module.
+        byte[] code = new byte[com.mysteryman.embeddeddev.mcu.IntelHex.FLASH_SIZE];
+        byte[] program = {(byte)0x90,(byte)0xF1,0, 0x74,0x5A,(byte)0xF0,(byte)0xE0,(byte)0xF5,0x30,
+                (byte)0x90,(byte)0xF0,0x20,0x74,2,(byte)0xF0,(byte)0xE0,(byte)0xF5,0x31};
+        System.arraycopy(program, 0, code, 0, program.length); b.cpu.install(code);
+        for (int i = 0; i < 10; i++) b.cpu.step();
         h.runAfterDelay(8, () -> {
             OledEntity oled = h.getBlockEntity(BOARD.east());
-            h.assertTrue(oled.enabled && (oled.pixels[0] & 255) == 0xA5, "OLED must mirror adjacent framebuffer");
+            h.assertTrue(oled.enabled && (oled.pixels[0] & 255) == 0xA5, "OLED syncs its own I2C framebuffer and ignores former MOVX writes");
+            h.assertTrue(b.cpu.inspectRam(0x30) == 0x5A && b.cpu.inspectRam(0x31) == 2, "Former OLED addresses are ordinary board XRAM");
+            var legacy = oled.saveCustomOnly(h.getLevel().registryAccess()); legacy.remove("DisplayRegisters");
+            OledEntity restored = new OledEntity(h.absolutePos(BOARD.east()), oled.getBlockState());
+            restored.loadCustomOnly(legacy, h.getLevel().registryAccess());
+            h.assertTrue(restored.display.enabled && (restored.display.ram[0] & 255) == 0xA5 && restored.display.remap && restored.display.scanReverse,
+                    "Removing the bridge preserves old OLED framebuffer saves");
             h.succeed();
         });
     }

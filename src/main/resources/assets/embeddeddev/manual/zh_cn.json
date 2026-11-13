@@ -517,7 +517,7 @@
         },
         {
           "type": "text",
-          "text": "两个虚拟模拟量窗口共释放 16 字节，不占 Flash、IDATA 或 SFR。独立 PCF8591 也不保留 MCU 内存窗口，但需用 GPIO 和固件执行 I²C。现有 OLED MOVX 桥接仍保留 F020H 与 F100H–F4FFH；普通 xdata 数组及启动清零区仍应避开这些 OLED 地址。"
+          "text": "1.10.0 已移除虚拟 ADC/DAC，1.10.1 进一步移除 OLED MOVX 桥接。全部 64 KiB XDATA 现在都是普通 XRAM，不再保留外设窗口。独立 PCF8591 和 OLED 通过 GPIO 软件 I²C 访问，不占 MCU 内存地址。固件自建的变量或帧缓冲仍占用所选择的 MCU 存储区。"
         },
         {
           "type": "text",
@@ -531,7 +531,7 @@
         {
           "type": "link",
           "target": "xdata",
-          "text": "仍保留的 OLED 内存窗口 >"
+          "text": "XDATA 与 I²C 地址的区别 >"
         }
       ],
       "items": [],
@@ -1042,7 +1042,7 @@
         },
         {
           "type": "text",
-          "text": "可选 MOVX 桥接访问第一块已通过 SDA/SCL 接上的 OLED：F020H 控制显示，F100H–F4FFH 为显存。oled_hello.hex 使用这个接口。它是模组扩展，不是 SSD1306 的原生引脚接口。"
+          "text": "1.10.1 起移除 OLED 的 MOVX 桥接，显示控制和像素数据都必须通过 SDA/SCL 发送。3CH 是 I²C 总线地址，不是 MCU 内存地址；1024 字节显存属于 OLED。旧桥接版 oled_hello.hex、oled_pattern.hex 需要换成新版；新版这两个文件都已改为软件 I²C，i2c_oled_hello.hex 保持原生 I²C 用法。"
         },
         {
           "type": "link",
@@ -1137,7 +1137,7 @@
       "category": "modules",
       "icon": "embeddeddev:pcf8591",
       "title": "PCF8591 ADC / DAC",
-      "subtitle": "独立 I²C 芯片，与主板 MOVX 扩展不同",
+      "subtitle": "独立 I²C 转换器，不占 MCU 内存窗口",
       "blocks": [
         {
           "type": "tip",
@@ -1513,7 +1513,7 @@
             [
               "XDATA",
               "0000H–FFFFH / 64 KiB",
-              "外部数据与虚拟设备窗口"
+              "普通 XRAM，无外设保留窗口"
             ]
           ]
         },
@@ -1557,7 +1557,7 @@
         {
           "type": "link",
           "target": "xdata",
-          "text": "OLED 的 XDATA 保留地址表 >"
+          "text": "XDATA 与 I²C 地址的区别 >"
         }
       ],
       "keywords": "memory"
@@ -1652,50 +1652,81 @@
     {
       "id": "xdata",
       "category": "reference",
-      "icon": "embeddeddev:redstone_port",
-      "title": "扩展设备地址表",
-      "subtitle": "MOVX 与 XBYTE 的约定",
+      "icon": "embeddeddev:51systemboard",
+      "title": "XDATA 与总线地址",
+      "subtitle": "内存地址与外设地址分别理解",
       "blocks": [
         {
-          "type": "link",
-          "target": "analog_io",
-          "text": "ADC/DAC 已改用独立芯片 >"
+          "type": "text",
+          "text": "1.10.1 起主板不再映射 ADC、DAC 或 OLED 外设。全部 0000H–FFFFH 共 64 KiB XDATA 都是模拟器的普通 XRAM，与 Flash、IDATA 和 SFR 独立，随 CPU 状态存档保存。MOVX 指令继续用于读写这片 RAM，复位或烧录时清零。"
         },
         {
           "type": "table",
           "rows": [
             [
-              "XDATA 地址",
-              "读写",
-              "内容"
+              "旧窗口",
+              "现在的含义"
             ],
             [
-              "F020H",
-              "读写",
-              "OLED 桥接显示控制"
+              "F000H–F007H",
+              "普通 XRAM，不再是 ADC"
             ],
             [
-              "F100H–F4FFH",
-              "读写",
-              "已连接 OLED 的 1024 B 显存"
+              "F010H–F017H",
+              "普通 XRAM，不再是 DAC"
+            ],
+            [
+              "F020H / F100H–F4FFH",
+              "普通 XRAM，不再控制 OLED"
             ]
           ]
         },
         {
-          "type": "text",
-          "text": "F000H–F007H 和 F010H–F017H 从 1.10.0 起恢复为普通 XDATA RAM，不再保留 ADC/DAC 窗口。PCF8591 的 48H–4FH 是独立 I²C 总线地址，不是 MCU 内存地址，不占 Flash、IDATA 或 SFR；同一总线上多个模块应选不同地址。"
-        },
-        {
-          "type": "text",
-          "text": "这些地址是本模组定义的设备窗口，会覆盖对应的普通 XDATA 字节。F020H 写 bit0 控制显示开关，写 bit1 为 1 请求清屏。OLED 桥接需要先通过 SDA/SCL 连接到实际模块。"
-        },
-        {
           "type": "code",
-          "text": "#include <absacc.h>\nXBYTE[0xF020] = 3;  /* on + clear */\nXBYTE[0xF100] = 0xFF;"
+          "text": "MOV DPTR,#01234H\nMOV A,#5AH\nMOVX @DPTR,A ; store in XRAM\nMOVX A,@DPTR ; read back 5AH"
+        },
+        {
+          "type": "heading",
+          "text": "I²C 地址不是 XDATA 地址"
+        },
+        {
+          "type": "table",
+          "rows": [
+            [
+              "设备",
+              "七位 I²C 地址",
+              "访问方法"
+            ],
+            [
+              "SSD1306 OLED",
+              "3CH",
+              "GPIO SDA/SCL 发送指令与像素"
+            ],
+            [
+              "PCF8591",
+              "48H–4FH",
+              "GPIO SDA/SCL 配置 ADC/DAC"
+            ],
+            [
+              "环境传感器",
+              "48H",
+              "GPIO SDA/SCL 读取寄存器"
+            ]
+          ]
         },
         {
           "type": "tip",
-          "text": "不要让启动代码批量清零这些设备窗口。GPIO 软件 I²C 与桥接接口可分别使用；移植普通 SSD1306 驱动时，应按 GPIO 总线驱动，而不是假定真芯片拥有这些地址。"
+          "text": "向 XDATA 003CH 写入不会访问 OLED。I²C 的 3CH 放在总线地址字节中：发送写地址 78H 后，再发送控制字节 00H 或 40H。OLED 的 1024 字节显存属于模块，不扣除 MCU RAM。固件若自行建立帧缓冲，那个缓冲区才占 MCU 存储。"
+        },
+        {
+          "type": "link",
+          "target": "oled",
+          "text": "OLED 原生 I²C 指令与像素格式 >"
+        },
+        {
+          "type": "link",
+          "target": "analog_io",
+          "text": "独立模拟量芯片实验 >"
         }
       ],
       "keywords": "xdata"
@@ -1887,7 +1918,7 @@
             ],
             [
               "oled_hello.hex",
-              "同样连接 OLED，使用 MOVX 桥接"
+              "同样连接 OLED，软件 I²C 文字示例"
             ],
             [
               "i2c_sensor.hex",
@@ -1903,7 +1934,7 @@
             ],
             [
               "oled_pattern.hex",
-              "诊断条纹，不是文字"
+              "I²C 诊断条纹，不是文字"
             ]
           ]
         },

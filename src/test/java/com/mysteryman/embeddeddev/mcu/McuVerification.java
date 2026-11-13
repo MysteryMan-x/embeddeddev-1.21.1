@@ -112,13 +112,8 @@ public final class McuVerification {
     }
     private static void peripherals() {
         BoardHardware h = new BoardHardware(); Mcs51 c = new Mcs51(h);
-        Ssd1306 oled = new Ssd1306();
-        h.bind(5, modulePins(14, 15)); h.attach(5, oled);
         h.bind(0, pins(FaceBinding.Kind.DIGITAL_OUTPUT, 1, 2));
-        c.install(image(0x90, 0xF0, 2, 0x74, 9, 0xF0, 0xE0, 0x90, 0xF0, 0x13, 0xF0, 0x90, 0xF1, 0, 0x74, 0x81, 0xF0));
-        steps(c, 9); eq(0x81, oled.ram[0] & 255, "independent OLED framebuffer");
         eq(15, h.output(0, true), "selected GPIOs"); eq(0, h.output(0, false), "stopped outputs off");
-        h.writeExternal(0xF020, 2); eq(0, oled.ram[0], "OLED clear"); ok(!oled.enabled, "OLED off");
         c.install(image(0x75, 0x99, 65, 0x75, 0x98, 16, 0xE5, 0x99)); steps(c, 2); c.receive(66); c.step();
         eq(66, c.accumulator(), "UART receive"); eq('A', h.serial().charAt(0), "UART transmit");
         Mcs51.Bus lowPins = new Mcs51.Bus() { public int readPort(int p, int latch) { return 0; } };
@@ -220,7 +215,7 @@ public final class McuVerification {
         bus.start();ok(bus.write(0x90),"sensor write address");bus.write(0);bus.start();ok(bus.write(0x91),"repeated START read address");
         eq(13,bus.read(true),"sensor first byte and controller ACK");eq(7,bus.read(false),"sensor second byte and controller NACK");bus.stop();
         h.attach(5,null);bus.start();ok(!bus.write(0x90),"detached module no longer ACKs");bus.stop();
-        eq(255,h.readExternal(0xF100),"no hidden OLED framebuffer on the motherboard");
+        eq(-1,h.readExternal(0xF100),"detached OLED reserves no XDATA window");
     }
     private static void disassembly() {
         for (int opcode = 0; opcode <= 255; opcode++) {
@@ -338,25 +333,36 @@ public final class McuVerification {
         eq(0x34, restoredBus.read(0xc3, 1)[0], "DS1302 RAM survives a save");
     }
 
-    private static void formerAnalogIsRam() {
-        // Exercise real MOVX instructions and saved XRAM, rather than only checking the bus fallback.
-        var program = new java.util.ArrayList<Integer>();
-        for (int i = 0; i < 16; i++) program.addAll(List.of(0x90, 0xF0, i < 8 ? i : i + 8, 0x74, 0xA0 + i, 0xF0));
-        for (int i = 0; i < 16; i++) program.addAll(List.of(0x90, 0xF0, i < 8 ? i : i + 8, 0xE0, 0xF5, 0x30 + i));
-        byte[] code = image(program.stream().mapToInt(Integer::intValue).toArray());
-        Mcs51 cpu = new Mcs51(new BoardHardware()); cpu.install(code); steps(cpu, 48);
+    private static void xdataIsIndependentRam() {
+        BoardHardware hardware = new BoardHardware(); Mcs51 cpu = new Mcs51(hardware);
+        Ssd1306 oled = new Ssd1306(); hardware.bind(5, modulePins(14, 15)); hardware.attach(5, oled);
+        // Write every XDATA address with a value depending on both address bytes.
+        // Read it all back with MOVX; a mismatch branches to IDATA[30H]=EEH.
+        byte[] code = image(0x90,0,0, 0x7E,0, 0x7F,0,
+                0xE5,0x82, 0x65,0x83, 0x64,0xA5, 0xF0,0xA3, 0xDF,0xF6, 0xDE,0xF2,
+                0x90,0,0, 0x7E,0, 0x7F,0,
+                0xE5,0x82, 0x65,0x83, 0x64,0xA5, 0xFD,0xE0,0x6D, 0x70,0x0A,
+                0xA3, 0xDF,0xF2, 0xDE,0xEE, 0x75,0x30,0xA5, 0x80,0xFE, 0x75,0x30,0xEE, 0x80,0xFE);
+        cpu.install(code);
+        BitBang bus = new BitBang(hardware, 14, 15);
+        bus.start(); bus.write(0x78); bus.write(0); bus.write(0xAF); bus.stop();
+        bus.start(); bus.write(0x78); bus.write(0x40); bus.write(0x81); bus.stop();
+        byte[] pixelsBefore = oled.ram.clone(); int[] registersBefore = oled.saveRegisters(); long revisionBefore = oled.revision();
+        int executed = 0;
+        while (cpu.pc() != 0x13 && executed++ < 500_000) cpu.step();
+        eq(0x13, cpu.pc(), "All 65536 XDATA writes complete");
         Mcs51 restored = new Mcs51(new BoardHardware()); restored.install(code); restored.restore(cpu.save());
-        steps(cpu, 48); steps(restored, 48);
-        for (int i = 0; i < 16; i++) {
-            eq(0xA0 + i, cpu.inspectRam(0x30 + i), "Former ADC/DAC bytes read their own XRAM writes");
-            eq(0xA0 + i, restored.inspectRam(0x30 + i), "Former ADC/DAC bytes persist as ordinary XDATA");
-        }
+        cpu.runCycles(2_000_000); restored.runCycles(2_000_000);
+        eq(0xA5, cpu.inspectRam(0x30), "All 64 KiB read back correctly with OLED attached, including former device windows");
+        eq(0xA5, restored.inspectRam(0x30), "All 64 KiB XRAM persist after restoring without peripherals");
+        ok(Arrays.equals(pixelsBefore, oled.ram) && Arrays.equals(registersBefore, oled.saveRegisters()) && revisionBefore == oled.revision(),
+                "MOVX never writes or clears the I2C OLED, even at former bridge addresses");
     }
 
     public static void main(String[] args) throws Exception {
         Ds18b20Verification.run();
         hex(); opcodes(); arithmetic(); timers(); peripherals(); persistence(); connectorsAndI2c(); examples(); disassembly();
-        formerAnalogIsRam(); pcf8591Bus();
+        xdataIsIndependentRam(); pcf8591Bus();
         ds1302Bus();
         System.out.println("MCU verification passed: " + checks + " checks");
     }

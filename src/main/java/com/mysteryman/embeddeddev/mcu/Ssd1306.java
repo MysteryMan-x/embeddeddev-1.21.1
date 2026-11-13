@@ -1,7 +1,5 @@
 package com.mysteryman.embeddeddev.mcu;
 
-import java.util.Arrays;
-
 /** SSD1306 command/data subset, 7-bit address 3Ch. Display RAM belongs to the OLED module. */
 public final class Ssd1306 implements I2cDevice {
     public final byte[] ram = new byte[1024];
@@ -21,7 +19,6 @@ public final class Ssd1306 implements I2cDevice {
     }
     @Override public int read() { return 255; }
     public long revision() { return revision; }
-    public void changed() { revision++; }
     public void putData(int value) {
         int index = page * 128 + column;
         if (ram[index] != (byte) value) { ram[index] = (byte) value; revision++; }
@@ -66,11 +63,6 @@ public final class Ssd1306 implements I2cDevice {
             case 0xD3 -> { offset = arguments[0] & 63; revision++; }
             default -> {}
         }
-    }
-    public void legacyControl(int value) {
-        enabled = (value & 1) != 0; remap = scanReverse = true;
-        if ((value & 2) != 0) Arrays.fill(ram, (byte) 0);
-        revision++;
     }
     public byte[] frame() {
         byte[] frame = new byte[1024];

@@ -73,10 +73,9 @@ public final class HandbookVerification {
             var analog = book.entry("analog_io");
             require(analog.matches("STC89C52RC") && analog.matches("PCF8591") && analog.matches("pcf8591_mirror.hex"), "Analog conversion is documented as an external chip and tested example");
             var hardware = new BoardHardware();
-            for (int channel = 0; channel < 8; channel++) {
-                require(hardware.readExternal(0xF000 + channel) == -1, "Retired ADC addresses fall through to ordinary XRAM");
-                require(hardware.readExternal(0xF010 + channel) == -1, "Retired DAC addresses fall through to ordinary XRAM");
-            }
+            require(book.entry("xdata").matches("64 KiB") && book.entry("xdata").matches("3CH"), "Handbook distinguishes full XRAM from I2C addresses");
+            require(java.util.stream.IntStream.range(0, 65536).allMatch(address -> hardware.readExternal(address) == -1),
+                    "Documented 64 KiB XDATA has no peripheral overlay");
         }
         String original = Files.readString(manual.resolve("zh_cn.json"), StandardCharsets.UTF_8);
         var broken = JsonParser.parseString(original).getAsJsonObject();
