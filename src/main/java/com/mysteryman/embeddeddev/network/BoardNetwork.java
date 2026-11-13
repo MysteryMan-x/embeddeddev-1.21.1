@@ -33,7 +33,7 @@ public final class BoardNetwork {
     public static final int CRYSTAL_SOCKET = 9;
     public static final int PORT_CONFIGURE = 10;
     public static final int BUTTON_CONFIGURE = 11;
-    public static final int CONFIGURE_GROUPS = 12;
+    public static final int CONFIGURE_GROUPS = 12, LED_CONFIGURE = 13;
     // Installed only from the Dist.CLIENT entry point; dedicated servers never load client classes.
     public static Consumer<State> clientReceiver = state -> {};
 
@@ -61,6 +61,27 @@ public final class BoardNetwork {
         if (!(context.player() instanceof ServerPlayer player)) return;
         var level = player.serverLevel();
         if (!level.hasChunkAt(action.pos) || com.mysteryman.embeddeddev.compat.SableCompat.distanceSquared(level, player.position(), action.pos) > 64) return;
+        if (action.action == LED_CONFIGURE) {
+            if (level.getBlockEntity(action.pos) instanceof PeripheralEntity module && module.leds()!=null) {
+                String message="";
+                try {
+                    if(!player.mayBuild() || !level.mayInteract(player,action.pos))throw CableNetwork.error("permission");
+                    if(action.text.length()>9*(FaceBinding.MAX_NAME_LENGTH+1))throw new IllegalArgumentException("buttons.embeddeddev.invalid_count");
+                    var rgb=action.name.split(",",-1);
+                    if(rgb.length<1 || rgb.length>9)throw new IllegalArgumentException("leds.embeddeddev.invalid_color");
+                    int[] colors=new int[rgb.length];
+                    for(int i=0;i<rgb.length;i++){
+                        if(!rgb[i].matches("[0-9a-fA-F]{6}"))throw new IllegalArgumentException("leds.embeddeddev.invalid_color");
+                        colors[i]=Integer.parseInt(rgb[i],16);
+                    }
+                    var data=player.getPersistentData();long tick=level.getGameTime();
+                    if(data.contains("EmbeddedDevLedConfig")&&data.getLong("EmbeddedDevLedConfig")==tick)return;
+                    data.putLong("EmbeddedDevLedConfig",tick);
+                    module.configureLeds(List.of(action.text.split("\n",-1)),colors);
+                } catch(IllegalArgumentException error){message=error.getMessage();}
+                sendLedState(player,module,false,message);
+            }return;
+        }
         if (action.action == BUTTON_CONFIGURE) {
             if (level.getBlockEntity(action.pos) instanceof PeripheralEntity module && module.buttons() != null) {
                 String message = "";
@@ -199,6 +220,10 @@ public final class BoardNetwork {
         tag.putString("Message", message);
         module.buttons().save(tag);
         PacketDistributor.sendToPlayer(player, new State(module.getBlockPos(), open, tag));
+    }
+    public static void sendLedState(ServerPlayer player,PeripheralEntity module,boolean open,String message) {
+        var tag=new CompoundTag();tag.putString("Screen","leds");tag.putString("Message",message);module.leds().save(tag);
+        PacketDistributor.sendToPlayer(player,new State(module.getBlockPos(),open,tag));
     }
     public static void sendManual(ServerPlayer player, InteractionHand hand) {
         var tag = new CompoundTag();

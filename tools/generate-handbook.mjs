@@ -3,6 +3,7 @@ import {fileURLToPath} from 'node:url';
 import {addAnalogEntry} from './handbook-analog.mjs';
 import {addMotionEntries} from './handbook-motion.mjs';
 import {addDriverAppendix} from './handbook-drivers.mjs';
+import {updateLiveExamples} from './handbook-live-examples.mjs';
 
 // Original handbook prose and diagrams. Text is paired Chinese/English; IDs stay identical.
 const entries=[];
@@ -281,6 +282,7 @@ entry('compatibility','reference','ds18b20',['科技模组与温度来源','Mach
 
 const categories=[['start',['入门','Start'],'manual'],['develop',['开发','Develop'],'51systemboard'],['modules',['模块','Modules'],'oled'],['reference',['速查','Ref.'],'stc89c52rc'],['appendix',['附录','Appendix'],'manual']];
 addDriverAppendix({entry,h,p,tip,code,link,table,entries});
+updateLiveExamples({entries,h,p,tip,table,link});
 export async function generate(){
  const root=fileURLToPath(new URL('../src/main/resources/assets/embeddeddev/manual/',import.meta.url));
  await fs.mkdir(root,{recursive:true});

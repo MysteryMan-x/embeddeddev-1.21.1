@@ -78,7 +78,7 @@ export async function generate() {
   }
   const modules = {
     button_module: [model(button)],
-    led_module: [model([...led,cube([5.7,2.2,5.7],[10.3,4.6,10.3],'pcb')]), model([...led,cube([5.7,2.2,5.7],[10.3,4.6,10.3],'led')])],
+    led_module: [model(base('pcb'))],
     ds1302: [model(rtc)],
     pcf8591: [model(adc)],
     mpu6050: [model([...base('blue'),cube([5,1.3,4.5],[11,3.2,10.5],'metal'),
@@ -98,7 +98,7 @@ export async function generate() {
       variants={'lit=false':blockModel,'lit=true':{model:blockModel.model+'_active'}};
     }
     await json('assets/embeddeddev/blockstates/'+id+'.json',{variants});
-    await json('assets/embeddeddev/models/item/'+id+'.json',id === 'button_module' ? buttonItem : {parent:blockModel.model});
+    await json('assets/embeddeddev/models/item/'+id+'.json',id === 'button_module' ? buttonItem : id === 'led_module' ? model([...led,cube([5.7,2.2,5.7],[10.3,4.6,10.3],'led')]) : {parent:blockModel.model});
     await json('data/embeddeddev/loot_table/blocks/'+id+'.json',{type:'minecraft:block',pools:[{rolls:1,
       entries:[{type:'minecraft:item',name:'embeddeddev:'+id}],conditions:[{condition:'minecraft:survives_explosion'}]}]});
   }

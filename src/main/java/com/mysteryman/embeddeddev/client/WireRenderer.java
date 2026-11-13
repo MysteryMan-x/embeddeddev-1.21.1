@@ -116,8 +116,8 @@ public final class WireRenderer {
                 var point = world(socket.anchor());
                 mark(stack, buffer, point.subtract(camera), socket.equals(target));
             }
-            else if (mc.level.getBlockEntity(target.pos()) instanceof PeripheralEntity panel && panel.buttons() != null) {
-                for (int key = 0; key < panel.buttons().count(); key++) {
+            else if (mc.level.getBlockEntity(target.pos()) instanceof PeripheralEntity panel && panel.panelCount() > 0) {
+                for (int key = 0; key < panel.panelCount(); key++) {
                     var socket = new CableNetwork.End(target.pos(), CableNetwork.buttonSocket(key));
                     mark(stack, buffer, world(socket.anchor()).subtract(camera), socket.equals(target));
                 }
@@ -205,25 +205,26 @@ public final class WireRenderer {
 
     public static void hud(RenderGuiEvent.Post event) {
         Minecraft mc = Minecraft.getInstance();
+        if (mc.options.hideGui) return;
         if (mc.screen != null || mc.level == null || !(mc.hitResult instanceof BlockHitResult hit) || hit.getType() != HitResult.Type.BLOCK) return;
         boolean coil = holding(mc, ModItems.WIRE_COIL.get());
         var entity = mc.level.getBlockEntity(hit.getBlockPos());
-        boolean button = entity instanceof PeripheralEntity panel && panel.buttons() != null;
+        boolean button = entity instanceof PeripheralEntity panel && panel.panelCount() > 0;
         if (!button && !coil) return;
         CableNetwork.End target = target(mc);
         var graphics = event.getGuiGraphics();
         int x = graphics.guiWidth() / 2, y = graphics.guiHeight() / 2 + 14;
         if (target == null) {
-            if (button && !coil) graphics.drawCenteredString(mc.font, Component.translatable("buttons.embeddeddev.configure_hint"), x, y, 0xFFE2FBFA);
+            if (button && !coil) graphics.drawCenteredString(mc.font, Component.translatable(entity instanceof PeripheralEntity p && p.leds()!=null ? "leds.embeddeddev.hint" : "buttons.embeddeddev.configure_hint"), x, y, 0xFFE2FBFA);
             return;
         }
         String pins = CableNetwork.deviceLanes(mc.level, target).stream().map(CableNetwork.Lane::name).collect(Collectors.joining(", "));
-        Component name = button ? Component.translatable("buttons.embeddeddev.key", target.buttonKey() + 1)
+        Component name = button ? Component.translatable(entity instanceof PeripheralEntity p && p.leds()!=null ? "leds.embeddeddev.lamp" : "buttons.embeddeddev.key", target.buttonKey() + 1)
                 : target.board() ? BoardScreen.faceName(target.face()) : mc.level.getBlockState(target.pos()).getBlock().getName();
         if (target.board() && mc.level.getBlockEntity(target.pos()) instanceof SystemBoardEntity board) {
-            name = name.copy().append(" · " + board.groups(target.face()).get(target.group()).name());
+            name = name.copy().append(" 路 " + board.groups(target.face()).get(target.group()).name());
         }
-        String label = name.getString() + (pins.isEmpty() ? "" : " · " + pins);
+        String label = name.getString() + (pins.isEmpty() ? "" : " 路 " + pins);
         graphics.drawCenteredString(mc.font, mc.font.plainSubstrByWidth(label, graphics.guiWidth() - 20), x, y, 0xFFE2FBFA);
         if (coil && start != null && sceneLevel == mc.level && !start.pos().equals(target.pos())) {
             int cost = CableNetwork.units(start, target);

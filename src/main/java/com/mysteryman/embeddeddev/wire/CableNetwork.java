@@ -160,6 +160,9 @@ public final class CableNetwork extends SavedData {
             int key = peripheral.buttonAt(hit);
             return key < 0 ? null : new End(pos, buttonSocket(key));
         }
+        if (level.getBlockEntity(pos) instanceof PeripheralEntity peripheral && peripheral.leds() != null) {
+            int key=peripheral.ledAt(hit);return key<0 ? null : new End(pos,buttonSocket(key));
+        }
         if (level.getBlockEntity(pos) instanceof I2cModule || level.getBlockEntity(pos) instanceof GpioModule) return new End(pos, MODULE);
         return null;
     }
@@ -171,8 +174,8 @@ public final class CableNetwork extends SavedData {
             case MODULE -> level.getBlockEntity(end.pos()) instanceof I2cModule || level.getBlockEntity(end.pos()) instanceof GpioModule;
             case RELAY -> level.getBlockState(end.pos()).is(ModBlocks.WIRE_RELAY.get());
             case REDSTONE -> level.getBlockEntity(end.pos()) instanceof RedstonePortEntity;
-            default -> level.getBlockEntity(end.pos()) instanceof PeripheralEntity peripheral && peripheral.buttons() != null
-                    && end.buttonKey() < peripheral.buttons().count();
+            default -> level.getBlockEntity(end.pos()) instanceof PeripheralEntity peripheral && peripheral.panelCount() > 0
+                    && end.buttonKey() >= 0 && end.buttonKey() < peripheral.panelCount();
         };
     }
 
@@ -215,6 +218,7 @@ public final class CableNetwork extends SavedData {
     public static GpioDevice gpioDevice(Level level, End end) {
         var entity = level.getBlockEntity(end.pos());
         if (entity instanceof PeripheralEntity peripheral && peripheral.buttons() != null) return peripheral.buttons().device(end.buttonKey());
+        if (entity instanceof PeripheralEntity peripheral && peripheral.leds() != null) return peripheral.leds().device(end.buttonKey());
         return entity instanceof GpioModule module && end.socket() == MODULE ? module.gpioDevice() : null;
     }
 

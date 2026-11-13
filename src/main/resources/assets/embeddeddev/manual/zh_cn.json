@@ -682,6 +682,19 @@
           "type": "link",
           "target": "source_mpu6050",
           "text": "附录：复制本模块完整 .h / .c >"
+        },
+        {
+          "type": "heading",
+          "text": "OLED 实时数据显示示例"
+        },
+        {
+          "type": "text",
+          "text": "选择 mpu6050_oled.hex，安装 12 MHz 晶振，并连接 OLED 3CH（SDA=P1.6、SCL=P1.7）。程序会连续显示本模块读数，断线提示并自动恢复；完整接线、单位及源码依赖见「示例固件索引」。"
+        },
+        {
+          "type": "link",
+          "target": "examples",
+          "text": "接线、单位与完整示例索引 >"
         }
       ],
       "keywords": "mpu6050"
@@ -767,6 +780,19 @@
           "type": "link",
           "target": "source_altimeter",
           "text": "附录：复制本模块完整 .h / .c >"
+        },
+        {
+          "type": "heading",
+          "text": "OLED 实时数据显示示例"
+        },
+        {
+          "type": "text",
+          "text": "选择 altimeter_oled.hex，安装 12 MHz 晶振，并连接 OLED 3CH（SDA=P1.6、SCL=P1.7）。程序会连续显示本模块读数，断线提示并自动恢复；完整接线、单位及源码依赖见「示例固件索引」。"
+        },
+        {
+          "type": "link",
+          "target": "examples",
+          "text": "接线、单位与完整示例索引 >"
         }
       ],
       "keywords": "altimeter"
@@ -1180,8 +1206,8 @@
       "id": "led",
       "category": "modules",
       "icon": "embeddeddev:led_module",
-      "title": "LED 指示灯",
-      "subtitle": "最适合验证 GPIO 的模块",
+      "title": "LED 面板",
+      "subtitle": "最多 3×3、逐灯选色与接线",
       "blocks": [
         {
           "type": "recipe",
@@ -1196,7 +1222,7 @@
         },
         {
           "type": "text",
-          "text": "模块只需要一个名为 LED 的 GPIO 端子。连接后 GPIO 高电平点亮，低电平熄灭。适合做运行状态、阈值报警、按键反馈，或用单步验证程序是否写到了预期的端口位。"
+          "text": "空手右键打开设置，数量可选 1–9，灯珠排列在固定的 3×3 位置。点击预览中的灯号，填写该灯 GPIO 标号，选择 16 色预设或输入六位 RGB 十六进制（例如 FF4040）。点击应用保存；关闭或取消不保存。每颗灯高电平点亮、低电平熄灭。"
         },
         {
           "type": "code",
@@ -1214,6 +1240,18 @@
           "type": "link",
           "target": "redstone",
           "text": "把逻辑信号送给机器 >"
+        },
+        {
+          "type": "heading",
+          "text": "逐灯独立拉线"
+        },
+        {
+          "type": "text",
+          "text": "默认第一颗名为 LED，其余依次 LED2–LED9。主板给每个标号绑定 GPIO，用线卷先点主板端子，再点具体灯珠；每颗灯是一根独立可见线缆，不是串行 RGB 灯带。9 灯可用 P0.0–P0.7 和 P1.0，主板端子可分到两个线组，避免一个端点超过 8 条线。芯片没有新增控制寄存器或地址。"
+        },
+        {
+          "type": "tip",
+          "text": "灯珠编号和位置保持稳定。改名或改色保留原连线；减少数量只拆除被移除灯珠的线并回收线材。颜色、数量、名字保存到世界，客户端同步各灯状态；重载时不会把上次亮灯值当作新输入。旧单灯模块自动按默认绿色、LED 标号加载，原连线可继续使用。"
         }
       ],
       "keywords": "led"
@@ -1371,7 +1409,7 @@
         },
         {
           "type": "text",
-          "text": "1.10.1 起移除 OLED 的 MOVX 桥接，显示控制和像素数据都必须通过 SDA/SCL 发送。3CH 是 I²C 总线地址，不是 MCU 内存地址；1024 字节显存属于 OLED。旧桥接版 oled_hello.hex、oled_pattern.hex 需要换成新版；新版这两个文件都已改为软件 I²C，i2c_oled_hello.hex 保持原生 I²C 用法。"
+          "text": "旧 MOVX 桥接固件需要改用当前软件 I²C 示例。文字程序只保留 i2c_oled_hello.hex，oled_pattern.hex 用于条纹诊断；重复的 oled_hello.hex 已从列表移除，已有主板中保存的固件不会自动清除。"
         },
         {
           "type": "link",
@@ -1618,7 +1656,7 @@
         },
         {
           "type": "text",
-          "text": "安装 12 MHz 晶振，DQ=P1.2，烧录 ds18b20_read.hex。它发出复位，Skip ROM、Convert T，等待约 800 ms，然后读取 9 字节 Scratchpad。完成标志为 3FH=A5H，数据在 IDATA 30H–38H。"
+          "text": "安装 12 MHz，DQ=P1.2，并把 OLED 接到 P1.6/P1.7，运行 ds18b20_read.hex。每轮转换等待至少 800 ms，校验完整 Scratchpad 的 CRC 后显示带符号温度，持续重试采集。"
         },
         {
           "type": "text",
@@ -1642,6 +1680,19 @@
           "type": "link",
           "target": "source_ds18b20",
           "text": "附录：复制本模块完整 .h / .c >"
+        },
+        {
+          "type": "heading",
+          "text": "OLED 实时数据显示示例"
+        },
+        {
+          "type": "text",
+          "text": "选择 ds18b20_read.hex，安装 12 MHz 晶振，并连接 OLED 3CH（SDA=P1.6、SCL=P1.7）。程序会连续显示本模块读数，断线提示并自动恢复；完整接线、单位及源码依赖见「示例固件索引」。"
+        },
+        {
+          "type": "link",
+          "target": "examples",
+          "text": "接线、单位与完整示例索引 >"
         }
       ],
       "keywords": "temperature"
@@ -1700,7 +1751,7 @@
         },
         {
           "type": "text",
-          "text": "i2c_sensor.hex 用 P1.6/P1.7 读取寄存器 00H，保存到 IDATA 30H；非零时拉高 P1.2，为零时拉低。另一线组添加 LED=P1.2 并连接 LED 模块，即可查看数字指示。需要模拟输出时另接 PCF8591。"
+          "text": "i2c_sensor.hex 现在同时读取四项环境数据并在 OLED 上显示；P1.2 仍提供非零红石指示。安装 12 MHz 晶振并将 OLED 与传感器接到 P1.6/P1.7。"
         },
         {
           "type": "tip",
@@ -1710,6 +1761,19 @@
           "type": "link",
           "target": "source_environment",
           "text": "附录：复制本模块完整 .h / .c >"
+        },
+        {
+          "type": "heading",
+          "text": "OLED 实时数据显示示例"
+        },
+        {
+          "type": "text",
+          "text": "选择 i2c_sensor.hex，安装 12 MHz 晶振，并连接 OLED 3CH（SDA=P1.6、SCL=P1.7）。程序会连续显示本模块读数，断线提示并自动恢复；完整接线、单位及源码依赖见「示例固件索引」。"
+        },
+        {
+          "type": "link",
+          "target": "examples",
+          "text": "接线、单位与完整示例索引 >"
         }
       ],
       "keywords": "sensor"
@@ -2264,64 +2328,93 @@
       "blocks": [
         {
           "type": "text",
-          "text": "主板烧录页默认使用内置示例，点击示例名即可打开全部 8 个 HEX 的选择列表。选择只改变待烧录程序，仍需点烧录 HEX 和运行。接线与晶振要求显示在提示中；无需下载文件或输入路径。若要修改程序，C 源码与 HEX 也保留在仓库 examples 目录。"
+          "text": "当前内置 9 个 HEX：OLED 文字示例只保留 i2c_oled_hello.hex，重复的 oled_hello.hex 已移除。点击烧录页的示例名称选择，选择后再烧录、运行。旧存档中已经烧录的固件不会被自动清除。"
         },
         {
           "type": "table",
           "rows": [
             [
               "HEX 文件",
-              "接线与频率"
+              "接线与晶振"
             ],
             [
               "redstone_blink.hex",
-              "GPIO P1.2 → 红石数字输出"
-            ],
-            [
-              "pcf8591_mirror.hex",
-              "PCF8591 地址 48H，SDA=P1.6 / SCL=P1.7；AIN0 → AOUT"
+              "GPIO P1.2 → 红石数字输出；默认晶振"
             ],
             [
               "i2c_oled_hello.hex",
-              "SDA=P1.6 / SCL=P1.7"
+              "OLED 3CH；P1.6 SDA / P1.7 SCL；默认晶振"
             ],
             [
-              "oled_hello.hex",
-              "同样连接 OLED，软件 I²C 文字示例"
+              "pcf8591_mirror.hex",
+              "12 MHz；PCF8591 48H + OLED 3CH；四路采集、AIN0 → AOUT"
             ],
             [
               "i2c_sensor.hex",
-              "SDA=P1.6 / SCL=P1.7；LED=P1.2"
+              "12 MHz；环境传感器 48H + OLED 3CH；LED=P1.2 可选"
             ],
             [
               "ds18b20_read.hex",
-              "DQ=P1.2，必须 12 MHz"
+              "12 MHz；DQ=P1.2；OLED P1.6 SDA / P1.7 SCL"
+            ],
+            [
+              "mpu6050_oled.hex",
+              "12 MHz；MPU6050 68H + OLED 3CH；加速度与角速度"
+            ],
+            [
+              "altimeter_oled.hex",
+              "12 MHz；ALT-01 76H + OLED 3CH；高度与垂直速度"
             ],
             [
               "seven_segment_counter.hex",
-              "A–DP=P1.0–7，共阴，默认晶振"
+              "A–DP=P1.0–7；共阴、默认晶振"
             ],
             [
               "oled_pattern.hex",
-              "I²C 诊断条纹，不是文字"
+              "OLED 软件 I²C 诊断条纹；默认晶振"
             ]
           ]
         },
         {
           "type": "heading",
-          "text": "验证顺序"
+          "text": "传感器与 OLED 共用一条总线"
         },
         {
           "type": "text",
-          "text": "先确认晶振和端子与上表一致，再接线、烧录、运行。示例能工作说明基本接口正常，再修改源码或换引脚。每换一个物理引脚，固件中的定义也必须一起改。"
-        },
-        {
-          "type": "text",
-          "text": "ds18b20_read.hex 的 30H–38H 是结果，3FH=A5H 表示完成。数码管计数程序的 30H 是数字、31H 是段码。OLED 上传程序完成后 30H=A5H。它们是各示例自己的调试约定，不是通用寄存器。"
+          "text": "五个传感器显示程序都使用 12 MHz / 12T。OLED 七位地址 3CH，SDA=P1.6、SCL=P1.7。I²C 传感器与 OLED 接到同一线组，用接线柱分支；也可以在其他方向配置同样的两个物理引脚。DS18B20 的 DQ=P1.2 放在另一组 GPIO，OLED 仍接 P1.6/P1.7。"
         },
         {
           "type": "tip",
-          "text": "同名 C 源码用于 Keil C51。随附 HEX 由项目脚本汇编生成，C 版本的软件延时会受编译器优化影响。不要把 .c 文件改扩展名冒充 .hex。"
+          "text": "环境传感器与 PCF8591 默认都为 48H，这两个示例请分别搭建。MPU6050 示例要求 68H；改成 69H 后要同步修改固件。OLED 不占 MCU 映射窗口。"
+        },
+        {
+          "type": "heading",
+          "text": "实时读数、故障与恢复"
+        },
+        {
+          "type": "text",
+          "text": "传感器示例连续刷新，固定宽度文字会覆盖旧数字，负温度保留符号。断开传感器会显示 SENSOR OFFLINE；DS18B20 显示 OFFLINE / CRC ERROR，错误时不会把旧读数继续当作有效数据。重新接线后自动重试，OLED 重新接入后也会初始化并恢复显示。"
+        },
+        {
+          "type": "text",
+          "text": "环境页显示红石、天光、方块光、日进度；PCF8591 显示四路 0–255 ADC 和 DAC；DS18B20 显示摄氏温度和 CRC 状态；MPU6050 显示三轴加速度（mg）与角速度（°/s）；ALT-01 显示绝对/相对/零点高度（cm）及垂直速度（cm/s），程序不会重置保存的零点。"
+        },
+        {
+          "type": "heading",
+          "text": "源码与重新编译"
+        },
+        {
+          "type": "text",
+          "text": "五个显示示例的完整 C 源码在 examples，公共显示辅助为 sensor_display.c/.h，协议驱动在 examples/drivers。tools/build-sensor-examples.ps1 使用 SDCC SMALL、stack-auto 与对应运行库，限制 8 KiB Flash、256 B IDATA，不使用 XDATA。DS18B20 工程的所有源文件需统一 ED_DQ_BIT_ADDRESS=0x92；附录通用驱动默认 DQ=P3.7，不能混淆。"
+        },
+        {
+          "type": "text",
+          "text": "SDCC 编译脚本保留 DATA 30H–3FH 给调试变量：环境与 PCF8591 的 30H 为采样值；DS18B20 的 30H–38H 为带 CRC 的 Scratchpad，3FH=A5H 成功、E1H 失败。Keil 工程需要按其内存分配与调用约定配置；这些新 HEX 已用 SDCC 编译执行验证，未在 Keil 中验证。"
+        },
+        {
+          "type": "link",
+          "target": "driver_sources",
+          "text": "完整驱动与依赖说明 >"
         }
       ],
       "keywords": "examples"
@@ -2651,7 +2744,7 @@
         },
         {
           "type": "code",
-          "text": "#ifndef ED_PLATFORM_H\n#define ED_PLATFORM_H\n/* Edit these pins to match the labels configured in the Minecraft board UI.\n * Drivers are independent projects: SEG=P2 conflicts with KEY9=P2.0.\n * DS1302 uses P3.0/P3.1/P3.2, so do not enable UART on those pins.\n * Timing examples use 12 MHz / 12T. Change ED_FOSC_HZ with the installed crystal.\n */\n#ifndef ED_FOSC_HZ\n#define ED_FOSC_HZ 12000000UL\n#endif\n#ifdef __SDCC\n__sfr __at(0x80) P0; __sfr __at(0x90) P1;\n__sfr __at(0xA0) P2; __sfr __at(0xB0) P3;\n__sfr __at(0x88) TCON; __sfr __at(0x89) TMOD;\n__sfr __at(0x8A) TL0; __sfr __at(0x8C) TH0;\n__sbit __at(0x8C) TR0; __sbit __at(0x8D) TF0; __sbit __at(0xA9) ET0;\n__sbit __at(0x96) ED_SDA; __sbit __at(0x97) ED_SCL;\n__sbit __at(0x90) ED_LED; __sbit __at(0xA0) ED_KEY9;\n__sbit __at(0x92) ED_REDSTONE;\n__sbit __at(0xB0) ED_RTC_CE; __sbit __at(0xB1) ED_RTC_CLK; __sbit __at(0xB2) ED_RTC_IO;\n__sbit __at(0xB7) ED_DQ;\n#define ED_CODE __code\n#define ED_IDATA __idata\n#define ED_NOP() __asm nop __endasm\n#else\n#include <REG52.H>\n#include <intrins.h>\nsbit ED_SDA=P1^6; sbit ED_SCL=P1^7;\nsbit ED_LED=P1^0; sbit ED_KEY9=P2^0;\nsbit ED_REDSTONE=P1^2;\nsbit ED_RTC_CE=P3^0; sbit ED_RTC_CLK=P3^1; sbit ED_RTC_IO=P3^2;\nsbit ED_DQ=P3^7;\n#define ED_CODE code\n#define ED_IDATA idata\n#define ED_NOP() _nop_()\n#endif\ntypedef unsigned char ed_u8;\ntypedef signed char ed_i8;\ntypedef unsigned int ed_u16;\ntypedef signed int ed_i16;\ntypedef unsigned long ed_u32;\ntypedef signed long ed_i32;\n#endif\n"
+          "text": "#ifndef ED_PLATFORM_H\n#define ED_PLATFORM_H\n/* Edit these pins to match the labels configured in the Minecraft board UI.\n * Drivers are independent projects: SEG=P2 conflicts with KEY9=P2.0.\n * DS1302 uses P3.0/P3.1/P3.2, so do not enable UART on those pins.\n * Timing examples use 12 MHz / 12T. Change ED_FOSC_HZ with the installed crystal.\n */\n#ifndef ED_FOSC_HZ\n#define ED_FOSC_HZ 12000000UL\n#endif\n#ifndef ED_DQ_BIT_ADDRESS\n#define ED_DQ_BIT_ADDRESS 0xB7\n#endif\n#ifdef __SDCC\n__sfr __at(0x80) P0; __sfr __at(0x90) P1;\n__sfr __at(0xA0) P2; __sfr __at(0xB0) P3;\n__sfr __at(0x88) TCON; __sfr __at(0x89) TMOD;\n__sfr __at(0x8A) TL0; __sfr __at(0x8C) TH0;\n__sbit __at(0x8C) TR0; __sbit __at(0x8D) TF0; __sbit __at(0xA9) ET0;\n__sbit __at(0x96) ED_SDA; __sbit __at(0x97) ED_SCL;\n__sbit __at(0x90) ED_LED; __sbit __at(0xA0) ED_KEY9;\n__sbit __at(0x92) ED_REDSTONE;\n__sbit __at(0xB0) ED_RTC_CE; __sbit __at(0xB1) ED_RTC_CLK; __sbit __at(0xB2) ED_RTC_IO;\n__sbit __at(ED_DQ_BIT_ADDRESS) ED_DQ;\n#define ED_CODE __code\n#define ED_IDATA __idata\n#define ED_NOP() __asm nop __endasm\n#else\n#include <REG52.H>\n#include <intrins.h>\nsbit ED_SDA=P1^6; sbit ED_SCL=P1^7;\nsbit ED_LED=P1^0; sbit ED_KEY9=P2^0;\nsbit ED_REDSTONE=P1^2;\nsbit ED_RTC_CE=P3^0; sbit ED_RTC_CLK=P3^1; sbit ED_RTC_IO=P3^2;\nsbit ED_DQ=ED_DQ_BIT_ADDRESS;\n#define ED_CODE code\n#define ED_IDATA idata\n#define ED_NOP() _nop_()\n#endif\ntypedef unsigned char ed_u8;\ntypedef signed char ed_i8;\ntypedef unsigned int ed_u16;\ntypedef signed int ed_i16;\ntypedef unsigned long ed_u32;\ntypedef signed long ed_i32;\n#endif\n"
         },
         {
           "type": "heading",
@@ -2866,7 +2959,7 @@
         },
         {
           "type": "code",
-          "text": "#ifndef ED_PCF8591_H\n#define ED_PCF8591_H\n#include \"i2c_bus.h\"\n/* Address 48H..4FH. mode=0 single-ended, 1/2/3 differential/mixed.\n * Control: bit6 DAC enable, bits5:4 mode, bit2 auto-increment, bits1:0 channel.\n */\ned_u8 pcf8591_read(ed_u8 address,ed_u8 control,ed_u8 *sample);\ned_u8 pcf8591_read_channels(ed_u8 address,ed_u8 *four_samples);\ned_u8 pcf8591_dac(ed_u8 address,ed_u8 control,ed_u8 value);\n#endif\n"
+          "text": "#ifndef ED_PCF8591_H\n#define ED_PCF8591_H\n#include \"i2c_bus.h\"\n/* Address 48H..4FH. mode=0 single-ended, 1/2/3 differential/mixed.\n * Control: bit6 DAC enable, bits5:4 mode, bit2 auto-increment, bits1:0 channel.\n */\ned_u8 pcf8591_read(ed_u8 address,ed_u8 control,ed_u8 *sample);\ned_u8 pcf8591_read_channels(ed_u8 address,ed_u8 *four_samples);\n/* Use control=0x44 to keep DAC enabled during a four-channel scan. */\ned_u8 pcf8591_read_channels_control(ed_u8 address,ed_u8 control,ed_u8 *four_samples);\ned_u8 pcf8591_dac(ed_u8 address,ed_u8 control,ed_u8 value);\n#endif\n"
         },
         {
           "type": "heading",
@@ -2874,7 +2967,7 @@
         },
         {
           "type": "code",
-          "text": "#include \"pcf8591.h\"\nstatic ed_u8 begin_read(ed_u8 a,ed_u8 control){\n    ed_i2c_start();if(!ed_i2c_write(a<<1)||!ed_i2c_write(control)){ed_i2c_stop();return 0;}\n    ed_i2c_start();if(!ed_i2c_write((a<<1)|1)){ed_i2c_stop();return 0;}return 1;\n}\ned_u8 pcf8591_read(ed_u8 a,ed_u8 control,ed_u8 *sample){\n    if(!begin_read(a,control))return 0;ed_i2c_read(1); /* discard previous conversion */\n    *sample=ed_i2c_read(0);ed_i2c_stop();return 1;\n}\ned_u8 pcf8591_read_channels(ed_u8 a,ed_u8 *p){\n    ed_u8 i;if(!begin_read(a,0x04))return 0;ed_i2c_read(1);\n    for(i=0;i<4;i++)p[i]=ed_i2c_read(i<3);ed_i2c_stop();return 1;\n}\ned_u8 pcf8591_dac(ed_u8 a,ed_u8 control,ed_u8 value){\n    ed_u8 ok;ed_i2c_start();ok=ed_i2c_write(a<<1)&&ed_i2c_write(control|0x40)&&ed_i2c_write(value);ed_i2c_stop();return ok;\n}\n"
+          "text": "#include \"pcf8591.h\"\nstatic ed_u8 begin_read(ed_u8 a,ed_u8 control){\n    ed_i2c_start();if(!ed_i2c_write(a<<1)||!ed_i2c_write(control)){ed_i2c_stop();return 0;}\n    ed_i2c_start();if(!ed_i2c_write((a<<1)|1)){ed_i2c_stop();return 0;}return 1;\n}\ned_u8 pcf8591_read(ed_u8 a,ed_u8 control,ed_u8 *sample){\n    if(!begin_read(a,control))return 0;ed_i2c_read(1); /* discard previous conversion */\n    *sample=ed_i2c_read(0);ed_i2c_stop();return 1;\n}\ned_u8 pcf8591_read_channels(ed_u8 a,ed_u8 *p){return pcf8591_read_channels_control(a,0x04,p);}\ned_u8 pcf8591_read_channels_control(ed_u8 a,ed_u8 control,ed_u8 *p){\n    ed_u8 i;if(!begin_read(a,(control&0x70)|0x04))return 0;ed_i2c_read(1);\n    for(i=0;i<4;i++)p[i]=ed_i2c_read(i<3);ed_i2c_stop();return 1;\n}\ned_u8 pcf8591_dac(ed_u8 a,ed_u8 control,ed_u8 value){\n    ed_u8 ok;ed_i2c_start();ok=ed_i2c_write(a<<1)&&ed_i2c_write(control|0x40)&&ed_i2c_write(value);ed_i2c_stop();return ok;\n}\n"
         },
         {
           "type": "heading",
@@ -3178,7 +3271,7 @@
         },
         {
           "type": "code",
-          "text": "#ifndef ED_DS18B20_H\n#define ED_DS18B20_H\n#include \"ed_delay.h\"\ntypedef struct { ed_u8 rom[8],last_discrepancy,last_device; } ds18b20_search;\ned_u8 ds18b20_reset(void);\ned_u8 ds18b20_crc8(const ed_u8 *data,ed_u8 length);\ned_u8 ds18b20_read_rom(ed_u8 rom[8]);\nvoid ds18b20_search_init(ds18b20_search *state);\ned_u8 ds18b20_search_next(ds18b20_search *state);\ned_u8 ds18b20_start(const ed_u8 *rom);\ned_u8 ds18b20_read_q4(const ed_u8 *rom,ed_i16 *temperature_q4);\ned_u8 ds18b20_resolution(const ed_u8 *rom,ed_u8 bits);\n/* rom=0 selects SKIP ROM (single sensor only). Otherwise supply all 8 ROM bytes.\n * Start conversion, wait >=750ms at 12-bit resolution, then read_q4.\n * Signed Celsius = q4 / 16. Preserve the sign when displaying fractional values.\n */\n#endif\n"
+          "text": "#ifndef ED_DS18B20_H\n#define ED_DS18B20_H\n#include \"ed_delay.h\"\ntypedef struct { ed_u8 rom[8],last_discrepancy,last_device; } ds18b20_search;\ned_u8 ds18b20_reset(void);\ned_u8 ds18b20_crc8(const ed_u8 *data,ed_u8 length);\ned_u8 ds18b20_read_rom(ed_u8 rom[8]);\nvoid ds18b20_search_init(ds18b20_search *state);\ned_u8 ds18b20_search_next(ds18b20_search *state);\ned_u8 ds18b20_start(const ed_u8 *rom);\ned_u8 ds18b20_read_scratchpad(const ed_u8 *rom,ed_u8 bytes[9]);\ned_u8 ds18b20_read_q4(const ed_u8 *rom,ed_i16 *temperature_q4);\ned_u8 ds18b20_resolution(const ed_u8 *rom,ed_u8 bits);\n/* rom=0 selects SKIP ROM (single sensor only). Otherwise supply all 8 ROM bytes.\n * Start conversion, wait >=750ms at 12-bit resolution, then read_q4.\n * Signed Celsius = q4 / 16. Preserve the sign when displaying fractional values.\n */\n#endif\n"
         },
         {
           "type": "heading",
@@ -3186,7 +3279,7 @@
         },
         {
           "type": "code",
-          "text": "#include \"ds18b20.h\"\nstatic void write_bit(ed_u8 v){\n    ED_DQ=0;\n    if(v){ED_NOP();ED_NOP();ED_DQ=1;ed_delay_us(65);}\n    else{ed_delay_us(55);ED_DQ=1;ed_delay_us(10);}\n}\nstatic ed_u8 read_bit(void){\n    ed_u8 v;ED_DQ=0;ED_NOP();ED_NOP();ED_NOP();ED_DQ=1;\n    ED_NOP();ED_NOP();ED_NOP();ED_NOP();\n#if ED_FOSC_HZ >= 22000000UL\n    ED_NOP();ED_NOP();ED_NOP();ED_NOP();ED_NOP();ED_NOP();\n#endif\n    v=ED_DQ;ed_delay_us(60);return v;\n}\nstatic void put(ed_u8 v){ed_u8 i;for(i=0;i<8;i++){write_bit(v&1);v>>=1;}}\nstatic ed_u8 get(void){ed_u8 i,v=0;for(i=0;i<8;i++){v>>=1;if(read_bit())v|=128;}return v;}\ned_u8 ds18b20_reset(void){ed_u8 present;ED_DQ=0;ed_delay_us(500);ED_DQ=1;ed_delay_us(60);present=!ED_DQ;ed_delay_us(430);return present;}\ned_u8 ds18b20_crc8(const ed_u8 *p,ed_u8 n){ed_u8 c=0,i,v;while(n--){v=*p++;for(i=0;i<8;i++){ed_u8 mix=(c^v)&1;c>>=1;if(mix)c^=0x8C;v>>=1;}}return c;}\nstatic ed_u8 select_rom(const ed_u8 *rom){ed_u8 i;if(!ds18b20_reset())return 0;if(!rom)put(0xCC);else{put(0x55);for(i=0;i<8;i++)put(rom[i]);}return 1;}\ned_u8 ds18b20_read_rom(ed_u8 *rom){ed_u8 i;if(!ds18b20_reset())return 0;put(0x33);for(i=0;i<8;i++)rom[i]=get();return ds18b20_crc8(rom,8)==0;}\nvoid ds18b20_search_init(ds18b20_search *s){ed_u8 i;for(i=0;i<8;i++)s->rom[i]=0;s->last_discrepancy=s->last_device=0;}\ned_u8 ds18b20_search_next(ds18b20_search *s){\n    ed_u8 bit_number=1,last_zero=0,byte=0,mask=1,a,b,choice;\n    if(s->last_device||!ds18b20_reset())return 0;put(0xF0);\n    while(byte<8){\n        a=read_bit();b=read_bit();if(a&&b){ds18b20_search_init(s);return 0;}\n        if(a!=b)choice=a;\n        else{choice=bit_number<s->last_discrepancy?(s->rom[byte]&mask)!=0:bit_number==s->last_discrepancy;if(!choice)last_zero=bit_number;}\n        if(choice)s->rom[byte]|=mask;else s->rom[byte]&=~mask;write_bit(choice);\n        bit_number++;mask<<=1;if(!mask){byte++;mask=1;}\n    }\n    s->last_discrepancy=last_zero;s->last_device=last_zero==0;return ds18b20_crc8(s->rom,8)==0;\n}\ned_u8 ds18b20_start(const ed_u8 *rom){if(!select_rom(rom))return 0;put(0x44);return 1;}\nstatic ed_u8 scratch(const ed_u8 *rom,ed_u8 p[9]){ed_u8 i;if(!select_rom(rom))return 0;put(0xBE);for(i=0;i<9;i++)p[i]=get();return ds18b20_crc8(p,9)==0;}\ned_u8 ds18b20_read_q4(const ed_u8 *rom,ed_i16 *q4){ed_u8 p[9];if(!scratch(rom,p))return 0;*q4=(ed_i16)((ed_u16)p[0]|((ed_u16)p[1]<<8));return 1;}\ned_u8 ds18b20_resolution(const ed_u8 *rom,ed_u8 bits){ed_u8 p[9];if(bits<9||bits>12||!scratch(rom,p)||!select_rom(rom))return 0;put(0x4E);put(p[2]);put(p[3]);put(0x1F|((bits-9)<<5));return 1;}\n"
+          "text": "#include \"ds18b20.h\"\nstatic void write_bit(ed_u8 v){\n    ED_DQ=0;\n    if(v){ED_NOP();ED_NOP();ED_DQ=1;ed_delay_us(65);}\n    else{ed_delay_us(55);ED_DQ=1;ed_delay_us(10);}\n}\nstatic ed_u8 read_bit(void){\n    ed_u8 v;ED_DQ=0;ED_NOP();ED_NOP();ED_NOP();ED_DQ=1;\n    ED_NOP();ED_NOP();ED_NOP();ED_NOP();\n#if ED_FOSC_HZ >= 22000000UL\n    ED_NOP();ED_NOP();ED_NOP();ED_NOP();ED_NOP();ED_NOP();\n#endif\n    v=ED_DQ;ed_delay_us(60);return v;\n}\nstatic void put(ed_u8 v){ed_u8 i;for(i=0;i<8;i++){write_bit(v&1);v>>=1;}}\nstatic ed_u8 get(void){ed_u8 i,v=0;for(i=0;i<8;i++){v>>=1;if(read_bit())v|=128;}return v;}\ned_u8 ds18b20_reset(void){ed_u8 present;ED_DQ=0;ed_delay_us(500);ED_DQ=1;ed_delay_us(60);present=!ED_DQ;ed_delay_us(430);return present;}\ned_u8 ds18b20_crc8(const ed_u8 *p,ed_u8 n){ed_u8 c=0,i,v;while(n--){v=*p++;for(i=0;i<8;i++){ed_u8 mix=(c^v)&1;c>>=1;if(mix)c^=0x8C;v>>=1;}}return c;}\nstatic ed_u8 select_rom(const ed_u8 *rom){ed_u8 i;if(!ds18b20_reset())return 0;if(!rom)put(0xCC);else{put(0x55);for(i=0;i<8;i++)put(rom[i]);}return 1;}\ned_u8 ds18b20_read_rom(ed_u8 *rom){ed_u8 i;if(!ds18b20_reset())return 0;put(0x33);for(i=0;i<8;i++)rom[i]=get();return ds18b20_crc8(rom,8)==0;}\nvoid ds18b20_search_init(ds18b20_search *s){ed_u8 i;for(i=0;i<8;i++)s->rom[i]=0;s->last_discrepancy=s->last_device=0;}\ned_u8 ds18b20_search_next(ds18b20_search *s){\n    ed_u8 bit_number=1,last_zero=0,byte=0,mask=1,a,b,choice;\n    if(s->last_device||!ds18b20_reset())return 0;put(0xF0);\n    while(byte<8){\n        a=read_bit();b=read_bit();if(a&&b){ds18b20_search_init(s);return 0;}\n        if(a!=b)choice=a;\n        else{choice=bit_number<s->last_discrepancy?(s->rom[byte]&mask)!=0:bit_number==s->last_discrepancy;if(!choice)last_zero=bit_number;}\n        if(choice)s->rom[byte]|=mask;else s->rom[byte]&=~mask;write_bit(choice);\n        bit_number++;mask<<=1;if(!mask){byte++;mask=1;}\n    }\n    s->last_discrepancy=last_zero;s->last_device=last_zero==0;return ds18b20_crc8(s->rom,8)==0;\n}\ned_u8 ds18b20_start(const ed_u8 *rom){if(!select_rom(rom))return 0;put(0x44);return 1;}\ned_u8 ds18b20_read_scratchpad(const ed_u8 *rom,ed_u8 p[9]){ed_u8 i;if(!select_rom(rom))return 0;put(0xBE);for(i=0;i<9;i++)p[i]=get();return ds18b20_crc8(p,9)==0;}\ned_u8 ds18b20_read_q4(const ed_u8 *rom,ed_i16 *q4){ed_u8 p[9];if(!ds18b20_read_scratchpad(rom,p))return 0;*q4=(ed_i16)((ed_u16)p[0]|((ed_u16)p[1]<<8));return 1;}\ned_u8 ds18b20_resolution(const ed_u8 *rom,ed_u8 bits){ed_u8 p[9];if(bits<9||bits>12||!ds18b20_read_scratchpad(rom,p)||!select_rom(rom))return 0;put(0x4E);put(p[2]);put(p[3]);put(0x1F|((bits-9)<<5));return 1;}\n"
         },
         {
           "type": "heading",

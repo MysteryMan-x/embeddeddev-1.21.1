@@ -32,6 +32,6 @@ ed_u8 ds18b20_search_next(ds18b20_search *s){
     s->last_discrepancy=last_zero;s->last_device=last_zero==0;return ds18b20_crc8(s->rom,8)==0;
 }
 ed_u8 ds18b20_start(const ed_u8 *rom){if(!select_rom(rom))return 0;put(0x44);return 1;}
-static ed_u8 scratch(const ed_u8 *rom,ed_u8 p[9]){ed_u8 i;if(!select_rom(rom))return 0;put(0xBE);for(i=0;i<9;i++)p[i]=get();return ds18b20_crc8(p,9)==0;}
-ed_u8 ds18b20_read_q4(const ed_u8 *rom,ed_i16 *q4){ed_u8 p[9];if(!scratch(rom,p))return 0;*q4=(ed_i16)((ed_u16)p[0]|((ed_u16)p[1]<<8));return 1;}
-ed_u8 ds18b20_resolution(const ed_u8 *rom,ed_u8 bits){ed_u8 p[9];if(bits<9||bits>12||!scratch(rom,p)||!select_rom(rom))return 0;put(0x4E);put(p[2]);put(p[3]);put(0x1F|((bits-9)<<5));return 1;}
+ed_u8 ds18b20_read_scratchpad(const ed_u8 *rom,ed_u8 p[9]){ed_u8 i;if(!select_rom(rom))return 0;put(0xBE);for(i=0;i<9;i++)p[i]=get();return ds18b20_crc8(p,9)==0;}
+ed_u8 ds18b20_read_q4(const ed_u8 *rom,ed_i16 *q4){ed_u8 p[9];if(!ds18b20_read_scratchpad(rom,p))return 0;*q4=(ed_i16)((ed_u16)p[0]|((ed_u16)p[1]<<8));return 1;}
+ed_u8 ds18b20_resolution(const ed_u8 *rom,ed_u8 bits){ed_u8 p[9];if(bits<9||bits>12||!ds18b20_read_scratchpad(rom,p)||!select_rom(rom))return 0;put(0x4E);put(p[2]);put(p[3]);put(0x1F|((bits-9)<<5));return 1;}

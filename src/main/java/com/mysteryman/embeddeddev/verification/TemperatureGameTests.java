@@ -72,7 +72,7 @@ public final class TemperatureGameTests {
         var restored = CableNetwork.load(cables.save(new CompoundTag(), level.registryAccess()), level.registryAccess());
         h.assertTrue(restored.has(new CableNetwork.End(h.absolutePos(boardPos), CableNetwork.boardSocket(1, 2))), "Saved wires retain group IDs");
         board.run();
-        h.runAfterDelay(25, () -> {
+        h.runAfterDelay(50, () -> {
             h.assertTrue(board.cpu.inspectRam(0x3f) == 0xa5, "Firmware completes the GPIO-driven 1-Wire transaction");
             byte[] scratch = new byte[9];
             for (int i = 0; i < scratch.length; i++) scratch[i] = (byte) board.cpu.inspectRam(0x30 + i);

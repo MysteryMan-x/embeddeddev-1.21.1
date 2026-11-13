@@ -71,8 +71,8 @@ public final class BoardWiring {
                 var device = level.getBlockEntity(target.pos());
                 if (device == null) continue;
                 String name = device.getBlockState().getBlock().getDescriptionId();
-                String terminal = device instanceof PeripheralEntity peripheral && peripheral.buttons() != null
-                        ? peripheral.buttons().names().get(target.buttonKey()) : "";
+                String terminal = device instanceof PeripheralEntity peripheral && peripheral.panelCount() > 0
+                        ? peripheral.panelName(target.buttonKey()) : "";
                 String pins = route.lanes().values().stream().map(id -> CableNetwork.pin(board, end.socket(), id))
                         .filter(java.util.Objects::nonNull).map(FaceBinding.Pin::channelName)
                         .collect(java.util.stream.Collectors.joining(", "));

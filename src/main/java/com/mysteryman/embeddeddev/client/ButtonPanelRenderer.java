@@ -17,6 +17,7 @@ public final class ButtonPanelRenderer implements BlockEntityRenderer<Peripheral
     public ButtonPanelRenderer(BlockEntityRendererProvider.Context context) {}
 
     @Override public void render(PeripheralEntity module, float partialTick, PoseStack pose, MultiBufferSource buffers, int light, int overlay) {
+        if(module.leds()!=null){renderLeds(module,pose,buffers,light,overlay);return;}
         var buttons = module.buttons();
         if (buttons == null) return;
         for (int key = 0; key < buttons.count(); key++) {
@@ -33,6 +34,24 @@ public final class ButtonPanelRenderer implements BlockEntityRenderer<Peripheral
         }
     }
 
+    private static void renderLeds(PeripheralEntity module,PoseStack pose,MultiBufferSource buffers,int light,int overlay) {
+        var leds=module.leds();
+        for(int i=0;i<leds.count();i++) {
+            double x=ButtonPanel.x(i),z=ButtonPanel.z(i);
+            part(Blocks.BLACK_CONCRETE,x,z,.08,.14,.19,pose,buffers,light,overlay);
+            int color=leds.color(i);float gain=leds.lit(i)?1:.16F;
+            int r=(int)((color>>16&255)*gain),g=(int)((color>>8&255)*gain),b=(int)((color&255)*gain);
+            var v=buffers.getBuffer(net.minecraft.client.renderer.RenderType.debugQuads());var m=pose.last().pose();
+            float x0=(float)x-.075F,x1=(float)x+.075F,z0=(float)z-.075F,z1=(float)z+.075F,y0=.14F,y1=.29F;
+            float[][] quads={{x0,y1,z0,x0,y1,z1,x1,y1,z1,x1,y1,z0},
+                {x0,y0,z0,x0,y1,z0,x1,y1,z0,x1,y0,z0}, {x1,y0,z1,x1,y1,z1,x0,y1,z1,x0,y0,z1},
+                {x0,y0,z1,x0,y1,z1,x0,y1,z0,x0,y0,z0}, {x1,y0,z0,x1,y1,z0,x1,y1,z1,x1,y0,z1}};
+            for(int face=0;face<quads.length;face++)for(int n=0;n<12;n+=3){float[] q=quads[face];float shade=face==0?1:.75F;v.addVertex(m,q[n],q[n+1],q[n+2]).setColor((int)(r*shade),(int)(g*shade),(int)(b*shade),255);}
+            var font=Minecraft.getInstance().font;String label=leds.names().get(i);float scale=Math.min(.0035F,.20F/Math.max(1,font.width(label)));
+            pose.pushPose();pose.translate(x,.085,z+.105);pose.mulPose(Axis.XP.rotationDegrees(90));pose.scale(scale,scale,scale);
+            font.drawInBatch(label,-font.width(label)/2F,-font.lineHeight/2F,0xFFFFFFFF,false,pose.last().pose(),buffers,Font.DisplayMode.NORMAL,0,LightTexture.FULL_BRIGHT);pose.popPose();
+        }
+    }
     private static void part(Block block, double x, double z, double bottom, double top, double width,
                              PoseStack pose, MultiBufferSource buffers, int light, int overlay) {
         pose.pushPose();

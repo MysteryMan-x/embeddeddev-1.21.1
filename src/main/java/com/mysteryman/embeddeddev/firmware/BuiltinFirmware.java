@@ -8,10 +8,11 @@ import java.nio.charset.StandardCharsets;
 public enum BuiltinFirmware {
     REDSTONE_BLINK("redstone_blink"),
     I2C_OLED_HELLO("i2c_oled_hello"),
-    OLED_HELLO("oled_hello"),
     PCF8591_MIRROR("pcf8591_mirror"),
     I2C_SENSOR("i2c_sensor"),
     DS18B20_READ("ds18b20_read"),
+    MPU6050_OLED("mpu6050_oled"),
+    ALTIMETER_OLED("altimeter_oled"),
     SEVEN_SEGMENT_COUNTER("seven_segment_counter"),
     OLED_PATTERN("oled_pattern");
 

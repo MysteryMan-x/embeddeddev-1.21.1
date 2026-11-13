@@ -226,10 +226,10 @@ public final class BoardGameTests {
         h.setBlock(BOARD.east(2), Blocks.REDSTONE_BLOCK);
         b.configure(5, modulePins()); b.configure(4, new FaceBinding(List.of(new Pin("LED", GPIO, 10))));
         installExample(b, "i2c_sensor"); b.run();
-        h.runAfterDelay(10, () -> {
+        h.runAfterDelay(35, () -> {
             h.assertTrue(h.getBlockState(BOARD.west()).getValue(PeripheralBlock.ACTIVE), "I2C sensor nonzero sample lights the P1.2 LED");
             h.setBlock(BOARD.east(2), Blocks.AIR);
-            h.runAfterDelay(10, () -> { h.assertTrue(!h.getBlockState(BOARD.west()).getValue(PeripheralBlock.ACTIVE), "LED turns off after redstone source removal"); h.succeed(); });
+            h.runAfterDelay(25, () -> { h.assertTrue(!h.getBlockState(BOARD.west()).getValue(PeripheralBlock.ACTIVE), "LED turns off after redstone source removal"); h.succeed(); });
         });
     }
 

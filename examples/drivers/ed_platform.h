@@ -8,6 +8,9 @@
 #ifndef ED_FOSC_HZ
 #define ED_FOSC_HZ 12000000UL
 #endif
+#ifndef ED_DQ_BIT_ADDRESS
+#define ED_DQ_BIT_ADDRESS 0xB7
+#endif
 #ifdef __SDCC
 __sfr __at(0x80) P0; __sfr __at(0x90) P1;
 __sfr __at(0xA0) P2; __sfr __at(0xB0) P3;
@@ -18,7 +21,7 @@ __sbit __at(0x96) ED_SDA; __sbit __at(0x97) ED_SCL;
 __sbit __at(0x90) ED_LED; __sbit __at(0xA0) ED_KEY9;
 __sbit __at(0x92) ED_REDSTONE;
 __sbit __at(0xB0) ED_RTC_CE; __sbit __at(0xB1) ED_RTC_CLK; __sbit __at(0xB2) ED_RTC_IO;
-__sbit __at(0xB7) ED_DQ;
+__sbit __at(ED_DQ_BIT_ADDRESS) ED_DQ;
 #define ED_CODE __code
 #define ED_IDATA __idata
 #define ED_NOP() __asm nop __endasm
@@ -29,7 +32,7 @@ sbit ED_SDA=P1^6; sbit ED_SCL=P1^7;
 sbit ED_LED=P1^0; sbit ED_KEY9=P2^0;
 sbit ED_REDSTONE=P1^2;
 sbit ED_RTC_CE=P3^0; sbit ED_RTC_CLK=P3^1; sbit ED_RTC_IO=P3^2;
-sbit ED_DQ=P3^7;
+sbit ED_DQ=ED_DQ_BIT_ADDRESS;
 #define ED_CODE code
 #define ED_IDATA idata
 #define ED_NOP() _nop_()

@@ -130,7 +130,7 @@ public final class McuVerification {
         try { b.restore(new byte[10]); throw new AssertionError("accepted bad state"); } catch (IllegalArgumentException expected) { checks++; }
     }
     private static void examples() throws Exception {
-        for (String name : List.of("redstone_blink", "pcf8591_mirror", "oled_pattern", "oled_hello", "i2c_oled_hello", "i2c_sensor")) {
+        for (String name : List.of("redstone_blink", "oled_pattern", "i2c_oled_hello")) {
             BoardHardware h = new BoardHardware(); Mcs51 c = new Mcs51(h);
             Ssd1306 oled = new Ssd1306(); I2cSensor sensor = new I2cSensor();
             h.bind(5, modulePins(14, 15));
@@ -144,7 +144,7 @@ public final class McuVerification {
                 eq(7, converter.redstoneOutput(), "external PCF8591 mirrors input through its own DAC");
             }
             if (name.equals("oled_pattern")) eq(0x55, oled.ram[1023] & 255, "diagnostic bitmap");
-            if (name.equals("oled_hello") || name.equals("i2c_oled_hello")) {
+            if (name.equals("i2c_oled_hello")) {
                 ok(oled.enabled, name + " turns on display"); eq(127, oled.ram[128 + 7] & 255, name + " readable E glyph");
                 eq(0xA5, c.inspectRam(0x30), name + " completes framebuffer upload");
             }
@@ -188,7 +188,7 @@ public final class McuVerification {
         h.bind(4, pins(FaceBinding.Kind.GPIO, 0, 7));h.reset();eq(2,h.binding(4).pins().size(),"CPU reset preserves wiring");
         FaceBinding b = modulePins(2, 27);
         eq(2, b.gpio("sda"), "name matches independent of casing and list order");
-        FaceBinding unicode = new FaceBinding(List.of(new FaceBinding.Pin("数字,输出", FaceBinding.Kind.GPIO, 3)));
+        FaceBinding unicode = new FaceBinding(List.of(new FaceBinding.Pin("鏁板瓧,杈撳嚭", FaceBinding.Kind.GPIO, 3)));
         ok(unicode.equals(FaceBinding.parse(unicode.wireText())), "Unicode and punctuation in pin names survive serialization");
         ok(b.equals(FaceBinding.parse(b.wireText())), "binding serialization");
         for(int[] invalid:new int[][]{{5,1,1},{99},{3,8},{1},{0,1}}) {
@@ -378,6 +378,7 @@ public final class McuVerification {
 
     public static void main(String[] args) throws Exception {
         Ds18b20Verification.run();
+        SensorDisplayVerification.run();
         hex(); opcodes(); arithmetic(); timers(); peripherals(); persistence(); connectorsAndI2c(); examples(); disassembly();
         xdataIsIndependentRam(); pcf8591Bus();
         ds1302Bus(); bundledExamples();

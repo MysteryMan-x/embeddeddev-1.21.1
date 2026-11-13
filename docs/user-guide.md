@@ -1,10 +1,10 @@
-# 使用与开发指南 · 1.13.0
+# 使用与开发指南 · 1.14.0
 
-NeoForge **21.1.233** / Java **21**。1.13.0 新增 MPU6050、高度计、多通道近邻电机接口和完整驱动附录。烧录页提供可直接选择的 8 个内置 HEX 示例、本地文件选择器和右上角退出按钮。ADC、DAC、OLED 均通过独立模块和 GPIO 协议访问，整个 64 KiB XDATA 为普通 XRAM。
+NeoForge **21.1.233** / Java **21**。1.14.0 新增九灯彩色 LED 面板与五个 OLED 传感器数据显示示例，保留独立传感器、电机接口及完整驱动附录。烧录页提供可直接选择的 9 个内置 HEX 示例、本地文件选择器和右上角退出按钮。ADC、DAC、OLED 均通过独立模块和 GPIO 协议访问，整个 64 KiB XDATA 为普通 XRAM。
 
 ## 安装与烧录
 
-执行 `gradlew.bat build`，将 `build/libs/embeddeddev-1.13.0.jar` 放进实例 `mods`，替换旧版本。客户端与服务端均须更新。
+执行 `gradlew.bat build`，将 `build/libs/embeddeddev-1.14.0.jar` 放进实例 `mods`，替换旧版本。客户端与服务端均须更新。
 
 1. 放置 **51 单片机最小系统板**，空手右键打开。
 2. 切换到 **六面端子**。东、南、西、北、上、下各有一张卡。点击「管理引脚 → 添加引脚」，在弹出的窗口中填写标号，选择用途和物理引脚，保存后在该面点击「应用」。
@@ -105,7 +105,7 @@ OLED 是单独的方块，包含自己的 SSD1306 控制器和 1024 字节显存
 3. 烧录 `examples/i2c_oled_hello.hex` 并运行。
 4. OLED 显示 `EMBEDDED DEV`、`STC89C52`、`HELLO MINECRAFT`、`I2C 0X3C`。右键 OLED 可放大查看。
 
-`oled_pattern.hex` 是早期的原始显存条纹诊断图，里面没有文字；看上去像乱码是因为发送的就是交错位图。新版可读示例均使用软件 I²C，分别是 `i2c_oled_hello.hex` 和 `oled_hello.hex`。
+`oled_pattern.hex` 是早期的原始显存条纹诊断图，里面没有文字；看上去像乱码是因为发送的就是交错位图。新版可读示例均使用软件 I²C，只保留 `i2c_oled_hello.hex`，重复的 `oled_hello.hex` 已移除。
 
 I²C 七位地址 **3Ch**，写地址字节 **78h**。支持 START/STOP、重复 START、地址匹配、ACK/NACK、控制字节的 Co / D-C、页寻址、水平/垂直寻址、列/页范围、显示开关、反显、全亮、扫描方向、起始行和显示偏移。常见初始化中的对比度、充电泵、时钟等设置可以接受，但不会模拟面板电气特性。滚动命令可接收，目前不产生滚动动画。不模拟 SPI、多主仲裁或时钟拉伸。
 
@@ -115,7 +115,7 @@ I²C 是基于虚拟 GPIO 边沿的逻辑仿真，不做模拟电压或严格总
 
 1.10.1 起删除 MOVX 桥接。原 F020H 与 F100H–F4FFH 均为普通 XRAM，写入不会控制、清除或改写 OLED。3Ch 是 I²C 总线地址，不是 MCU 内存地址。OLED 的 1024 字节显存属于模块；固件若自行分配帧缓冲，该缓冲区才占 MCU RAM。
 
-旧桥接版 `oled_hello.hex` 和 `oled_pattern.hex` 需要重新烧录新版文件。两个新版示例均已使用软件 I²C；已有原生 I²C 程序可继续使用。旧模块的画面和控制器存档保留。世界面板最多每 4 tick 同步一次，模块窗口每 5 tick 刷新。
+旧桥接版 `oled_hello.hex` 和 `oled_pattern.hex` 需要重新烧录新版文件。文字示例已合并为 i2c_oled_hello.hex，条纹示例为 oled_pattern.hex；已有原生 I²C 程序可继续使用。旧模块的画面和控制器存档保留。世界面板最多每 4 tick 同步一次，模块窗口每 5 tick 刷新。
 
 ## I²C 环境传感器
 
@@ -130,7 +130,13 @@ I²C 是基于虚拟 GPIO 边沿的逻辑仿真，不做模拟电压或严格总
 | 02h | 模块上方方块光，0–15 |
 | 03h | 一天的进度百分比，0–99 |
 
-`examples/i2c_sensor.hex` 用 SDA=P1.6 / SCL=P1.7 读取寄存器 0，保存到 IDATA 30H，并用 P1.2 指示是否非零。另一线组添加 `LED=P1.2`、连接 LED 模块即可观察。右键传感器可查看原始读数。
+`examples/i2c_sensor.hex` 在 12 MHz 下读取全部四项数据，保存红石样本到 DATA 30H，并用 P1.2 指示是否非零。将 OLED 3CH 与传感器共接 SDA=P1.6 / SCL=P1.7，可看到红石、天光、方块光、日进度；LED 为可选。
+
+## LED 面板：数量与颜色
+
+空手右键 LED 打开设置。数量 1–9、最多 3×3；点击预览中的灯号，设置该灯的 GPIO 标号，选择预设颜色或输入六位 RGB（例如 FF4040），再点击应用。关闭和取消不保存。默认标号为 LED、LED2–LED9。
+
+每颗灯单独用线卷连接相应 GPIO，位置和编号保持稳定，改名 / 改色不拆线；缩减数量只拆除多余灯珠的线，并回收线材。九灯可绑定 P0.0–P0.7、P1.0，分成两组主板端子以避免每端最多八条线的限制。GPIO 高亮、低灭，颜色由模块设置，固件不需要额外寄存器。旧单灯自动加载为绿色 LED，继续使用原连线。颜色和名称随世界保存，亮灯状态实时同步。
 
 ## 按钮、LED、DS1302 与 PCF8591
 
@@ -160,7 +166,7 @@ PCF8591 的 AIN0–AIN3 按北、东、南、西取样，将红石强度 0–15 
 - 原版燃烧中的熔炉为 90 ℃，营火为 95 ℃，岩浆块为 110 ℃，熔岩源温度设为 1000 ℃并触发探头超量程提示，冰雪为 0 ℃，其余使用群系环境模型。
 - 其他模组可注册 `embeddeddev:temperature` 方块能力，返回 `TemperatureProvider`，或由方块实体实现该接口，提供摄氏度读数。
 
-空手右键探头可查看温度、来源和量程状态。超量程时 GPIO 读数限制在 -55～125 ℃。在 **12 MHz** 晶振下运行 `examples/ds18b20_read.hex`，将 `DQ` 绑定 `P1.2`。固件完成一次转换后，把含 CRC 的 9 字节 Scratchpad 存入 IDATA `30H–38H`，`3FH=A5H` 表示结束。温度为有符号的前两个字节除以 16。同目录提供 Keil C51 源码，HEX 由项目汇编生成器生成。
+空手右键探头可查看温度、来源和量程状态。超量程时 GPIO 读数限制在 -55～125 ℃。在 **12 MHz** 晶振下运行 `examples/ds18b20_read.hex`，将 `DQ` 绑定 `P1.2`。固件每轮转换后，把含 CRC 的 9 字节 Scratchpad 存入 IDATA `30H–38H`，`3FH=A5H` 表示本轮成功，E1H 表示采集或 CRC 失败。温度为有符号的前两个字节除以 16。该示例现在还需要 OLED（P1.6 SDA / P1.7 SCL），循环显示带符号温度与 CRC 状态。HEX 由 SDCC 从实际 C 源码编译，依赖与重编译方法见[示例说明](../examples/README.md)。
 
 ## 程序与示例
 
@@ -169,15 +175,16 @@ Keil C51 建议 SMALL 内存模型、11.0592 MHz、勾选 Create HEX File。代�
 | 文件 | 接线要求 |
 |---|---|
 | `redstone_blink.hex` | 将 GPIO P1.2 接到设为输出的红石端子，约每 0.5 秒切换 |
-| `pcf8591_mirror.hex` | PCF8591 默认地址 48H，SDA=P1.6、SCL=P1.7；北面 AIN0 → 上面 AOUT |
+| `pcf8591_mirror.hex` | **12 MHz**；PCF8591 48H 与 OLED 3CH 共用 SDA=P1.6、SCL=P1.7；四路采样、AIN0 → AOUT |
 | `i2c_oled_hello.hex` | OLED 所在面添加 GPIO，SDA=P1.6、SCL=P1.7 |
-| `oled_hello.hex` | 同上，软件 I²C 显示文字 |
-| `i2c_sensor.hex` | 传感器所在面添加 GPIO，SDA=P1.6、SCL=P1.7，另一线组 LED=P1.2 |
+| `mpu6050_oled.hex` | **12 MHz**；MPU6050 68H 与 OLED 3CH 共用 P1.6 SDA / P1.7 SCL |
+| `altimeter_oled.hex` | **12 MHz**；ALT-01 76H 与 OLED 3CH 共用 P1.6 SDA / P1.7 SCL |
+| `i2c_sensor.hex` | **12 MHz**；环境传感器与 OLED 共接 P1.6 SDA / P1.7 SCL；LED=P1.2 可选 |
 | `ds18b20_read.hex` | DQ=P1.2，安装 12 MHz 晶振，读取温度探头 |
 | `seven_segment_counter.hex` | A–G、DP 依次绑定 P1.0–P1.7，共阴模式显示 0–9 |
 | `oled_pattern.hex` | 软件 I²C 诊断条纹，不是文字示例 |
 
-同名 C 源码、`i2c_soft.h`、`embeddeddev.h` 和原始字模在 `examples` 中。HEX 为功能等价的手写机器码示例，当前环境没有用 Keil 编译这些 C 文件。`tools/generate-firmware.mjs` 可重现新的 HEX 和字模；`tools/generate-models.mjs` 可重现立体模型资源。
+同名 C 源码、`i2c_soft.h`、`embeddeddev.h` 和原始字模在 `examples` 中。五个传感器显示 HEX 由 SDCC 从实际 C 源码编译；欢迎文字、条纹和数码管仍由脚本汇编生成。未在 Keil 编译器中验证新 C 源码。`tools/generate-firmware.mjs` 可重现新的 HEX 和字模；`tools/generate-models.mjs` 可重现立体模型资源。
 
 | XDATA 地址 | 功能 |
 |---|---|

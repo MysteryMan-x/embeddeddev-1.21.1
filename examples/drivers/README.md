@@ -36,3 +36,5 @@ I²C 默认 SDA=P1.6、SCL=P1.7，地址参数全部为七位地址。多数函�
 ```
 
 脚本逐个编译实现文件为 `.rel`，再链接独立主程序，并限制 8 KiB Flash / 256 字节内部 RAM。运行验证在实际 MCU 模拟器上检查 I²C、OLED、GPIO、RTC、1-Wire ROM 搜索、CRC、分辨率和负温度。
+
+传感器与 OLED 的完整组合示例另见 [固件示例说明](../README.md)。通用驱动默认 DS18B20 DQ=P3.7；可通过 ED_DQ_BIT_ADDRESS 改绑，OLED 温度示例编译时统一使用 0x92（P1.2）。新增 ds18b20_read_scratchpad 可读取并校验完整 9 字节暂存器。

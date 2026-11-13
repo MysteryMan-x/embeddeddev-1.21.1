@@ -43,46 +43,6 @@ function oledProgram(pixels){
  a.emit(0x75,0x30,0xA5).label('forever').rel(0x80,'forever');i2cSubroutines(a);
  a.label('frame').emit(...pixels);return a.resolve();
 }
-function sensorProgram(){
- const a=new Asm();a.emit(0x75,0x90,0xC0).label('poll').call('start');for(const v of [0x90,0])a.emit(0x74,v).call('write');
- a.call('start').emit(0x74,0x91).call('write').call('read').emit(0xF5,0x30).call('stop').emit(0xE5,0x30)
-  .rel(0x60,'sensor_low').emit(0xD2,0x92).rel(0x80,'poll').label('sensor_low').emit(0xC2,0x92).rel(0x80,'poll');
- i2cSubroutines(a);return a.resolve();
-}
-function pcf8591Program(){
- const a=new Asm();a.emit(0x75,0x90,0xC0).label('poll').call('start');
- for(const v of [0x90,0x40])a.emit(0x74,v).call('write');
- a.call('start').emit(0x74,0x91).call('write').call('read_ack').call('read').emit(0xF5,0x30).call('stop');
- a.call('start');for(const v of [0x90,0x40])a.emit(0x74,v).call('write');
- a.emit(0xE5,0x30).call('write').call('stop').rel(0x80,'poll');
- i2cSubroutines(a);
- // ACK the stale conversion, then use the existing NACK reader for the fresh sample.
- a.label('read_ack').emit(0xD2,0x96,0x7F,8,0xE4).label('ack_bit')
-  .emit(0xD2,0x97,0xA2,0x96,0x33,0xC2,0x97).rel(0xDF,'ack_bit')
-  .emit(0xC2,0x96,0xD2,0x97,0xC2,0x97,0xD2,0x96,0x22);
- return a.resolve();
-}
-function thermometerProgram() {
- const a = new Asm();
- a.emit(0x75,0x90,0xff).call('ow_reset');
- for (const value of [0xcc,0x44]) a.emit(0x74,value).call('ow_write');
- a.emit(0x7c,8).label('ms_outer').emit(0x7d,200).label('ms_inner').emit(0x7e,250)
-  .label('ms_delay').rel(0xde,'ms_delay').rel(0xdd,'ms_inner').rel(0xdc,'ms_outer');
- a.call('ow_reset');
- for (const value of [0xcc,0xbe]) a.emit(0x74,value).call('ow_write');
- a.emit(0x78,0x30,0x7d,9).label('scratch').call('ow_read').emit(0xf6,0x08).rel(0xdd,'scratch');
- a.emit(0x75,0x3f,0xa5).label('ow_forever').rel(0x80,'ow_forever');
- a.label('ow_reset').emit(0xc2,0x92,0x7e,250).label('reset_low').rel(0xde,'reset_low')
-  .emit(0xd2,0x92).call('ow_wait').emit(0xa2,0x92).call('ow_wait').call('ow_wait').emit(0x22);
- a.label('ow_wait').emit(0x7e,32).label('ow_wait_loop').rel(0xde,'ow_wait_loop').emit(0x22);
- a.label('ow_write').emit(0x7f,8).label('ow_write_bit').emit(0xc2,0x92,0x13).rel(0x40,'ow_one')
-  .call('ow_wait').emit(0xd2,0x92).rel(0x80,'ow_written');
- a.label('ow_one').emit(0,0,0,0,0xd2,0x92);
- a.label('ow_written').call('ow_wait').rel(0xdf,'ow_write_bit').emit(0x22);
- a.label('ow_read').emit(0xe4,0x7f,8).label('ow_read_bit').emit(0xc2,0x92,0,0,0,0xd2,0x92,0,0,0,0,0,0,0xa2,0x92,0x13)
-  .call('ow_wait').rel(0xdf,'ow_read_bit').emit(0x22);
- return a.resolve();
-}
 function sevenSegmentProgram() {
  const a = new Asm();
  a.emit(0x75,0x90,0,0x78,0).absolute(0x90,'digit_codes');
@@ -96,8 +56,7 @@ function sevenSegmentProgram() {
 function hex(bytes){const rows=[];for(let at=0;at<bytes.length;at+=16){const data=bytes.slice(at,at+16);let sum=data.length+(at>>8)+(at&255);const x=n=>(n&255).toString(16).padStart(2,'0').toUpperCase();let r=':'+x(data.length)+at.toString(16).padStart(4,'0').toUpperCase()+'00';for(const v of data){r+=x(v);sum+=v;}rows.push(r+x(-sum));}return rows.join('\n')+'\n:00000001FF\n';}
 export async function generate(){
  const directory=fileURLToPath(new URL('../examples/',import.meta.url));const pixels=frame();
- for(const [name,bytes] of [['oled_hello',oledProgram(pixels)],['i2c_oled_hello',oledProgram(pixels)],['oled_pattern',oledProgram(Uint8Array.from({length:1024},(_,i)=>(i&255)^0xAA))],['i2c_sensor',sensorProgram()],['ds18b20_read',thermometerProgram()],['seven_segment_counter',sevenSegmentProgram()],
-  ['pcf8591_mirror',pcf8591Program()]])await fs.writeFile(directory+name+'.hex',hex(bytes));
+ for(const [name,bytes] of [['i2c_oled_hello',oledProgram(pixels)],['oled_pattern',oledProgram(Uint8Array.from({length:1024},(_,i)=>(i&255)^0xAA))],['seven_segment_counter',sevenSegmentProgram()]])await fs.writeFile(directory+name+'.hex',hex(bytes));
  await fs.writeFile(directory+'oled_hello_bitmap.h','/* Original 128x64 page bitmap: EMBEDDED DEV / STC89C52 / HELLO MINECRAFT / I2C 0X3C */\nconst unsigned char code hello_bitmap[1024] = {\n'+Array.from(pixels).map((v,i)=>(i%16===0?'    ':'')+'0x'+v.toString(16).padStart(2,'0')+(i===1023?'':',')+(i%16===15?'\n':' ')).join('')+'};\n');
- return {readablePixels:pixels.reduce((n,v)=>n+v.toString(2).replaceAll('0','').length,0),i2c:oledProgram(pixels).length,sensor:sensorProgram().length};
+ return {readablePixels:pixels.reduce((n,v)=>n+v.toString(2).replaceAll('0','').length,0),i2c:oledProgram(pixels).length,sensorBuild:'Run tools/build-sensor-examples.ps1 for compiled sensor + OLED firmware'};
 }

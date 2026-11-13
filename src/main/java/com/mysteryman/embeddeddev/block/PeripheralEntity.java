@@ -32,7 +32,8 @@ public final class PeripheralEntity extends BlockEntity implements I2cModule, Gp
     private final Pcf8591 adc;
     private final ButtonPanel buttons;
     private long clockRevision;
-    private boolean lit;
+    private final LedPanel leds;
+    private int previousLit = -1;
     private int previousOutput;
     private int[] savedAdcState = new int[0];
 
@@ -41,26 +42,48 @@ public final class PeripheralEntity extends BlockEntity implements I2cModule, Gp
         kind = ((PeripheralBlock) state.getBlock()).kind();
         adc = kind == PeripheralBlock.Kind.PCF8591 ? new Pcf8591() : null;
         buttons = kind == PeripheralBlock.Kind.BUTTON ? new ButtonPanel() : null;
+        leds = kind == PeripheralBlock.Kind.LED ? new LedPanel() : null;
         gpio = switch (kind) {
             case DS1302 -> new Ds1302();
-            case LED -> new GpioDevice() {
-                private final List<String> pins = List.of("LED");
-                public String label() { return "LED"; }
-                public List<String> terminals() { return pins; }
-                public void update(int levels) { lit = (levels & 1) != 0; }
-            };
-            case BUTTON, PCF8591 -> null;
+            case BUTTON, LED, PCF8591 -> null;
         };
     }
 
     public GpioDevice gpioDevice() {
         if (buttons != null) return buttons.device(0);
+        if (leds != null) return leds.device(0);
         if (gpio instanceof Ds1302 clock && level != null) clock.setTick(level.getGameTime());
         return gpio;
     }
     @Override public I2cDevice i2cDevice() { return adc; }
     public int analogOutput() { return adc == null ? 0 : adc.redstoneOutput(); }
     public ButtonPanel buttons() { return buttons; }
+    public LedPanel leds() { return leds; }
+    public int panelCount() { return buttons != null ? buttons.count() : leds != null ? leds.count() : 0; }
+    public String panelName(int index) { return buttons != null ? buttons.names().get(index) : leds.names().get(index); }
+    public int ledAt(BlockHitResult hit) { return leds == null || hit.getDirection() == Direction.DOWN ? -1
+            : leds.at(hit.getLocation().x-worldPosition.getX(),hit.getLocation().z-worldPosition.getZ()); }
+    public void configureLeds(List<String> labels,int[] colors) {
+        if(leds==null || !(level instanceof ServerLevel server))return;
+        int before=leds.count();leds.configure(labels,colors);
+        for(int key=leds.count();key<before;key++)CableNetwork.get(server).removeEndpoint(server,new CableNetwork.End(worldPosition,CableNetwork.buttonSocket(key)),true);
+        setChanged();syncLeds();
+    }
+    private void syncLeds() {
+        previousLit=leds.litMask();showActive(previousLit!=0);
+        var state=getBlockState();level.sendBlockUpdated(worldPosition,state,state,Block.UPDATE_CLIENTS);
+    }
+    private void tickLeds() {
+        if(!(level instanceof ServerLevel server))return;
+        var network=CableNetwork.get(server);
+        for(int key=0;key<leds.count();key++) {
+            var endpoint=new CableNetwork.End(worldPosition,CableNetwork.buttonSocket(key));
+            boolean connected=network.has(endpoint) ? network.controller(level,endpoint)!=null
+                    : key==0 && SystemBoardEntity.connectedModuleBoard(level,worldPosition)!=null;
+            if(!connected)leds.clear(key);
+        }
+        if(previousLit!=leds.litMask())syncLeds();
+    }
 
     public int buttonAt(BlockHitResult hit) {
         return buttons == null || hit.getDirection() == Direction.DOWN ? -1
@@ -87,8 +110,7 @@ public final class PeripheralEntity extends BlockEntity implements I2cModule, Gp
                     BoardNetwork.sendButtonState(server, this, true, "");
                 } else if (!player.isShiftKeyDown() && buttons.press(key, level.getGameTime())) syncButtons();
             }
-            case LED -> player.displayClientMessage(Component.translatable(
-                    lit ? "message.embeddeddev.led_on" : "message.embeddeddev.led_off"), true);
+            case LED -> { if (player instanceof ServerPlayer server) BoardNetwork.sendLedState(server,this,true,""); }
             case DS1302 -> {
                 Ds1302 clock = (Ds1302) gpioDevice();
                 player.displayClientMessage(Component.translatable("message.embeddeddev.rtc", clock.timeLabel()), true);
@@ -143,7 +165,7 @@ public final class PeripheralEntity extends BlockEntity implements I2cModule, Gp
                 if (module.buttons.tick(level.getGameTime())) module.syncButtons();
                 else module.showActive(module.buttons.anyPressed());
             }
-            case LED -> module.showActive(module.lit && SystemBoardEntity.connectedModuleBoard(level, pos) != null);
+            case LED -> module.tickLeds();
             case DS1302 -> {
                 Ds1302 clock = (Ds1302) module.gpioDevice();
                 if (module.clockRevision != clock.revision()) {
@@ -158,6 +180,7 @@ public final class PeripheralEntity extends BlockEntity implements I2cModule, Gp
     @Override protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.saveAdditional(tag, registries);
         if (buttons != null) buttons.save(tag);
+        if (leds != null) leds.save(tag);
         if (gpio instanceof Ds1302 clock) {
             tag.putLongArray("Clock", clock.save());
             tag.putByteArray("Ram", clock.saveRam());
@@ -168,6 +191,7 @@ public final class PeripheralEntity extends BlockEntity implements I2cModule, Gp
     @Override protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.loadAdditional(tag, registries);
         if (buttons != null) buttons.load(tag);
+        if (leds != null) leds.load(tag);
         if (gpio instanceof Ds1302 clock) clock.restore(tag.getLongArray("Clock"), tag.getByteArray("Ram"));
         if (adc != null) adc.restore(tag.getIntArray("Converter"));
     }
@@ -175,16 +199,18 @@ public final class PeripheralEntity extends BlockEntity implements I2cModule, Gp
     @Override public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
         var tag = super.getUpdateTag(registries);
         if (buttons != null) { buttons.save(tag); buttons.updatePressed(tag); }
+        if (leds != null) { leds.save(tag); leds.updateLit(tag); }
         return tag;
     }
 
     @Override public void handleUpdateTag(CompoundTag tag, HolderLookup.Provider registries) {
-        if (buttons == null) super.handleUpdateTag(tag, registries);
+        if (leds != null) { leds.load(tag); leds.readLit(tag); }
+        else if (buttons == null) super.handleUpdateTag(tag, registries);
         else { buttons.load(tag); buttons.readPressed(tag); }
     }
 
     @Override public ClientboundBlockEntityDataPacket getUpdatePacket() {
-        return buttons == null ? null : ClientboundBlockEntityDataPacket.create(this);
+        return buttons == null && leds == null ? null : ClientboundBlockEntityDataPacket.create(this);
     }
 
     @Override public void onDataPacket(Connection connection, ClientboundBlockEntityDataPacket packet, HolderLookup.Provider registries) {

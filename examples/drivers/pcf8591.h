@@ -6,5 +6,7 @@
  */
 ed_u8 pcf8591_read(ed_u8 address,ed_u8 control,ed_u8 *sample);
 ed_u8 pcf8591_read_channels(ed_u8 address,ed_u8 *four_samples);
+/* Use control=0x44 to keep DAC enabled during a four-channel scan. */
+ed_u8 pcf8591_read_channels_control(ed_u8 address,ed_u8 control,ed_u8 *four_samples);
 ed_u8 pcf8591_dac(ed_u8 address,ed_u8 control,ed_u8 value);
 #endif

@@ -67,7 +67,7 @@ public final class HandbookVerification {
                     require(illustratedRecipes.contains(name), "Every survival recipe has an illustrated card: " + name);
                 }
             }
-            for (String example : List.of("redstone_blink.hex", "pcf8591_mirror.hex", "i2c_oled_hello.hex", "oled_hello.hex",
+            for (String example : List.of("redstone_blink.hex", "pcf8591_mirror.hex", "i2c_oled_hello.hex", "mpu6050_oled.hex", "altimeter_oled.hex",
                     "i2c_sensor.hex", "ds18b20_read.hex", "seven_segment_counter.hex", "oled_pattern.hex")) {
                 require(Files.exists(Path.of("examples", example)) && book.entry("examples").matches(example), "Example index resolves actual file: " + example);
             }

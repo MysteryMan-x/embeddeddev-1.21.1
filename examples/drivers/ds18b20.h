@@ -8,6 +8,7 @@ ed_u8 ds18b20_read_rom(ed_u8 rom[8]);
 void ds18b20_search_init(ds18b20_search *state);
 ed_u8 ds18b20_search_next(ds18b20_search *state);
 ed_u8 ds18b20_start(const ed_u8 *rom);
+ed_u8 ds18b20_read_scratchpad(const ed_u8 *rom,ed_u8 bytes[9]);
 ed_u8 ds18b20_read_q4(const ed_u8 *rom,ed_i16 *temperature_q4);
 ed_u8 ds18b20_resolution(const ed_u8 *rom,ed_u8 bits);
 /* rom=0 selects SKIP ROM (single sensor only). Otherwise supply all 8 ROM bytes.
